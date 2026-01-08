@@ -35,6 +35,8 @@ const float TWO_OVER_PI = 2.0f / PI;
 
 uniform samplerBuffer constant_stack;
 uniform usamplerBuffer operator_stack;
+uniform vec2 resolution;
+
 uniform float time;
 
 vec2 evaluate_constant_operator(in uint operator, in samplerBuffer constants, inout int constant_index, in vec2 pos){
@@ -137,7 +139,8 @@ vec3 domain_color(in vec2 z){
 
 
 void main(){
-    vec2 func_value = run_stack(operator_stack,constant_stack,pos);
+    //vec2 func_value = run_stack(operator_stack,constant_stack,pos);
+    vec2 func_value = pos;
     vec3 hsl = domain_color(func_value);
     FragColor = vec4(hsl2rgb(hsl),1.0f);
 }
