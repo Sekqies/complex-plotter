@@ -35,8 +35,8 @@ const float TWO_OVER_PI = 2.0f / PI;
 
 uniform samplerBuffer constant_stack;
 uniform usamplerBuffer operator_stack;
-uniform vec2 resolution;
-
+uniform vec2 u_resolution;
+uniform float u_range;
 uniform float time;
 
 vec2 evaluate_constant_operator(in uint operator, in samplerBuffer constants, inout int constant_index, in vec2 pos){
@@ -134,13 +134,22 @@ vec3 hsl2rgb(vec3 hsl) {
 }
 
 vec3 domain_color(in vec2 z){
-    return vec3(atan(z.y,z.x) + TWO_PI_OVER_3, 1, TWO_OVER_PI * atan(length(z)));
+    float angle = atan(z.y,z.x);
+    float hue = (angle/(2.0 * PI)) + 0.5f;
+    float light = (TWO_OVER_PI) * atan(length(z));
+    return vec3(hue,1.0f,light);
 }
+
+vec2 convert_coordinates(in vec2 pos, in vec2 resolution, in float range){
+    return range * (pos - 0.5f * resolution)/resolution.y;
+}
+
 
 
 void main(){
     //vec2 func_value = run_stack(operator_stack,constant_stack,pos);
-    vec2 func_value = pos;
+    vec2 z = convert_coordinates(gl_FragCoord.xy,u_resolution,u_range);
+    vec2 func_value = z;
     vec3 hsl = domain_color(func_value);
     FragColor = vec4(hsl2rgb(hsl),1.0f);
 }

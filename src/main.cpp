@@ -13,6 +13,9 @@ int main() {
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
+	shader_program.use();
+	shader_program.setFloat("u_range", 2.0f);
+	shader_program.setVec2("u_resolution", glm::vec2(WIDTH, HEIGHT));
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
 				
