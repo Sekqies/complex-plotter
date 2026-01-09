@@ -17,10 +17,10 @@ int main() {
 	glBindVertexArray(VAO);
 	shader_program.use();
 	shader_program.setFloat("u_range", 2.0f);
-	shader_program.setVec2("shift", glm::vec2(1.0f, 0.0f));
+	shader_program.setVec2("shift", glm::vec2(0.0f, 0.0f));
 	shader_program.setVec2("u_resolution", glm::vec2(WIDTH, HEIGHT));
 
-	std::vector<unsigned char> operation_stack = { 4,4,10,1,1,10,10,255 };
+	std::vector<unsigned char> operation_stack = { 4,5,12,255 };
 	std::vector<glm::vec2> constant_stack = {vec2(1,1),vec2(0,5)};
 	unsigned int stack_tbo_buffer, stack_tbo_texture;
 	unsigned int constants_tbo_buffer, constants_tbo_texture;
