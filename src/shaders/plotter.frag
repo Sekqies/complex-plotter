@@ -37,6 +37,7 @@ uniform samplerBuffer constant_stack;
 uniform usamplerBuffer operator_stack;
 uniform vec2 u_resolution;
 uniform float u_range;
+uniform vec2 shift;
 uniform float time;
 
 vec2 evaluate_constant_operator(in uint operator, in samplerBuffer constants, inout int constant_index, in vec2 pos){
@@ -116,8 +117,11 @@ vec2 run_stack(in usamplerBuffer operators, in samplerBuffer constants, in vec2 
         if(operator == END){
             break;
         }
-
+        if(operator == NULL_SYMBOL){
+            continue;
+        }
         vec2 result;
+
         if(operator < VALUE_BOUNDARY)
             result = evaluate_constant_operator(operator,constants, constant_index, pos);
         else            
@@ -148,8 +152,8 @@ vec2 convert_coordinates(in vec2 pos, in vec2 resolution, in float range){
 
 void main(){
     //vec2 func_value = run_stack(operator_stack,constant_stack,pos);
-    vec2 z = convert_coordinates(gl_FragCoord.xy,u_resolution,u_range);
-    vec2 func_value = z;
+    vec2 z = convert_coordinates(gl_FragCoord.xy,u_resolution,u_range) + shift;
+    vec2 func_value = run_stack(operator_stack,constant_stack,z);
     vec3 hsl = domain_color(func_value);
     FragColor = vec4(hsl2rgb(hsl),1.0f);
 }

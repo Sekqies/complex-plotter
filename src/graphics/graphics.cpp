@@ -1,7 +1,9 @@
 #include <graphics/graphics.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 #include <string>
+#include <vector>
 #include <iostream>
 
 using std::string;
@@ -23,4 +25,22 @@ GLFWwindow* initalize_window(const float width, const float height, const string
 	}
 	glViewport(0, 0, width, height);
 	return window;
+}
+
+void populate_texture(unsigned int& tbo_buffer, unsigned int& tbo_texture, std::vector<unsigned char> bytes) {
+	glGenBuffers(1, &tbo_buffer);
+	glBindBuffer(GL_TEXTURE_BUFFER, tbo_buffer);
+	glBufferData(GL_TEXTURE_BUFFER, bytes.size() * sizeof(unsigned char), bytes.data(), GL_STATIC_DRAW);
+	glGenTextures(1, &tbo_texture);
+	glBindTexture(GL_TEXTURE_BUFFER, tbo_texture);
+	glTexBuffer(GL_TEXTURE_BUFFER, GL_R8UI, tbo_buffer);
+}
+
+void populate_texture(unsigned int& tbo_buffer, unsigned int& tbo_texture, const std::vector<glm::vec2>& vec_data) {
+	glGenBuffers(1, &tbo_buffer);
+	glBindBuffer(GL_TEXTURE_BUFFER, tbo_buffer);
+	glBufferData(GL_TEXTURE_BUFFER, vec_data.size() * sizeof(glm::vec2), vec_data.data(), GL_STATIC_DRAW);
+	glGenTextures(1, &tbo_texture);
+	glBindTexture(GL_TEXTURE_BUFFER, tbo_texture);
+	glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32F, tbo_buffer);
 }
