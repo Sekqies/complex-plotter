@@ -1,7 +1,7 @@
 set(SOURCE_FILES 
     "graphics/graphics.cpp"
     "graphics/graphics.h"
-)
+ "parser/types.h" "parser/tokenizer.h" "parser/checker.h" "parser/rpn.h" "parser/parser.h")
 
 add_executable(complex-plotter ${SOURCE_FILES} "main.cpp")
 find_package(OpenGL REQUIRED)

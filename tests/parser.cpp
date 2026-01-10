@@ -207,12 +207,12 @@ vector<string> to_rpn(const vector<string>& tokens) {
 
 
 int main() {
-	const string s = "-3 + 2.23 * 521 * 2 ^ (5 * 3^2)";
+	const string s = "sin(z^2 * tan(z)) + cos(z^z)";
 	vector<string> tokens = tokenize(s);
 	handle_ambiguous_operator(tokens, amb_operators);
 	tokens = to_rpn(tokens);
 	for (const string& token : tokens) {
-		cout << token << " ";
+		cout << token << " "; 
 	}
 	return 0;
 }
