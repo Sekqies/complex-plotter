@@ -15,8 +15,8 @@ enum Associativity {
 	NONE
 };
 
-enum Operator {
-	CONSTANT,
+enum Operator{
+	CONSTANT=0u,
 	VARIABLEX,
 	VARIABLEY,
 	VARIABLEZ,
