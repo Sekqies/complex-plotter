@@ -1,6 +1,7 @@
 #pragma once
 
 #include <parser/rpn.h>
+#include <parser/simplifier.h>
 
 namespace parser {
 	vector<TokenOperator> parse(const string& s);

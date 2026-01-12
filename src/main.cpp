@@ -13,7 +13,7 @@ using vec2 = glm::vec2;
 constexpr float WIDTH = 800.00f;
 constexpr float HEIGHT = 600.00f;
 int main() {
-	std::cout << parser::stack_to_str(parser::parse("-3z(2x+y)(x-y)i"));
+	std::cout << parser::stack_to_str(parser::parse("(2+sin(3i))*5"));
 	GLFWwindow* window = initalize_window(WIDTH, HEIGHT, "Domain Coloring");
 	Shader shader_program("shaders/plotter.vert", "shaders/plotter.frag");
 	unsigned int VAO;

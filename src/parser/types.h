@@ -17,7 +17,6 @@ enum Associativity {
 
 enum Operator {
 	CONSTANT,
-	CONSTANTI,
 	VARIABLEX,
 	VARIABLEY,
 	VARIABLEZ,
@@ -63,7 +62,7 @@ const std::vector<TokenOperator> operators = {
 	{Arity::BINARY, Associativity::LEFT, Operator::MULT, "*", 3},
 	{Arity::BINARY, Associativity::RIGHT, Operator::POW, "^", 4},
 	{Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "CONSTANT", 0},
-	{Arity::NULLARY, Associativity::NONE, Operator::CONSTANTI, "i", 0},
+	{Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "i", 0, glm::vec2(0,1)},
 	{Arity::NULLARY, Associativity::NONE, Operator::VARIABLEZ, "z", 0},
 	{Arity::NULLARY, Associativity::NONE, Operator::VARIABLEX, "x", 0},
 	{Arity::NULLARY, Associativity::NONE, Operator::VARIABLEY, "y", 0},
