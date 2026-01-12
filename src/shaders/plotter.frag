@@ -1,12 +1,17 @@
 #version 330
 
+
+
+
+#define START_WRITING_HERE HERE
+
 #define NULL_SYMBOL SHADER_NULL_SYMBOL
 #define END SHADER_END
 #define CONSTANT SHADER_CONSTANT
-#define VARIABLEX SHADER_VARIABLEX 
+#define VARIABLEX SHADER_VARIABLEX
 #define VARIABLEY SHADER_VARIABLEY
-#define VARIABLEZ SHADER_VARIABLEZ 
-#define VARIABLET SHADER_VARIABLET 
+#define VARIABLEZ SHADER_VARIABLEZ
+#define VARIABLET SHADER_VARIABLET
 #define VALUE_BOUNDARY SHADER_VALUE_BOUNDARY
 #define ADD SHADER_ADD
 #define SUB SHADER_SUB
@@ -14,7 +19,64 @@
 #define DIV SHADER_DIV
 #define BINARY_BOUNDARY SHADER_BINARY_BOUNDARY
 #define NEG SHADER_NEG
-#define START_WRITING_HERE HERE
+
+#ifndef SHADER_NULL_SYMBOL
+    #define SHADER_NULL_SYMBOL 0u
+#endif
+
+#ifndef SHADER_END
+    #define SHADER_END 0u
+#endif
+
+#ifndef SHADER_CONSTANT
+    #define SHADER_CONSTANT 0u
+#endif
+
+#ifndef SHADER_VARIABLEX
+    #define SHADER_VARIABLEX 0u
+#endif
+
+#ifndef SHADER_VARIABLEY
+    #define SHADER_VARIABLEY 0u
+#endif
+
+#ifndef SHADER_VARIABLEZ
+    #define SHADER_VARIABLEZ 0u
+#endif
+
+#ifndef SHADER_VARIABLET
+    #define SHADER_VARIABLET 0u
+#endif
+
+#ifndef SHADER_VALUE_BOUNDARY
+    #define SHADER_VALUE_BOUNDARY 0u
+#endif
+
+#ifndef SHADER_ADD
+    #define SHADER_ADD 0u
+#endif
+
+#ifndef SHADER_SUB
+    #define SHADER_SUB 0u
+#endif
+
+#ifndef SHADER_MULT
+    #define SHADER_MULT 0u
+#endif
+
+#ifndef SHADER_DIV
+    #define SHADER_DIV 0u
+#endif
+
+#ifndef SHADER_BINARY_BOUNDARY
+    #define SHADER_BINARY_BOUNDARY 0u
+#endif
+
+#ifndef SHADER_NEG
+    #define SHADER_NEG 0u
+#endif
+
+
 
 in vec2 pos;
 out vec4 FragColor;

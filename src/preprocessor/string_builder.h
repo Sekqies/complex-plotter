@@ -28,10 +28,10 @@ string get_operator_name(const Operator op) {
 }
 
 void define_const(std::stringstream& ss, const Operator op) {
-    ss << "const uint SHADER_" << get_operator_name(op) << " = " << static_cast<unsigned int>(op) << "u;\n";
+    ss << "#define SHADER_" << get_operator_name(op) << " " << static_cast<unsigned int>(op) << "u\n";
 }
 void define_const(std::stringstream& ss, const char* name, const unsigned int val) {
-    ss << "const uint SHADER_" << name << " = " << val << "u;\n";
+    ss << "#define SHADER_" << name << " " << val << "u\n";
 }
 
 void set_values(const vector<TokenOperator>& nullary, std::stringstream& ss, unsigned int& count) {
