@@ -5,6 +5,7 @@
 #include <glm/common.hpp>
 #include <graphics/graphics.h>
 #include <parser/parser.h>
+#include <preprocessor/preprocessor.h>
 #include <iostream>
 
 
@@ -15,6 +16,7 @@ constexpr float HEIGHT = 600.00f;
 int main() {
 	std::cout << parser::stack_to_str(parser::parse("(2+sin(3i))*5"));
 	GLFWwindow* window = initalize_window(WIDTH, HEIGHT, "Domain Coloring");
+	preprocess("shaders/plotter.frag", operators);
 	Shader shader_program("shaders/plotter.vert", "shaders/plotter.frag");
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);

@@ -1,6 +1,7 @@
 #include <parser/parser.h>
 #include <sstream>
 #include <map>
+#include <iostream>
 
 string get_operator_name(const Operator op) {
     static std::map<Operator, std::string> mapper = {
@@ -36,6 +37,7 @@ void define_const(std::stringstream& ss, const char* name, const unsigned int va
 void set_values(const vector<TokenOperator>& nullary, std::stringstream& ss, unsigned int& count) {
     for (const TokenOperator& op : nullary) {
         if (op.arity != NULLARY) continue;
+        if (op.value != glm::vec2(0.0f)) continue;
         define_const(ss, op.op);
         count++;
     }
@@ -53,11 +55,11 @@ void set_unary(const vector<TokenOperator>& unary, std::stringstream& ss, unsign
 
 void set_binary(const vector<TokenOperator>& binary, std::stringstream& ss, unsigned int& count) {
     for (const TokenOperator& op : binary) {
-        if (op.arity != UNARY) continue;
+        if (op.arity != BINARY) continue;
         define_const(ss, op.op);
         count++;
     }
-    define_const(ss, "UNARY_BOUNDARY", ++count);
+    define_const(ss, "BINARY_BOUNDARY", ++count);
 }
 
 string get_preprocessor_string(const vector<TokenOperator>& operators) {
@@ -70,8 +72,11 @@ string get_preprocessor_string(const vector<TokenOperator>& operators) {
     }
     std::stringstream ss;
     unsigned int count = 0;
+    define_const(ss, "NULL_SYMBOL", count++);
     set_values(arity_expressions.at(Arity::NULLARY), ss, count);
     set_binary(arity_expressions.at(Arity::BINARY), ss, count);
     set_unary(arity_expressions.at(Arity::UNARY), ss, count);
+    define_const(ss, "END", 255u);
+    std::cout << ss.str();
     return ss.str();
 }

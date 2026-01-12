@@ -16,7 +16,8 @@ enum Associativity {
 };
 
 enum Operator{
-	CONSTANT=0u,
+	NULL_SYMBOL = 0u,
+	CONSTANT=1u,
 	VARIABLEX,
 	VARIABLEY,
 	VARIABLEZ,
@@ -60,6 +61,7 @@ const std::vector<TokenOperator> operators = {
 	{Arity::BINARY, Associativity::LEFT, Operator::SUB, "-", 1},
 	{Arity::BINARY, Associativity::LEFT, Operator::ADD, "+", 1},
 	{Arity::BINARY, Associativity::LEFT, Operator::MULT, "*", 3},
+	{Arity::BINARY, Associativity::LEFT, Operator::DIV, "/", 3},
 	{Arity::BINARY, Associativity::RIGHT, Operator::POW, "^", 4},
 	{Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "CONSTANT", 0},
 	{Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "i", 0, glm::vec2(0,1)},
@@ -68,7 +70,7 @@ const std::vector<TokenOperator> operators = {
 	{Arity::NULLARY, Associativity::NONE, Operator::VARIABLEY, "y", 0},
 	{Arity::NULLARY, Associativity::NONE, Operator::VARIABLET, "t", 0},
 	{Arity::PAREN, Associativity::NONE, Operator::LPAREN, "(", 0},
-	{Arity::PAREN, Associativity::NONE, Operator::RPAREN, ")", 0}
+	{Arity::PAREN, Associativity::NONE, Operator::RPAREN, ")", 0},
 };
 
 const std::vector<AmbiguousOperator> amb_operators = {

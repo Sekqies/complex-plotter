@@ -1,7 +1,7 @@
 #version 330
 
-#define END SHADER_END
 #define NULL_SYMBOL SHADER_NULL_SYMBOL
+#define END SHADER_END
 #define CONSTANT SHADER_CONSTANT
 #define VARIABLEX SHADER_VARIABLEX 
 #define VARIABLEY SHADER_VARIABLEY
@@ -9,6 +9,7 @@
 #define VARIABLET SHADER_VARIABLET 
 #define VALUE_BOUNDARY SHADER_VALUE_BOUNDARY
 #define ADD SHADER_ADD
+#define SUB SHADER_SUB
 #define MULT SHADER_MULT
 #define DIV SHADER_DIV
 #define BINARY_BOUNDARY SHADER_BINARY_BOUNDARY
@@ -20,25 +21,6 @@ out vec4 FragColor;
 
 const uint STACK_SIZE = 1024;
 
-const uint END = 255u;
-const uint NULL_SYMBOL = 0u;
-const uint CONSTANT = 1u;
-const uint VARIABLEX = 2u;
-const uint VARIABLEY = 3u;
-const uint VARIABLEZ = 4u;
-const uint VARIABLET = 5u;
-//Everything below VALUE_BOUNDARY is a constant on the stack
-const uint VALUE_BOUNDARY = 10u;
-//Everything above VALUE_BONDARY is an operator on the stack
-
-const uint ADD = 10u;
-const uint SUB = 11u;
-const uint MULT = 12u;
-const uint DIV = 13u;
-// Everything below BINARY_BOUNDARY and above VALUE_BOUNDARY is a binary operator.
-const uint BINARY_BOUNDARY = 20u;
-
-const uint NEG = 21u;
 
 
 // Other useful constants
