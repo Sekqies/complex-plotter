@@ -126,6 +126,7 @@ vec2[2] pop_two(in vec2 stack[16], inout int stack_index){
     return vec2[2](a,b);
 }
 
+
 vec2 evaluate_unary_operator(in uint operator, inout vec2 stack[16], inout int stack_index){
     vec2 param = pop_one(stack,stack_index);
     switch(operator){

@@ -6,6 +6,7 @@
 #include <graphics/graphics.h>
 #include <parser/parser.h>
 #include <preprocessor/preprocessor.h>
+#include <transformer/transformer.h>
 #include <iostream>
 
 
@@ -14,23 +15,35 @@ using vec2 = glm::vec2;
 constexpr float WIDTH = 800.00f;
 constexpr float HEIGHT = 600.00f;
 int main() {
-	std::cout << parser::stack_to_str(parser::parse("(2+sin(3i))*5"));
 	GLFWwindow* window = initalize_window(WIDTH, HEIGHT, "Domain Coloring");
 	preprocess("shaders/plotter.frag", operators);
+
 	Shader shader_program("shaders/plotter.vert", "shaders/plotter.frag");
+
+	vector<TokenOperator> stack = parser::parse("z*z*z*z");
+	std::cout << parser::stack_to_str(stack);
+	vector<unsigned char> operator_stack;
+	vector<vec2> constant_stack;
+	get_stacks(stack, operator_stack, constant_stack);
+
+	for (const auto& op : operator_stack) {
+		std:: cout << (unsigned int) op << ' ';
+	}
+
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
+
+
 	shader_program.use();
 	shader_program.setFloat("u_range", 2.0f);
 	shader_program.setVec2("shift", glm::vec2(0.0f, 0.0f));
 	shader_program.setVec2("u_resolution", glm::vec2(WIDTH, HEIGHT));
 
-	std::vector<unsigned char> operation_stack = { 4,4,12,255 };
-	std::vector<glm::vec2> constant_stack = {vec2(1,1),vec2(0,5)};
+
 	unsigned int stack_tbo_buffer, stack_tbo_texture;
 	unsigned int constants_tbo_buffer, constants_tbo_texture;
-	populate_texture(stack_tbo_buffer, stack_tbo_texture, operation_stack);
+	populate_texture(stack_tbo_buffer, stack_tbo_texture, operator_stack);
 	populate_texture(constants_tbo_buffer, constants_tbo_texture, constant_stack);
 
 	while (!glfwWindowShouldClose(window)) {

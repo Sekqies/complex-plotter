@@ -11,7 +11,7 @@ const std::map<string, TokenOperator>& generate_operator_map(const vector<TokenO
 
 bool is_operator(const string& s) {
 	static const std::map<string, TokenOperator>& m = generate_operator_map(operators);
-	return m.count(s) != 0;
+	return m.contains(s);
 }
 
 TokenOperator get_operator(const string& s) {

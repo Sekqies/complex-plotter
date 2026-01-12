@@ -1,3 +1,4 @@
+#pragma once
 #include <parser/parser.h>
 
 using std::vector, std::string, glm::vec2;

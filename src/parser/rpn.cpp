@@ -1,6 +1,6 @@
 #include <parser/rpn.h>
 
-vector<TokenOperator> to_rpn(const vector<TokenOperator> tokens) {
+vector<TokenOperator> to_rpn(const vector<TokenOperator>& tokens) {
 	std::stack<TokenOperator> operator_stack;
 	vector<TokenOperator> out;
 	for (const TokenOperator& token : tokens) {

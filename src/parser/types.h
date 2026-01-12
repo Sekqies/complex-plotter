@@ -44,7 +44,7 @@ typedef struct TokenOperator {
 	Operator op;
 	std::string str_repr;
 	unsigned int precedence;
-	glm::vec2 value = { 0.0f,0.0f };
+	glm::vec2 value = glm::vec2(0.0f);
 } TokenOperator;
 
 typedef struct AmbiguousOperator {
@@ -63,7 +63,7 @@ const std::vector<TokenOperator> operators = {
 	{Arity::BINARY, Associativity::LEFT, Operator::MULT, "*", 3},
 	{Arity::BINARY, Associativity::LEFT, Operator::DIV, "/", 3},
 	{Arity::BINARY, Associativity::RIGHT, Operator::POW, "^", 4},
-	{Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "CONSTANT", 0},
+	{Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "CONSTANT", 0, glm::vec2(0.0f)},
 	{Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "i", 0, glm::vec2(0,1)},
 	{Arity::NULLARY, Associativity::NONE, Operator::VARIABLEZ, "z", 0},
 	{Arity::NULLARY, Associativity::NONE, Operator::VARIABLEX, "x", 0},

@@ -27,7 +27,7 @@ GLFWwindow* initalize_window(const float width, const float height, const string
 	return window;
 }
 
-void populate_texture(unsigned int& tbo_buffer, unsigned int& tbo_texture, std::vector<unsigned char> bytes) {
+void populate_texture(unsigned int& tbo_buffer, unsigned int& tbo_texture, const std::vector<unsigned char>& bytes) {
 	glGenBuffers(1, &tbo_buffer);
 	glBindBuffer(GL_TEXTURE_BUFFER, tbo_buffer);
 	glBufferData(GL_TEXTURE_BUFFER, bytes.size() * sizeof(unsigned char), bytes.data(), GL_STATIC_DRAW);
