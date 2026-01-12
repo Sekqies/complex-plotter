@@ -13,6 +13,7 @@ vector<TokenOperator> to_rpn(const vector<TokenOperator> tokens) {
 		}
 		if (token.arity == UNARY) {
 			operator_stack.push(token);
+			continue;
 		}
 		if (token.op == LPAREN) {
 			operator_stack.push(token);

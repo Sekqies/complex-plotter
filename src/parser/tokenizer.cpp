@@ -1,5 +1,6 @@
 #include <parser/tokenizer.h>
-
+#include <utility>
+#include <queue>
 const std::map<string, TokenOperator>& generate_operator_map(const vector<TokenOperator>& operators) {
 	static std::map<string, TokenOperator> out;
 	for (const TokenOperator& op : operators) {
@@ -49,6 +50,33 @@ void handle_ambiguous_operator(vector<TokenOperator>& tokens, const vector<Ambig
 		}
 	}
 }
+vector<TokenOperator> handle_implicit(vector<TokenOperator>& tokens) {
+	using std::pair, std::queue;
+	const TokenOperator times = get_operator("*");
+	queue<pair<size_t, TokenOperator>> pos;
+
+	for (size_t i = 0; i < tokens.size(); ++i) {
+		if (i == tokens.size() - 1) continue;
+
+		const TokenOperator& token = tokens[i];
+		if (token.arity != Arity::NULLARY && token.op != Operator::RPAREN) continue;
+
+		const TokenOperator& next = tokens[i + 1];
+		if (next.arity == Arity::NULLARY || next.op == Operator::LPAREN)
+			pos.push({ i, times });
+	}
+
+	vector<TokenOperator> out;
+	out.reserve(tokens.size() + pos.size());
+	for (size_t i = 0; i < tokens.size(); ++i) {
+		out.push_back(tokens[i]);
+		if (!pos.empty() && pos.front().first == i) {
+			out.push_back(pos.front().second);
+			pos.pop();
+		}
+	}
+	return out;
+}
 
 vector<TokenOperator> tokenize(const string& s) {
 	vector<TokenOperator> tokens;
@@ -67,6 +95,8 @@ vector<TokenOperator> tokenize(const string& s) {
 			tokens.push_back(get_operator(word));
 		}
 	}
+	tokens = handle_implicit(tokens);
 	handle_ambiguous_operator(tokens, amb_operators);
 	return tokens;
 }
+

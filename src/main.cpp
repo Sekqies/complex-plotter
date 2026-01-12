@@ -13,7 +13,7 @@ using vec2 = glm::vec2;
 constexpr float WIDTH = 800.00f;
 constexpr float HEIGHT = 600.00f;
 int main() {
-	std::cout << parser::stack_to_str(parser::parse("-3 + 2.23 * 521 * 2 ^ (5 * 3^2)"));
+	std::cout << parser::stack_to_str(parser::parse("-3z(2x+y)(x-y)"));
 	GLFWwindow* window = initalize_window(WIDTH, HEIGHT, "Domain Coloring");
 	Shader shader_program("shaders/plotter.vert", "shaders/plotter.frag");
 	unsigned int VAO;
@@ -24,7 +24,7 @@ int main() {
 	shader_program.setVec2("shift", glm::vec2(0.0f, 0.0f));
 	shader_program.setVec2("u_resolution", glm::vec2(WIDTH, HEIGHT));
 
-	std::vector<unsigned char> operation_stack = { 4,5,12,255 };
+	std::vector<unsigned char> operation_stack = { 4,4,12,255 };
 	std::vector<glm::vec2> constant_stack = {vec2(1,1),vec2(0,5)};
 	unsigned int stack_tbo_buffer, stack_tbo_texture;
 	unsigned int constants_tbo_buffer, constants_tbo_texture;

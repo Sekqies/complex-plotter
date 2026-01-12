@@ -51,7 +51,7 @@ typedef struct AmbiguousOperator {
 } AmbiguousOperator;
 
 const std::vector<TokenOperator> operators = {
-	{Arity::UNARY, Associativity::RIGHT, Operator::NEG, "~", 2},
+	{Arity::UNARY, Associativity::RIGHT, Operator::NEG, "~", 4},
 	{Arity::UNARY, Associativity::RIGHT, Operator::SIN, "sin", 1},
 	{Arity::UNARY, Associativity::RIGHT, Operator::COS, "cos", 1},
 	{Arity::UNARY, Associativity::RIGHT, Operator::TAN, "tan", 1},
