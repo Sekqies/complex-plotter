@@ -18,7 +18,7 @@ TokenOperator get_operator(const string& s) {
 	static const std::map<string, TokenOperator>& m = generate_operator_map(operators);
 	if (is_number(s)) {
 		TokenOperator val = m.at("CONSTANT");
-		val.value = std::stof(s);
+		val.value = { std::stof(s),0.0f };
 		return val;
 	}
 	return m.at(s);

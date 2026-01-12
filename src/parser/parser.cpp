@@ -12,7 +12,8 @@ string parser::stack_to_str(const vector<TokenOperator>& stack) {
 			out += op.str_repr + " ";
 			continue;
 		}
-		out += std::to_string(op.value) + " ";
+
+		out += "(" + std::to_string(op.value.x) + "," + std::to_string(op.value.y) + "i)";
 	}
 	return out;
 }
