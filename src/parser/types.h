@@ -3,10 +3,10 @@
 #include <glm/glm.hpp>
 #pragma once
 enum Arity {
-	UNARY = 0,
-	BINARY,
-	NULLARY,
-	PAREN
+	UNARY = 1,
+	BINARY = 2,
+	NULLARY = 0,
+	PAREN = 3
 };
 
 enum Associativity {

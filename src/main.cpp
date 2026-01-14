@@ -4,11 +4,18 @@
 #include <glm/glm.hpp>
 #include <glm/common.hpp>
 #include <graphics/graphics.h>
+#include <graphics/ui.h>
 #include <parser/parser.h>
 #include <preprocessor/preprocessor.h>
 #include <transformer/transformer.h>
 #include <interactions/interactions.h>
+#include <stdexcept>
 #include <iostream>
+
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 
 
 using vec2 = glm::vec2;
@@ -20,8 +27,14 @@ int main() {
 	preprocess("shaders/plotter.frag", operators);
 
 	Shader shader_program("shaders/plotter.vert", "shaders/plotter.frag");
-
-	vector<TokenOperator> stack = parser::parse("z*x + z*(y*x)/(2x)");
+	vector<TokenOperator> stack;
+	stack = parser::parse("z");
+	try {
+		stack = parser::parse("asdsaidujasd");
+	}
+	catch(const std::runtime_error& e) {
+		std::cout << "An error occured: " << e.what() << '\n';
+	}
 	std::cout << parser::stack_to_str(stack);
 	vector<unsigned char> operator_stack;
 	vector<vec2> constant_stack;
@@ -51,10 +64,16 @@ int main() {
 	populate_texture(stack_tbo_buffer, stack_tbo_texture, operator_stack);
 	populate_texture(constants_tbo_buffer, constants_tbo_texture, constant_stack);
 
+	init_imgui(window);
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT);
+		init_imgui_loop();
 		
+		ImGui::Begin("Test");
+		ImGui::Text("test string");
+		ImGui::End();
+
 		shader_program.use();
 		shader_program.setFloat("time", glfwGetTime());
 		shader_program.setFloat("u_range", view_state.range);
@@ -70,6 +89,7 @@ int main() {
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
+		render_imgui();
 		glfwSwapBuffers(window);
 	}
 	return 0;

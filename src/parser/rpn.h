@@ -2,7 +2,6 @@
 #include <parser/tokenizer.h>
 #include <parser/checker.h>
 #include <parser/types.h>
-
 #include <stack>
 #include <vector>
 #include <string>

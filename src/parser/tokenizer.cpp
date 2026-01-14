@@ -1,6 +1,7 @@
 #include <parser/tokenizer.h>
 #include <utility>
 #include <queue>
+#include <stdexcept>
 const std::map<string, TokenOperator>& generate_operator_map(const vector<TokenOperator>& operators) {
 	static std::map<string, TokenOperator> out;
 	for (const TokenOperator& op : operators) {
@@ -18,8 +19,16 @@ TokenOperator get_operator(const string& s) {
 	static const std::map<string, TokenOperator>& m = generate_operator_map(operators);
 	if (is_number(s)) {
 		TokenOperator val = m.at("CONSTANT");
+		size_t idx;
+		const float value = std::stof(s, &idx);
+		if (idx != s.size()) {
+			throw std::runtime_error("Invalid number: '" + s + "'");
+		}
 		val.value = { std::stof(s),0.0f };
 		return val;
+	}
+	if (!m.contains(s)) {
+		throw std::runtime_error("Unknown token or variable '" + s + "'");
 	}
 	return m.at(s);
 }
@@ -84,6 +93,9 @@ vector<TokenOperator> tokenize(const string& s) {
 		const char c = s[i];
 		if (c == ' ') continue;
 		if (!is_digit(c) && !is_character(c)) {
+			if (!is_operator({c})) {
+				throw std::runtime_error("Unknown character: '" + string(c,0) + "'");
+			}
 			tokens.push_back(get_operator({ c }));
 		}
 		if (is_digit(c)) {

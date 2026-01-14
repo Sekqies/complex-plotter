@@ -1,5 +1,5 @@
 #include <parser/rpn.h>
-
+#include <stdexcept>
 vector<TokenOperator> to_rpn(const vector<TokenOperator>& tokens) {
 	std::stack<TokenOperator> operator_stack;
 	vector<TokenOperator> out;
@@ -20,13 +20,17 @@ vector<TokenOperator> to_rpn(const vector<TokenOperator>& tokens) {
 			continue;
 		}
 		if (token.op == RPAREN) {
-			while (operator_stack.top().op != Operator::LPAREN) {
+			while (!operator_stack.empty() && operator_stack.top().op != Operator::LPAREN) {
 				out.push_back(operator_stack.top());
 				operator_stack.pop();
+			}
+			if (operator_stack.empty()) {
+				throw std::runtime_error("Mismatched parenthesis ')' (missing opening paren)");
 			}
 			operator_stack.pop();
 			continue;
 		}
+
 		TokenOperator o1 = token;
 		while (!operator_stack.empty() && operator_stack.top().op != LPAREN) {
 			TokenOperator o2 = operator_stack.top();
@@ -51,6 +55,9 @@ vector<TokenOperator> to_rpn(const vector<TokenOperator>& tokens) {
 		operator_stack.push(token);
 	}
 	while (!operator_stack.empty()) {
+		if (operator_stack.top().arity == Arity::PAREN) {
+			throw std::runtime_error("Mismatched parenthesis '(' (missing closing paren)");
+		}
 		out.push_back(operator_stack.top());
 		operator_stack.pop();
 	}
