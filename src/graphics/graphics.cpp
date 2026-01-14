@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <parser/parser.h>
 
 using std::string;
 GLFWwindow* initalize_window(const float width, const float height, const string windowname) {

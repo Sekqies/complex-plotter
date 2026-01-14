@@ -9,3 +9,4 @@ GLFWwindow* initalize_window(const float width, const float height, const std::s
 void populate_texture(unsigned int& tbo_buffer, unsigned int& tbo_texture, const std::vector<unsigned char>& bytes);
 
 void populate_texture(unsigned int& tbo_buffer, unsigned int& tbo_texture, const std::vector<glm::vec2>& vec_data);
+

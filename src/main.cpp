@@ -27,22 +27,6 @@ int main() {
 	preprocess("shaders/plotter.frag", operators);
 
 	Shader shader_program("shaders/plotter.vert", "shaders/plotter.frag");
-	vector<TokenOperator> stack;
-	stack = parser::parse("z");
-	try {
-		stack = parser::parse("asdsaidujasd");
-	}
-	catch(const std::runtime_error& e) {
-		std::cout << "An error occured: " << e.what() << '\n';
-	}
-	std::cout << parser::stack_to_str(stack);
-	vector<unsigned char> operator_stack;
-	vector<vec2> constant_stack;
-	get_stacks(stack, operator_stack, constant_stack);
-
-	for (const auto& op : operator_stack) {
-		std:: cout << (unsigned int) op << ' ';
-	}
 
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);
@@ -61,18 +45,17 @@ int main() {
 
 	unsigned int stack_tbo_buffer, stack_tbo_texture;
 	unsigned int constants_tbo_buffer, constants_tbo_texture;
-	populate_texture(stack_tbo_buffer, stack_tbo_texture, operator_stack);
-	populate_texture(constants_tbo_buffer, constants_tbo_texture, constant_stack);
 
+	float last_time = 0.0f;
 	init_imgui(window);
+	FunctionState function_state;
+
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT);
 		init_imgui_loop();
-		
-		ImGui::Begin("Test");
-		ImGui::Text("test string");
-		ImGui::End();
+
+		render_and_update(function_state, stack_tbo_texture, constants_tbo_texture);
 
 		shader_program.use();
 		shader_program.setFloat("time", glfwGetTime());
@@ -83,6 +66,7 @@ int main() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_BUFFER, stack_tbo_texture);
 		shader_program.setInt("operator_stack", 0);
+
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_BUFFER, constants_tbo_texture);
 		shader_program.setInt("constant_stack", 1);

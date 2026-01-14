@@ -1,5 +1,5 @@
 #include <interactions/interactions.h>
-#include <iostream>
+#include <imgui.h>
 ViewState* get_state(GLFWwindow* window) {
 	return (ViewState*)glfwGetWindowUserPointer(window);
 }
@@ -28,6 +28,7 @@ void scroll_callback(GLFWwindow* window, const double xoffset, const double yoff
 void mouse_button_callback(GLFWwindow* window, const int button, int action, int mods) {
 	ViewState* state = get_state(window);
 	if (!state) return;
+	if (ImGui::GetIO().WantCaptureMouse) return;
 	if (button != GLFW_MOUSE_BUTTON_LEFT) return;
 	if (action == GLFW_RELEASE) {
 		state->is_dragging = false;
