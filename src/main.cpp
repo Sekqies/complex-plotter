@@ -7,6 +7,7 @@
 #include <parser/parser.h>
 #include <preprocessor/preprocessor.h>
 #include <transformer/transformer.h>
+#include <interactions/interactions.h>
 #include <iostream>
 
 
@@ -20,7 +21,7 @@ int main() {
 
 	Shader shader_program("shaders/plotter.vert", "shaders/plotter.frag");
 
-	vector<TokenOperator> stack = parser::parse("z*z*z*z");
+	vector<TokenOperator> stack = parser::parse("z*x + z*(y*x)/(2x)");
 	std::cout << parser::stack_to_str(stack);
 	vector<unsigned char> operator_stack;
 	vector<vec2> constant_stack;
@@ -34,12 +35,16 @@ int main() {
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
+	ViewState view_state;
+	view_state.width = WIDTH;
+	view_state.height = HEIGHT;
+	glfwSetWindowUserPointer(window, &view_state);
+	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetCursorPosCallback(window, cursor_position_callback);
+	glfwSetFramebufferSizeCallback(window, window_size_callback);
 
 	shader_program.use();
-	shader_program.setFloat("u_range", 2.0f);
-	shader_program.setVec2("shift", glm::vec2(0.0f, 0.0f));
-	shader_program.setVec2("u_resolution", glm::vec2(WIDTH, HEIGHT));
-
 
 	unsigned int stack_tbo_buffer, stack_tbo_texture;
 	unsigned int constants_tbo_buffer, constants_tbo_texture;
@@ -47,10 +52,15 @@ int main() {
 	populate_texture(constants_tbo_buffer, constants_tbo_texture, constant_stack);
 
 	while (!glfwWindowShouldClose(window)) {
+		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		shader_program.use();
 		shader_program.setFloat("time", glfwGetTime());
+		shader_program.setFloat("u_range", view_state.range);
+		shader_program.setVec2("shift", view_state.shift);
+		shader_program.setVec2("u_resolution", glm::vec2(view_state.width,view_state.height));
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_BUFFER, stack_tbo_texture);
 		shader_program.setInt("operator_stack", 0);
@@ -61,7 +71,6 @@ int main() {
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glfwSwapBuffers(window);
-		glfwPollEvents();
 	}
 	return 0;
 }
