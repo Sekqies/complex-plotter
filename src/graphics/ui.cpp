@@ -3,6 +3,7 @@
 #include <transformer/transformer.h>
 #include <graphics/graphics.h>
 #include <string>
+#include <iostream>
 
 using string = std::string;
 using glm::vec2;
@@ -18,6 +19,7 @@ int input_text_callback(ImGuiInputTextCallbackData* data) {
 	data->Buf = static_cast<char*>(s->data());
 	return 0;
 }
+
 
 
 void render(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex) {
@@ -41,6 +43,7 @@ void render(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex)
 void render_and_update(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex){
 	ImGui::Begin("Function editor");
 	ImGui::Text("Enter a complex function f(z)=");
+	ImGui::SetNextItemWidth(-FLT_MIN);
 	bool typed = ImGui::InputText("##source",
 		static_cast<char*>(state.expression.data()),
 		state.expression.capacity() + 1,
@@ -51,6 +54,7 @@ void render_and_update(FunctionState& state, unsigned int& op_tex, unsigned int&
 		state.last_typing_time = glfwGetTime();
 		state.needs_reparse = true;
 	}
+
 	const float current_time = glfwGetTime();
 	const float time_dif = current_time - state.last_typing_time;
 	if (state.needs_reparse && time_dif < DEBOUNCE_DELAY) {
