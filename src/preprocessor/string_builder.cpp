@@ -2,6 +2,8 @@
 #include <types/type_mapper.h>
 static std::map<Operator, unsigned char> operator_to_id_mapper;
 
+static bool handled_const = false;
+
 string get_operator_name(const Operator op) {
     const FullOperator fop = get_full_operator(op);
     const std::string& name = fop.gl_define_name;
@@ -22,7 +24,6 @@ void define_const(std::stringstream& ss, const string& name, const unsigned int 
 }
 
 void register_op(std::stringstream& ss, Operator op, unsigned int& count) {
-
     if (!operator_to_id_mapper.contains(op)) {
         operator_to_id_mapper[op] = count;
     }

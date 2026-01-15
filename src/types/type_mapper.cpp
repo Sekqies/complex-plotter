@@ -20,7 +20,6 @@ std::map<Operator, FullOperator> init_full_operator_map() {
 std::map<std::string, FullOperator> init_str_operator_map() {
 	std::map<std::string, FullOperator> m;
 	for (const FullOperator& fop : full_operators) {
-		if (fop.token_operator.op == Operator::CONSTANT && fop.token_operator.value != glm::vec2(0.0f)) continue;
 		if (fop.token_operator.str_repr.empty()) continue;
 		m[fop.token_operator.str_repr] = fop;
 	}
@@ -42,7 +41,7 @@ FullOperator get_full_operator(const std::string& rep) {
 	static const std::map<std::string, FullOperator> m = init_str_operator_map();
 	const auto it = m.find(rep);
 	if (it == m.end()) {
-		throw std::runtime_error("Operator with '" + rep + "' does not exist");
+		throw std::runtime_error("Operator '" + rep + "' does not exist");
 	}
 	return it->second;
 }

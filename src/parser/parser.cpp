@@ -1,5 +1,5 @@
 #include <parser/parser.h>
-
+#include <iostream>
 vector<TokenOperator> parser::parse(const string& s) {
 	vector<TokenOperator> tokens = tokenize(s);
 	tokens = to_rpn(tokens);

@@ -70,7 +70,7 @@ inline std::vector<FullOperator> full_operators = {
 	{ {Arity::BINARY, Associativity::LEFT, Operator::DIV, "/", 3}, 0, "cdiv", "DIV"},
 	{ {Arity::BINARY, Associativity::RIGHT, Operator::POW, "^", 4}, 0, "cpow", "POW"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "CONSTANT", 0, glm::vec2(0.0f)}, 0, "", "CONSTANT"},
-	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "i", 0, glm::vec2(0,1)}, 0, "" },
+	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "i", 0, glm::vec2(0,1)}, 0, ""},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEZ, "z", 0}, 0, "z", "VARIABLEZ"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEX, "x", 0}, 0, "z.x", "VARIABLEX"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEY, "y", 0}, 0, "z.y", "VARIABLEY"},

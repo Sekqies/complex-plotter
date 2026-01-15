@@ -11,6 +11,7 @@
 #include <interactions/interactions.h>
 #include <stdexcept>
 #include <iostream>
+#include <types/type_mapper.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
