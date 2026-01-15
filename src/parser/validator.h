@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <stack>
-#include <parser/types.h>
+#include <types/types.h>
 #include <stdexcept>
 using std::vector;
 

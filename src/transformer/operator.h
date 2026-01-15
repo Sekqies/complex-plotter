@@ -1,5 +1,5 @@
 #pragma once
-#include <parser/types.h>
+#include <types/types.h>
 #include <vector>
 
 using std::vector;

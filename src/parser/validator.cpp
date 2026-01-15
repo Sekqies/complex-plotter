@@ -1,4 +1,5 @@
 #include <parser/validator.h>
+#include <types/types.h>
 
 bool is_valid_rpn(const vector<TokenOperator>& operator_stack) {
 	int stack_depth = 0;

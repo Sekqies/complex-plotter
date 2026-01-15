@@ -1,24 +1,12 @@
 #include <parser/tokenizer.h>
+#include <types/type_mapper.h>
 #include <utility>
 #include <queue>
 #include <stdexcept>
-const std::map<string, TokenOperator>& generate_operator_map(const vector<TokenOperator>& operators) {
-	static std::map<string, TokenOperator> out;
-	for (const TokenOperator& op : operators) {
-		out[op.str_repr] = op;
-	}
-	return out;
-}
-
-bool is_operator(const string& s) {
-	static const std::map<string, TokenOperator>& m = generate_operator_map(operators);
-	return m.contains(s);
-}
 
 TokenOperator get_operator(const string& s) {
-	static const std::map<string, TokenOperator>& m = generate_operator_map(operators);
 	if (is_number(s)) {
-		TokenOperator val = m.at("CONSTANT");
+		TokenOperator val = get_token_operator("CONSTANT");
 		size_t idx;
 		const float value = std::stof(s, &idx);
 		if (idx != s.size()) {
@@ -27,10 +15,7 @@ TokenOperator get_operator(const string& s) {
 		val.value = { std::stof(s),0.0f };
 		return val;
 	}
-	if (!m.contains(s)) {
-		throw std::runtime_error("Unknown token or variable '" + s + "'");
-	}
-	return m.at(s);
+	return get_token_operator(s);
 }
 
 string handle_multicharacter(const string& s, size_t& index, const std::function<bool(const char)>& check) {
@@ -93,9 +78,6 @@ vector<TokenOperator> tokenize(const string& s) {
 		const char c = s[i];
 		if (c == ' ') continue;
 		if (!is_digit(c) && !is_character(c)) {
-			if (!is_operator({c})) {
-				throw std::runtime_error("Unknown character: '" + string(c,0) + "'");
-			}
 			tokens.push_back(get_operator({ c }));
 		}
 		if (is_digit(c)) {

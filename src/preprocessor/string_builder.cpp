@@ -1,29 +1,16 @@
 #include <preprocessor/string_builder.h>
-
+#include <types/type_mapper.h>
 static std::map<Operator, unsigned char> operator_to_id_mapper;
 
 string get_operator_name(const Operator op) {
-    static std::map<Operator, std::string> mapper = {
-        { Operator::CONSTANT,  "CONSTANT" },
-        { Operator::VARIABLEX, "VARIABLEX" },
-        { Operator::VARIABLEY, "VARIABLEY" },
-        { Operator::VARIABLEZ, "VARIABLEZ" },
-        { Operator::VARIABLET, "VARIABLET" },
-        { Operator::ADD,       "ADD" },
-        { Operator::SUB,       "SUB" },
-        { Operator::NEG,       "NEG" },
-        { Operator::MULT,      "MULT" },
-        { Operator::DIV,       "DIV" },
-        { Operator::EXP,       "EXP" },
-        { Operator::POW,       "POW" },
-        { Operator::LPAREN,    "LPAREN" },
-        { Operator::RPAREN,    "RPAREN" },
-        { Operator::COMMA,     "COMMA" },
-        { Operator::SIN,       "SIN" },
-        { Operator::COS,       "COS" },
-        { Operator::TAN,       "TAN" }
-    };
-    return mapper.at(op);
+    const FullOperator fop = get_full_operator(op);
+    const std::string& name = fop.gl_define_name;
+    std::string gl_name = fop.gl_name;
+    if (name.empty()) {
+        for (char& c : gl_name) c = std::toupper(c);
+        return gl_name;
+    }
+    return name;
 }
 
 void define_const(std::stringstream& ss, const Operator op) {
@@ -44,7 +31,10 @@ void register_op(std::stringstream& ss, Operator op, unsigned int& count) {
 }
 
 unsigned char get_opcode(Operator op) {
-    return operator_to_id_mapper.at(op);
+    const auto it = operator_to_id_mapper.find(op);
+    if (it == operator_to_id_mapper.end())
+        return 0u;
+    return it->second;
 }
 
 void set_values(const vector<TokenOperator>& nullary, std::stringstream& ss, unsigned int& count) {
@@ -88,5 +78,6 @@ string get_preprocessor_string(const vector<TokenOperator>& operators) {
     set_unary(arity_expressions.at(Arity::UNARY), ss, count);
     define_const(ss, "END", 255u);
     std::cout << ss.str();
+
     return ss.str();
 }

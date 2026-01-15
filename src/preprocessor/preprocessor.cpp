@@ -1,4 +1,5 @@
 #include <preprocessor/preprocessor.h>
+#include <types/type_mapper.h>
 
 string get_source(const string& filename) {
     std::ifstream file(filename);
@@ -12,6 +13,7 @@ string get_source(const string& filename) {
 
 void preprocess(const string& filename, const vector<TokenOperator>& operators) {
     string preprocessed_string = get_preprocessor_string(operators);
+    initialize_map_id();
     string raw_source = get_source(filename);
     const string marker = "START_WRITING_HERE HERE";
     size_t start_pos = raw_source.find(marker) + marker.length();
