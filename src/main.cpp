@@ -23,6 +23,11 @@ using vec2 = glm::vec2;
 
 constexpr float WIDTH = 800.00f;
 constexpr float HEIGHT = 600.00f;
+
+unsigned int stack_tbo_buffer, stack_tbo_texture;
+unsigned int constants_tbo_buffer, constants_tbo_texture;
+
+
 int main() {
 	GLFWwindow* window = initalize_window(WIDTH, HEIGHT, "Domain Coloring");
 	preprocess("shaders/plotter.frag", operators);
@@ -45,12 +50,11 @@ int main() {
 
 	shader_program.use();
 
-	unsigned int stack_tbo_buffer, stack_tbo_texture;
-	unsigned int constants_tbo_buffer, constants_tbo_texture;
-
 	float last_time = 0.0f;
 	init_imgui(window);
 	FunctionState function_state;
+
+	render(function_state, stack_tbo_texture, constants_tbo_texture);
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();

@@ -10,4 +10,6 @@ typedef struct FunctionState {
 	bool needs_reparse = true;
 } FunctionState;
 
+void render(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex);
+
 void render_and_update(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex);
