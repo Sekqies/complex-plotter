@@ -72,9 +72,9 @@ inline std::vector<FullOperator> full_operators = {
 	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "CONSTANT", 0, glm::vec2(0.0f)}, 0, "", "CONSTANT"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "i", 0, glm::vec2(0,1)}, 0, ""},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEZ, "z", 0}, 0, "z", "VARIABLEZ"},
-	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEX, "x", 0}, 0, "z.x", "VARIABLEX"},
-	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEY, "y", 0}, 0, "z.y", "VARIABLEY"},
-	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLET, "t", 0}, 0, "time", "VARIABLET"},
+	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEX, "x", 0}, 0, "vec2(z.x,0.0f)", "VARIABLEX"},
+	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEY, "y", 0}, 0, "vec2(z.y,0.0f)", "VARIABLEY"},
+	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLET, "t", 0}, 0, "vec2(time,0.0f)", "VARIABLET"},
 	{ {Arity::PAREN, Associativity::NONE, Operator::LPAREN, "(", 0}, 0, "" },
 	{ {Arity::PAREN, Associativity::NONE, Operator::RPAREN, ")", 0}, 0, "" },
 };
