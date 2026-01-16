@@ -38,6 +38,10 @@ vec2 cdiv(vec2 a, vec2 b){
     return cmult(a,vec2(b.x,-b.y))/(b.x*b.x+b.y*b.y);
 }
 
+vec2 cneg(vec2 a){
+    return -a;
+}
+
 
 #define END_FUNCTION_DEFINITIONS HERE
 
