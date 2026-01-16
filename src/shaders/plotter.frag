@@ -1,6 +1,48 @@
 #version 330
 
+// Other useful constants
 
+
+#define CONSTANT_DEFINITIONS HERE
+
+const float PI = 3.141591f;
+const float TWO_PI_OVER_3 = 2*PI*0.66666f;
+const float TWO_OVER_PI = 2.0f / PI;
+
+#define END_CONSTANT_DEFINITIONS HERE
+
+in vec2 pos;
+out vec4 FragColor;
+
+
+
+uniform vec2 u_resolution;
+uniform float u_range;
+uniform vec2 shift;
+uniform float time;
+
+#define FUNCTION_DEFINITIONS HERE
+
+vec2 cadd(vec2 a, vec2 b){
+    return a + b;
+}
+vec2 csub(vec2 a, vec2 b){
+    return a - b;
+}
+
+vec2 cmult(vec2 a, vec2 b){
+    return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+vec2 cdiv(vec2 a, vec2 b){
+    return cmult(a,vec2(b.x,-b.y))/(b.x*b.x+b.y*b.y);
+}
+
+
+#define END_FUNCTION_DEFINITIONS HERE
+
+
+#define INTERPRETER_SPECIFIC_FUNCTIONS HERE
 
 
 #define START_WRITING_HERE HERE
@@ -25,79 +67,59 @@
 #endif
 
 #ifndef SHADER_END
-    #define SHADER_END 0u
+    #define SHADER_END 1u
 #endif
 
 #ifndef SHADER_CONSTANT
-    #define SHADER_CONSTANT 0u
+    #define SHADER_CONSTANT 2u
 #endif
 
 #ifndef SHADER_VARIABLEX
-    #define SHADER_VARIABLEX 0u
+    #define SHADER_VARIABLEX 3u
 #endif
 
 #ifndef SHADER_VARIABLEY
-    #define SHADER_VARIABLEY 0u
+    #define SHADER_VARIABLEY 4u
 #endif
 
 #ifndef SHADER_VARIABLEZ
-    #define SHADER_VARIABLEZ 0u
+    #define SHADER_VARIABLEZ 5u
 #endif
 
 #ifndef SHADER_VARIABLET
-    #define SHADER_VARIABLET 0u
+    #define SHADER_VARIABLET 6u
 #endif
 
 #ifndef SHADER_VALUE_BOUNDARY
-    #define SHADER_VALUE_BOUNDARY 0u
+    #define SHADER_VALUE_BOUNDARY 7u
 #endif
 
 #ifndef SHADER_ADD
-    #define SHADER_ADD 0u
+    #define SHADER_ADD 8u
 #endif
 
 #ifndef SHADER_SUB
-    #define SHADER_SUB 0u
+    #define SHADER_SUB 9u
 #endif
 
 #ifndef SHADER_MULT
-    #define SHADER_MULT 0u
+    #define SHADER_MULT 10u
 #endif
 
 #ifndef SHADER_DIV
-    #define SHADER_DIV 0u
+    #define SHADER_DIV 11u
 #endif
 
 #ifndef SHADER_BINARY_BOUNDARY
-    #define SHADER_BINARY_BOUNDARY 0u
+    #define SHADER_BINARY_BOUNDARY 12u
 #endif
 
 #ifndef SHADER_NEG
-    #define SHADER_NEG 0u
+    #define SHADER_NEG 13u
 #endif
 
 
-
-in vec2 pos;
-out vec4 FragColor;
-
 const uint STACK_SIZE = 1024;
-
-
-
-// Other useful constants
-const float PI = 3.141591f;
-const float TWO_PI_OVER_3 = 2*PI*0.66666f;
-const float TWO_OVER_PI = 2.0f / PI;
-
-
-
-uniform samplerBuffer constant_stack;
-uniform usamplerBuffer operator_stack;
-uniform vec2 u_resolution;
-uniform float u_range;
-uniform vec2 shift;
-uniform float time;
 
 vec2 evaluate_constant_operator(in uint operator, in samplerBuffer constants, inout int constant_index, in vec2 pos){
     switch(operator){
@@ -136,13 +158,9 @@ vec2 evaluate_unary_operator(in uint operator, inout vec2 stack[16], inout int s
     return param;
 }
 
-vec2 mult(vec2 a, vec2 b){
-    return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
-}
+uniform samplerBuffer constant_stack;
+uniform usamplerBuffer operator_stack;
 
-vec2 div(vec2 a, vec2 b){
-    return mult(a,vec2(b.x,-b.y))/(b.x*b.x+b.y*b.y);
-}
 
 vec2 evaluate_binary_operator(in uint operator, inout vec2 stack[16], inout int stack_index){
     vec2 params[2] = pop_two(stack,stack_index);
@@ -154,9 +172,9 @@ vec2 evaluate_binary_operator(in uint operator, inout vec2 stack[16], inout int 
         case SUB:
             return a - b;
         case MULT:
-            return mult(a,b);
+            return cmult(a,b);
         case DIV:
-            return div(a,b);
+            return cdiv(a,b);
     }
     return vec2(0.0f);
 }
@@ -192,6 +210,8 @@ vec2 run_stack(in usamplerBuffer operators, in samplerBuffer constants, in vec2 
     return (stack_index > 0)? stack[stack_index-1] : vec2(0.0f);
 }
 
+#define END_INTERPRETER_SPECIFIC_FUNCTIONS HERE
+
 vec3 hsl2rgb(vec3 hsl) {
     vec3 rgb = clamp(abs(mod(hsl.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
     return hsl.z + hsl.y * (rgb - 0.5) * (1.0 - abs(2.0 * hsl.z - 1.0));
@@ -213,7 +233,13 @@ vec2 convert_coordinates(in vec2 pos, in vec2 resolution, in float range){
 void main(){
     //vec2 func_value = run_stack(operator_stack,constant_stack,pos);
     vec2 z = convert_coordinates(gl_FragCoord.xy,u_resolution,u_range) + shift;
+    
+    #define INTERPRETER_ASSIGNEMENT HERE
     vec2 func_value = run_stack(operator_stack,constant_stack,z);
+    #define END_INTERPRETER_ASSIGNEMENT HERE
+    
+    #define INJECTION_POINT HERE
+    
     vec3 hsl = domain_color(func_value);
     FragColor = vec4(hsl2rgb(hsl),1.0f);
 }

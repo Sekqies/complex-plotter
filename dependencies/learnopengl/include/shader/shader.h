@@ -13,7 +13,11 @@ public:
     // ------------------------------------------------------------------------
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
+    Shader() = default;
+
     Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr);
+
+    void compile(const std::string& vertex_source, const std::string& fragment_source);
     // activate the shader
     // ------------------------------------------------------------------------
     // activate the shader

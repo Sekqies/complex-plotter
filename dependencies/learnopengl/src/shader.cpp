@@ -96,6 +96,30 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
 
 }
 
+void Shader::compile(const std::string& vertex_shader, const std::string& fragment_shader) {
+    unsigned int vertex, fragment;
+    // vertex shader
+    const char* vertex_str = vertex_shader.c_str();
+    const char* fragment_str = fragment_shader.c_str();
+    vertex = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex, 1, &vertex_str, NULL);
+    glCompileShader(vertex);
+    checkCompileErrors(vertex, "VERTEX");
+    // fragment Shader
+    fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment, 1, &fragment_str, NULL);
+    glCompileShader(fragment);
+    checkCompileErrors(fragment, "FRAGMENT");
+    // shader Program
+    ID = glCreateProgram();
+    glAttachShader(ID, vertex);
+    glAttachShader(ID, fragment);
+    glLinkProgram(ID);
+    checkCompileErrors(ID, "PROGRAM");
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
+}
+
 // activate the shader
 // ------------------------------------------------------------------------
 // activate the shader
