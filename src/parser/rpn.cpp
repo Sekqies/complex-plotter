@@ -2,17 +2,24 @@
 #include <stdexcept>
 vector<TokenOperator> to_rpn(const vector<TokenOperator>& tokens) {
 	std::stack<TokenOperator> operator_stack;
+	bool expecting_operand = true;
 	vector<TokenOperator> out;
 	for (const TokenOperator& token : tokens) {
 		if (token.op == Operator::COMMA) {
+			expecting_operand = true;
 			continue;
 		}
 		if (token.arity == NULLARY) {
+			if (!expecting_operand) {
+				throw std::runtime_error("Unexpected operand '" + token.str_repr + "' missing operator");
+			}
+			expecting_operand = false;
 			out.push_back(token);
 			continue;
 		}
 		if (token.arity == UNARY) {
 			operator_stack.push(token);
+			expecting_operand = true;
 			continue;
 		}
 		if (token.op == LPAREN) {
@@ -20,6 +27,9 @@ vector<TokenOperator> to_rpn(const vector<TokenOperator>& tokens) {
 			continue;
 		}
 		if (token.op == RPAREN) {
+			if (expecting_operand) {
+				throw std::runtime_error("Unexpected ')': expected operand");
+			}
 			while (!operator_stack.empty() && operator_stack.top().op != Operator::LPAREN) {
 				out.push_back(operator_stack.top());
 				operator_stack.pop();
@@ -28,7 +38,12 @@ vector<TokenOperator> to_rpn(const vector<TokenOperator>& tokens) {
 				throw std::runtime_error("Mismatched parenthesis ')' (missing opening paren)");
 			}
 			operator_stack.pop();
+			expecting_operand = false;
 			continue;
+		}
+
+		if (expecting_operand) {
+			throw std::runtime_error("Unexpected operator: missing operand");
 		}
 
 		TokenOperator o1 = token;
@@ -53,6 +68,7 @@ vector<TokenOperator> to_rpn(const vector<TokenOperator>& tokens) {
 			}
 		}
 		operator_stack.push(token);
+		expecting_operand = true;
 	}
 	while (!operator_stack.empty()) {
 		if (operator_stack.top().arity == Arity::PAREN) {
@@ -60,6 +76,9 @@ vector<TokenOperator> to_rpn(const vector<TokenOperator>& tokens) {
 		}
 		out.push_back(operator_stack.top());
 		operator_stack.pop();
+	}
+	if (expecting_operand) {
+		throw std::runtime_error("Trailing operator");
 	}
 	return out;
 }

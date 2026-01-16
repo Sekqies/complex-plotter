@@ -3,7 +3,6 @@
 
 bool is_valid_rpn(const vector<TokenOperator>& operator_stack) {
 	int stack_depth = 0;
-	std::stack<TokenOperator> stack;
 	for (const TokenOperator& op : operator_stack) {
 		if (op.arity == Arity::NULLARY) {
 			stack_depth++;

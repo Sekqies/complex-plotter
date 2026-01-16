@@ -5,6 +5,7 @@ vector<TokenOperator> parser::parse(const string& s) {
 	tokens = to_rpn(tokens);
 	tokens = simplify(tokens);
 	is_valid_rpn(tokens);
+	std::cout << stack_to_str(tokens) << '\n';
 	return tokens;
 }
 
