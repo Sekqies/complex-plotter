@@ -8,7 +8,7 @@
 using string = std::string;
 using glm::vec2;
 
-const float DEBOUNCE_DELAY = 0.2f;
+const float DEBOUNCE_DELAY = 0.05f;
 
 int input_text_callback(ImGuiInputTextCallbackData* data) {
 	if (data->EventFlag != ImGuiInputTextFlags_CallbackResize) {
@@ -22,7 +22,7 @@ int input_text_callback(ImGuiInputTextCallbackData* data) {
 
 
 
-void render(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex) {
+void render(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex, Shader& interpreter_shader) {
 	try {
 		vector<TokenOperator> stack = parser::parse(state.expression);
 		vector<unsigned char> operator_stack;
@@ -38,27 +38,51 @@ void render(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex)
 		state.error_message = e.what();
 		state.needs_reparse = false;
 	}
+	state.current_shader = &interpreter_shader;
+	state.is_interpreted = true;
 }
 
-void render_and_update(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex){
+void compile(FunctionState& state, CompilerShader& compiler_shader) {
+	try {
+		vector<TokenOperator> stack = parser::parse(state.expression);
+		const string& expression = stack_to_glsl_string(stack);
+		compiler_shader.compile(expression);
+	}
+	catch (const std::runtime_error& e) {
+		state.error_message = e.what();
+		state.needs_reparse = false;
+	}
+	state.current_shader = &compiler_shader.shader;
+	state.is_interpreted = false;
+}
+
+void render_and_update(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex, Shader& interpreter_shader, CompilerShader& compiler_shader){
 	ImGui::Begin("Function editor");
 	ImGui::Text("Enter a complex function f(z)=");
 	ImGui::SetNextItemWidth(-FLT_MIN);
-	bool typed = ImGui::InputText("##source",
+	bool pressed_enter = ImGui::InputText("##source",
 		static_cast<char*>(state.expression.data()),
 		state.expression.capacity() + 1,
-		ImGuiInputTextFlags_CallbackResize,
+		ImGuiInputTextFlags_CallbackResize |
+		ImGuiInputTextFlags_EnterReturnsTrue,
 		input_text_callback,
 		&state.expression);
-	if (typed) {
+	bool typed = ImGui::IsItemEdited();
+
+	if (typed && !pressed_enter) {
 		state.last_typing_time = glfwGetTime();
 		state.needs_reparse = true;
 	}
 
 	const float current_time = glfwGetTime();
 	const float time_dif = current_time - state.last_typing_time;
-	if (state.needs_reparse && time_dif < DEBOUNCE_DELAY) {
-		render(state, op_tex, const_tex);
+	const bool debounced = time_dif > DEBOUNCE_DELAY;
+
+	if (pressed_enter) {
+		compile(state, compiler_shader);
+	}
+	if (state.needs_reparse && debounced && !pressed_enter) {
+		render(state, op_tex, const_tex, interpreter_shader);
 	}
 	if (!state.error_message.empty()) {
 		ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Error: %s", state.error_message.c_str());
@@ -70,6 +94,7 @@ void render_and_update(FunctionState& state, unsigned int& op_tex, unsigned int&
 	ImGui::Text("Controls:");
 	ImGui::BulletText("Pan: Left Click + Drag");
 	ImGui::BulletText("Zoom: Scroll Wheel");
+	ImGui::BulletText("Enter: Compile (increases performance)");
 
 	ImGui::End();
 }

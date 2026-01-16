@@ -1,6 +1,6 @@
 #include <compiler/compiler_shader.h>
 
-inline CompilerShader::CompilerShader(const std::string& vertex_path, const std::string& frag_path) {
+CompilerShader::CompilerShader(const std::string& vertex_path, const std::string& frag_path) {
 	std::ifstream vfile;
 	std::ifstream ffile;
 	vfile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -26,12 +26,11 @@ inline CompilerShader::CompilerShader(const std::string& vertex_path, const std:
 	find_injection_point();
 }
 
-inline void CompilerShader::compile(const std::string glsl_expression) {
-	inject(glsl_expression);
-	shader.compile(vert_source, frag_source);
+void CompilerShader::compile(const std::string glsl_expression) {
+	shader.compile(vert_source, generate_full_source(glsl_expression));
 }
 
-inline size_t CompilerShader::find_end(const std::string& source, const std::string& substr, const size_t start) {
+size_t CompilerShader::find_end(const std::string& source, const std::string& substr, const size_t start) {
 	size_t pos = source.find(substr, start);
 	if (pos == std::string::npos) {
 		return std::string::npos;
@@ -42,7 +41,7 @@ inline size_t CompilerShader::find_end(const std::string& source, const std::str
 	return pos + substr.size();
 }
 
-inline void CompilerShader::clean_frag_source() {
+void CompilerShader::clean_frag_source() {
 	constexpr std::array kill_these_guys = { "INTERPRETER_SPECIFIC_FUNCTIONS","INTERPRETER_ASSIGNEMENT" };
 	size_t prev_end = 0;
 	for (const std::string& s : kill_these_guys) {
@@ -57,14 +56,17 @@ inline void CompilerShader::clean_frag_source() {
 	}
 }
 
-inline void CompilerShader::find_injection_point() {
+void CompilerShader::find_injection_point() {
 	injection_point = find_end(frag_source, "#define INJECTION_POINT HERE", 0);
 	if (injection_point == std::string::npos) {
 		std::cerr << "Injection point not found in shader";
 	}
 }
 
-inline void CompilerShader::inject(const std::string& expression) {
+std::string CompilerShader::generate_full_source(const std::string& expression) {
 	size_t line_end = frag_source.find('\n', injection_point);
-	frag_source.insert(line_end + 1, "\n" + expression + "\n");
+	std::string copy = frag_source;
+	copy.insert(line_end + 1, "\n vec2 func_value = " + expression + ";\n");
+	std::cout << copy;
+	return copy;
 }

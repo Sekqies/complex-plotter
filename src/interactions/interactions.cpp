@@ -1,4 +1,5 @@
 #include <interactions/interactions.h>
+#include <graphics/ui.h>
 #include <imgui.h>
 ViewState* get_state(GLFWwindow* window) {
 	return (ViewState*)glfwGetWindowUserPointer(window);
@@ -61,4 +62,15 @@ void window_size_callback(GLFWwindow* window, const int width, const int height)
 	state->width = static_cast<float>(width);
 	state->height = static_cast<float>(height);
 	glViewport(0, 0, width, height);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (action != GLFW_PRESS) return;
+	if (key == GLFW_KEY_ESCAPE) {
+		glfwSetWindowShouldClose(window, true);
+	}
+	if (key == GLFW_KEY_SPACE) {
+		
+	}
 }
