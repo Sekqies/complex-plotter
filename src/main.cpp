@@ -26,7 +26,8 @@ constexpr float HEIGHT = 600.00f;
 int main() {
 	GLFWwindow* window = initalize_window(WIDTH, HEIGHT, "Domain Coloring");
 	preprocess("shaders/plotter.frag", operators);
-
+	const auto& token = get_token_operator(CONSTANT);
+	const auto& add = get_token_operator(ADD);
 	Shader shader_program("shaders/plotter.vert", "shaders/plotter.frag");
 
 	unsigned int VAO;
