@@ -34,7 +34,8 @@ enum Operator{
 	COMMA,
 	SIN,
 	COS,
-	TAN
+	TAN,
+	DERIVATIVE
 };
 
 typedef struct TokenOperator {
@@ -44,6 +45,7 @@ typedef struct TokenOperator {
 	std::string str_repr = "";
 	unsigned int precedence = 0u;
 	glm::vec2 value = glm::vec2(0.0f);
+	bool higher_order = false;
 } TokenOperator;
 
 typedef struct FullOperator {
@@ -77,6 +79,8 @@ inline std::vector<FullOperator> full_operators = {
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLET, "t", 0}, 0, "vec2(time,0.0f)", "VARIABLET"},
 	{ {Arity::PAREN, Associativity::NONE, Operator::LPAREN, "(", 0}, 0, "" },
 	{ {Arity::PAREN, Associativity::NONE, Operator::RPAREN, ")", 0}, 0, "" },
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::RPAREN, "derivative", 0,glm::vec2(0.0f),true}, 0, ""},
+
 };
 
 

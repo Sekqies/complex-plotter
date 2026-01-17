@@ -221,11 +221,38 @@ vec3 hsl2rgb(vec3 hsl) {
     return hsl.z + hsl.y * (rgb - 0.5) * (1.0 - abs(2.0 * hsl.z - 1.0));
 }
 
-vec3 domain_color(in vec2 z){
-    float angle = atan(z.y,z.x);
-    float hue = (angle/(2.0 * PI)) + 0.5f;
-    float light = (TWO_OVER_PI) * atan(length(z));
-    return vec3(hue,1.0f,light);
+float get_discontinuous_light(vec2 f) {
+    // 1. Safety Clamp (prevents infinity artifacts)
+    float dist = abs(f.x) > 9e+10 || abs(f.y) > 9e+10 ? 9e+10 : length(f); 
+
+    // 2. Logarithmic Cycle
+    // log2 means the pattern repeats every time distance doubles (1, 2, 4, 8...)
+    float logval = mod(log2(dist), 1.0); 
+
+    float decimal_exp = 1.0;
+    if (dist != 0.0) {
+        // Logic: decimal_exp becomes (1.0 - fractional_part_of_log)
+        // This creates a "sawtooth" wave for brightness
+        decimal_exp = -(logval - floor(logval) - 1.0); 
+    }
+
+    // 3. Shaping Curve
+    // pow(..., 0.2) softens the curve (gamma), and -0.15 shifts the darkness
+    return mod(1.0 / (pow(decimal_exp, 0.2) + 1.0) - 0.15, 1.0);
+}
+
+// Main Domain Coloring Function
+vec3 domain_color(in vec2 z) {
+    // 1. Hue (Standard Phase)
+    float hue = atan(z.y, z.x) / (2.0 * PI);
+    
+    // 2. Saturation (Keep distinct)
+    float sat = 1.0; 
+
+    // 3. Lightness (Using your discontinuous logic)
+    float light = get_discontinuous_light(z);
+
+    return vec3(hue, sat, light);
 }
 
 vec2 convert_coordinates(in vec2 pos, in vec2 resolution, in float range){
