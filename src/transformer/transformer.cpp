@@ -23,15 +23,22 @@ string stack_to_glsl_string(const vector<TokenOperator>& stack) {
 			continue;
 		}
 		unsigned int arity_val = static_cast<unsigned int>(op.arity);
-		std::string out = str_repr + "(";
+		vector<string> args;
+
 		while (arity_val--) {
-			out += str_stack.top();
-			if (arity_val != 0)
-				out += ",";
+			args.push_back(str_stack.top());
 			str_stack.pop();
+		}
+		std::reverse(args.begin(), args.end());
+		std::string out = str_repr + "(";
+		for (unsigned int i = 0; i < args.size(); ++i) {
+			out += args[i];
+			if (i != args.size() - 1)
+				out += ",";
 		}
 		out += ")";
 		str_stack.push(out);
 	}
+	if (str_stack.empty()) return "";
 	return str_stack.top();
 }
