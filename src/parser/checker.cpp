@@ -26,7 +26,7 @@ bool is_unary_context(const vector<TokenOperator>& tokens, size_t index) {
 
 	const TokenOperator& prev = tokens[index - 1];
 	if (prev.op == Operator::LPAREN) return true;
-	if (prev.arity != Arity::NULLARY) return true;
+	if (prev.arity != Arity::NULLARY && prev.arity != Arity::PAREN) return true;
 
 	return false;
 }
