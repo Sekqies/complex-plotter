@@ -13,3 +13,5 @@ bool is_word(const std::string& s);
 
 bool is_unary_context(const vector<TokenOperator>& tokens, size_t index);
 
+bool is_higher_order(const vector<TokenOperator>& tokens);
+

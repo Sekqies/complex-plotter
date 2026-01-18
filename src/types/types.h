@@ -18,16 +18,20 @@ enum Associativity {
 enum Operator{
 	NULL_SYMBOL = 0u,
 	CONSTANT=1u,
+	CONSTANTH,
 	VARIABLEX,
 	VARIABLEY,
 	VARIABLEZ,
 	VARIABLET,
+	VARIABLEPLACEHOLDER,
+	SECONDVARIABLEPLACEHOLDER,
 	ADD,
 	SUB,
 	NEG,
 	MULT,
 	DIV,
 	EXP,
+	LOG,
 	POW,
 	LPAREN,
 	RPAREN,
@@ -35,6 +39,10 @@ enum Operator{
 	SIN,
 	COS,
 	TAN,
+	COSEC,
+	SEC,
+	COT,
+
 	DERIVATIVE
 };
 
@@ -63,23 +71,35 @@ typedef struct AmbiguousOperator {
 
 inline std::vector<FullOperator> full_operators = {
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::NEG, "~", 4}, 0, "cneg", "NEG"},
+	// TRIGONOMETRIC
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::SIN, "sin", 1}, 0, "csin", "SIN"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::COS, "cos", 1}, 0, "ccos", "COS"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::TAN, "tan", 1}, 0, "ctan", "TAN"},
+	// INVERSE TRIGONOMETRIC
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::COSEC, "csc", 1}, 0, "ccsc", "CSC"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::SEC, "sec", 1}, 0, "csec", "SEC"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::COT, "cot", 1}, 0, "ccot", "COT"},
+	// OPERATORS
 	{ {Arity::BINARY, Associativity::LEFT, Operator::SUB, "-", 1}, 0, "csub", "SUB"},
 	{ {Arity::BINARY, Associativity::LEFT, Operator::ADD, "+", 1}, 0, "cadd", "ADD"},
 	{ {Arity::BINARY, Associativity::LEFT, Operator::MULT, "*", 3}, 0, "cmult", "MULT"},
 	{ {Arity::BINARY, Associativity::LEFT, Operator::DIV, "/", 3}, 0, "cdiv", "DIV"},
 	{ {Arity::BINARY, Associativity::RIGHT, Operator::POW, "^", 4}, 0, "cpow", "POW"},
+	// EXPONENTIAL
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::LOG, "ln", 4}, 0, "clog", "LOG"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::EXP, "exp", 4}, 0, "cexp", "EXP"},
+	//
 	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "CONSTANT", 0, glm::vec2(0.0f)}, 0, "", "CONSTANT"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "i", 0, glm::vec2(0,1)}, 0, ""},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEZ, "z", 0}, 0, "z", "VARIABLEZ"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEX, "x", 0}, 0, "vec2(z.x,0.0f)", "VARIABLEX"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEY, "y", 0}, 0, "vec2(z.y,0.0f)", "VARIABLEY"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLET, "t", 0}, 0, "vec2(time,0.0f)", "VARIABLET"},
+	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEPLACEHOLDER, "uplaceholder", 0}, 0, "THIS_SHOULDNT_BE_HERE", "VARIABLEPLACEHOLDER"},
+	{ {Arity::NULLARY, Associativity::NONE, Operator::SECONDVARIABLEPLACEHOLDER, "vplaceholder", 0}, 0, "THIS_SHOULDNT_BE_HERE", "SECONDVARIABLEPLACEHOLDER"},
 	{ {Arity::PAREN, Associativity::NONE, Operator::LPAREN, "(", 0}, 0, "" },
 	{ {Arity::PAREN, Associativity::NONE, Operator::RPAREN, ")", 0}, 0, "" },
-	{ {Arity::UNARY, Associativity::RIGHT, Operator::RPAREN, "derivative", 0,glm::vec2(0.0f),true}, 0, ""},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::DERIVATIVE, "derivative", 0,glm::vec2(0.0f),true}, 0, ""},
 
 };
 

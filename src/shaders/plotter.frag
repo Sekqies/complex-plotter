@@ -34,9 +34,82 @@ vec2 cmult(vec2 a, vec2 b){
     return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 }
 
+float carg(vec2 z){
+    return atan(z.y,z.x);
+}
+
+float cmag(vec2 z){
+    return length(z);
+}
+
+vec2 cexp(vec2 z){
+    return exp(z.x)*vec2(cos(z.y),sin(z.y));
+}
+
+vec2 clog(vec2 z){
+    return vec2(log(length(z)), carg(z));
+}
+
+vec2 cpow(vec2 a, vec2 b){
+    return cexp(b * clog(a));
+}
+
 vec2 cdiv(vec2 a, vec2 b){
     return cmult(a,vec2(b.x,-b.y))/(b.x*b.x+b.y*b.y);
 }
+
+vec2 csin(vec2 a){
+    return vec2(sin(a.x) * cosh(a.y),cos(a.x) * sinh(a.y));
+}
+
+vec2 ccos(vec2 a) {
+    return vec2(cos(a.x) * cosh(a.y), -sin(a.x) * sinh(a.y));
+}
+
+vec2 csec(vec2 a) {
+    float den = cos(2.0f * a.x) + cosh(2.0f * a.y);
+    float scale = 2.0f / den;
+    return vec2(
+        scale * cos(a.x) * cosh(a.y), 
+        scale * sin(a.x) * sinh(a.y)
+    );
+}
+
+vec2 ccsc(vec2 a) {
+    float den = cosh(2.0f * a.y) - cos(2.0f * a.x);
+    float scale = 2.0f / den;
+    return vec2(
+        scale * sin(a.x) * cosh(a.y),
+        -scale * cos(a.x) * sinh(a.y)
+    );
+}
+vec2 ccot(vec2 a) {
+    float den = cosh(2.0f * a.y) - cos(2.0f * a.x);
+    return vec2(
+        sin(2.0f * a.x) / den,
+        -sinh(2.0f * a.y) / den
+    );
+}
+
+
+vec2 ctan(vec2 a) {
+    float div = cos(2.0f * a.x) + cosh(2.0f * a.y);
+    return vec2(sin(2.0f * a.x) / div, sinh(2.0f * a.y) / div);
+}
+
+
+vec2 csinh(vec2 a) {
+    return vec2(sinh(a.x) * cos(a.y), cosh(a.x) * sin(a.y));
+}
+vec2 ccosh(vec2 a) {
+    return vec2(cosh(a.x) * cos(a.y), sinh(a.x) * sin(a.y));
+}
+
+vec2 ctanh(vec2 a) {
+    float div = cosh(2.0f * a.x) + cos(2.0f * a.y);
+    return vec2(sinh(2.0f * a.x) / div, sin(2.0f * a.y) / div);
+}
+
 
 vec2 cneg(vec2 a){
     return -a;
@@ -65,6 +138,16 @@ vec2 cneg(vec2 a){
 #define DIV SHADER_DIV
 #define BINARY_BOUNDARY SHADER_BINARY_BOUNDARY
 #define NEG SHADER_NEG
+#define SIN SHADER_SIN
+#define COS SHADER_COS
+#define TAN SHADER_TAN
+#define CSC SHADER_CSC
+#define SEC SHADER_SEC
+#define COT SHADER_COT
+#define POW SHADER_POW
+#define EXP SHADER_EXP
+#define LOG SHADER_LOG
+
 
 #ifndef SHADER_NULL_SYMBOL
     #define SHADER_NULL_SYMBOL 0u
@@ -120,6 +203,15 @@ vec2 cneg(vec2 a){
 
 #ifndef SHADER_NEG
     #define SHADER_NEG 13u
+    #define SHADER_COT 14u
+    #define SHADER_CSC 15u
+    #define SHADER_SEC 16u
+    #define SHADER_SIN 17u
+    #define SHADER_COS 18u
+    #define SHADER_TAN 19u
+    #define SHADER_LOG 20u
+    #define SHADER_EXP 21u
+    #define SHADER_POW 22u
 #endif
 
 
@@ -158,6 +250,24 @@ vec2 evaluate_unary_operator(in uint operator, inout vec2 stack[16], inout int s
     switch(operator){
         case NEG:
             return -param;
+        case SIN:
+            return csin(param);
+        case COS:
+            return ccos(param);
+        case TAN:
+            return ctan(param);
+        case CSC:
+            return ccsc(param);
+        case SEC:
+            return csec(param);
+        case COT:
+            return ccot(param);
+        case EXP:
+            return cexp(param);
+        case LOG:
+            return clog(param);
+        
+        
     }
     return param;
 }
@@ -179,6 +289,8 @@ vec2 evaluate_binary_operator(in uint operator, inout vec2 stack[16], inout int 
             return cmult(a,b);
         case DIV:
             return cdiv(a,b);
+        case POW:
+            return cpow(a,b);
     }
     return vec2(0.0f);
 }
@@ -221,38 +333,11 @@ vec3 hsl2rgb(vec3 hsl) {
     return hsl.z + hsl.y * (rgb - 0.5) * (1.0 - abs(2.0 * hsl.z - 1.0));
 }
 
-float get_discontinuous_light(vec2 f) {
-    // 1. Safety Clamp (prevents infinity artifacts)
-    float dist = abs(f.x) > 9e+10 || abs(f.y) > 9e+10 ? 9e+10 : length(f); 
-
-    // 2. Logarithmic Cycle
-    // log2 means the pattern repeats every time distance doubles (1, 2, 4, 8...)
-    float logval = mod(log2(dist), 1.0); 
-
-    float decimal_exp = 1.0;
-    if (dist != 0.0) {
-        // Logic: decimal_exp becomes (1.0 - fractional_part_of_log)
-        // This creates a "sawtooth" wave for brightness
-        decimal_exp = -(logval - floor(logval) - 1.0); 
-    }
-
-    // 3. Shaping Curve
-    // pow(..., 0.2) softens the curve (gamma), and -0.15 shifts the darkness
-    return mod(1.0 / (pow(decimal_exp, 0.2) + 1.0) - 0.15, 1.0);
-}
-
-// Main Domain Coloring Function
-vec3 domain_color(in vec2 z) {
-    // 1. Hue (Standard Phase)
-    float hue = atan(z.y, z.x) / (2.0 * PI);
-    
-    // 2. Saturation (Keep distinct)
-    float sat = 1.0; 
-
-    // 3. Lightness (Using your discontinuous logic)
-    float light = get_discontinuous_light(z);
-
-    return vec3(hue, sat, light);
+vec3 domain_color(in vec2 z){
+    float angle = atan(z.y,z.x);
+    float hue = (angle/(2.0 * PI)) + 0.5f;
+    float light = (TWO_OVER_PI) * atan(length(z));
+    return vec3(hue,1.0f,light);
 }
 
 vec2 convert_coordinates(in vec2 pos, in vec2 resolution, in float range){

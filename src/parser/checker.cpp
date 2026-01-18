@@ -30,3 +30,10 @@ bool is_unary_context(const vector<TokenOperator>& tokens, size_t index) {
 
 	return false;
 }
+
+bool is_higher_order(const vector<TokenOperator>& tokens) {
+	for (const auto& token : tokens) {
+		if (token.higher_order) return true;
+	}
+	return false;
+}

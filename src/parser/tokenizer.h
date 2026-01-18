@@ -13,11 +13,6 @@
 using std::string, std::vector;
 
 
-const std::map<string, TokenOperator>& generate_operator_map(const vector<TokenOperator>& operators);
-
-
-
-bool is_operator(const string& s);
 
 TokenOperator get_operator(const string& s);
 

@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <stack>
 #include <memory>
@@ -9,10 +10,13 @@ using std::vector, std::unique_ptr;
 struct AstNode {
 	TokenOperator op;
 	vector<unique_ptr<AstNode>> children;
+
+	AstNode() = default;
+	AstNode(TokenOperator o) : op(o) {}
 };
 
 unique_ptr<AstNode> stack_to_syntax_tree(const vector<TokenOperator>& stack);
 
 void traverse(const AstNode* node, vector<TokenOperator>& result_stack);
 
-vector<TokenOperator> syntax_tree_to_stack(const unique_ptr<AstNode> head);
+vector<TokenOperator> syntax_tree_to_stack(const AstNode* head);
