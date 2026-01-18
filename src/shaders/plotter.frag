@@ -51,7 +51,7 @@ vec2 clog(vec2 z){
 }
 
 vec2 cpow(vec2 a, vec2 b){
-    return cexp(b * clog(a));
+    return cexp(cmult(b,clog(a)));
 }
 
 vec2 cdiv(vec2 a, vec2 b){
