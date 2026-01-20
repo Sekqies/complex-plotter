@@ -1,5 +1,7 @@
 #include <preprocessor/preprocessor.h>
 #include <types/type_mapper.h>
+#include <array>
+#include <stdexcept>
 
 string get_source(const string& filename) {
     std::ifstream file(filename);
@@ -10,6 +12,7 @@ string get_source(const string& filename) {
     buffer << file.rdbuf();
     return buffer.str();
 }
+
 
 void preprocess(const string& filename, const vector<TokenOperator>& operators) {
     string preprocessed_string = get_preprocessor_string(operators);
@@ -39,4 +42,81 @@ void preprocess(const string& filename, const vector<TokenOperator>& operators) 
     }
     out << raw_source;
     out.close();
+}
+
+
+string build_shader_string(const string& new_shader, const string& origin) {
+    const vector<string> tags = { "INTERPRETER_SPECIFIC_FUNCTIONS", "FUNCTION_DEFINITIONS", "CONSTANT_DEFINITIONS"};
+    string out = new_shader;
+    for (const string& tag : tags) {
+        const string& block = get_block(origin, tag);
+        inject_at(out, tag, block);
+    }
+    return out;
+}
+
+static bool found_bounds(const string& source, const string& tag, size_t& out_start, size_t& out_length) {
+    string start_marker = "#define " + tag;
+    string end_marker = "#define END_" + tag;
+
+    size_t start = source.find(start_marker);
+    if (start == string::npos) return false;
+
+    size_t end_tag_start = source.find(end_marker, start);
+    if (end_tag_start == string::npos) return false;
+
+    size_t end_of_line = source.find('\n', end_tag_start);
+    if (end_of_line == string::npos) end_of_line = source.size();
+
+    out_start = start;
+    out_length = end_of_line - start;
+    return true;
+}
+
+string get_block(const string& source, const string& tag) {
+    size_t start, length;
+    if (!found_bounds(source, tag, start, length)) return "";
+
+    string start_str = "#define " + tag;
+    size_t content_start = start + start_str.length();
+    
+    string end_str = "#define END_" + tag;
+    size_t content_end = source.find(end_str, start);
+
+    return source.substr(content_start, content_end - content_start);
+}
+
+string erase_block(const string& source, const string& tag) {
+    string copy = source;
+    size_t start, length;
+    while (found_bounds(copy, tag, start, length)) {
+        copy.erase(start, length);
+    }
+    return copy;
+}
+
+string inject_at(const string& source, const string& tag, const string& payload) {
+    string copy = source;
+    const string marker = "#define " + tag;
+    size_t pos = source.find(marker);
+    if (pos == string::npos) {
+        throw std::runtime_error("Injection marker '" + tag + "' not found");
+    }
+    size_t end = source.find('\n', pos);
+    if (end == string::npos) end = pos + marker.length();
+
+    copy.insert(end + 1, "\n" + payload + "\n");
+    return copy;
+}
+
+void inject_at(string& source, const string& tag, const string& payload) {
+    const string marker = "#define " + tag;
+    size_t pos = source.find(marker);
+    if (pos == string::npos) {
+        throw std::runtime_error("Injection marker '" + tag + "' not found");
+    }
+    size_t end = source.find('\n', pos);
+    if (end == string::npos) end = pos + marker.length();
+
+    source.insert(end + 1, "\n" + payload + "\n");
 }
