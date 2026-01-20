@@ -9,6 +9,7 @@ class Shader
 {
 public:
     unsigned int ID;
+    std::string vertex_source, fragment_source;
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
     // constructor generates the shader on the fly

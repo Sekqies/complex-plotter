@@ -33,6 +33,14 @@ int main() {
 	preprocess("shaders/plotter.frag", operators);
 	
 	Shader shader_program("shaders/plotter.vert", "shaders/plotter.frag");
+
+	Shader shader_3d;
+	const string& frag_source = shader_program.fragment_source;
+	string vert_source_3d = get_source("shaders/plotter3d.vert");
+	const string frag_source_3d = get_source("shaders/plotter3d.frag");
+	string vert_source_3d = build_shader_string(vert_source_3d, frag_source);
+	shader_3d.compile(vert_source_3d, frag_source_3d);
+
 	CompilerShader compiled_shader("shaders/plotter.vert", "shaders/plotter.frag");
 
 	unsigned int VAO;

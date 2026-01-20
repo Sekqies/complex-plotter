@@ -8,7 +8,7 @@ string get_source(const string& filename);
 
 void preprocess(const string& filename, const vector<TokenOperator>& operators);
 
-string build_shader_string(string& new_shader, const string& origin);
+string build_shader_string(const string& new_shader, const string& origin);
 
 string get_block(const string& source, const string& tag);
 
