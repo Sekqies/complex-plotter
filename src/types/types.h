@@ -42,6 +42,8 @@ enum Operator{
 	COSEC,
 	SEC,
 	COT,
+	ARG,
+	MAG,
 
 	DERIVATIVE
 };
@@ -71,6 +73,8 @@ typedef struct AmbiguousOperator {
 
 inline std::vector<FullOperator> full_operators = {
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::NEG, "~", 4}, 0, "cneg", "NEG"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::MAG, "mag", 4}, 0, "cmag", "MAG"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ARG, "arg", 4}, 0, "carg", "ARG"},
 	// TRIGONOMETRIC
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::SIN, "sin", 1}, 0, "csin", "SIN"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::COS, "cos", 1}, 0, "ccos", "COS"},
@@ -100,6 +104,7 @@ inline std::vector<FullOperator> full_operators = {
 	{ {Arity::PAREN, Associativity::NONE, Operator::LPAREN, "(", 0}, 0, "" },
 	{ {Arity::PAREN, Associativity::NONE, Operator::RPAREN, ")", 0}, 0, "" },
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::DERIVATIVE, "derivative", 0,glm::vec2(0.0f),true}, 0, ""},
+
 
 };
 

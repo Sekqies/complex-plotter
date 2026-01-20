@@ -15,11 +15,14 @@ in vec2 pos;
 out vec4 FragColor;
 
 
+#define UNIFORM_DECLARATIONS HERE
 
 uniform vec2 u_resolution;
 uniform float u_range;
 uniform vec2 shift;
 uniform float time;
+
+#define END_UNIFORM_DECLARATIONS HERE
 
 #define FUNCTION_DEFINITIONS HERE
 
@@ -34,12 +37,12 @@ vec2 cmult(vec2 a, vec2 b){
     return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 }
 
-float carg(vec2 z){
-    return atan(z.y,z.x);
+vec2 carg(vec2 z){
+    return vec2(atan(z.y,z.x),0.0f);
 }
 
-float cmag(vec2 z){
-    return length(z);
+vec2 cmag(vec2 z){
+    return vec2(length(z),0.0f);
 }
 
 vec2 cexp(vec2 z){
@@ -147,7 +150,8 @@ vec2 cneg(vec2 a){
 #define POW SHADER_POW
 #define EXP SHADER_EXP
 #define LOG SHADER_LOG
-
+#define ARG SHADER_ARG
+#define MAG SHADER_MAG
 
 #ifndef SHADER_NULL_SYMBOL
     #define SHADER_NULL_SYMBOL 0u
@@ -212,6 +216,8 @@ vec2 cneg(vec2 a){
     #define SHADER_LOG 20u
     #define SHADER_EXP 21u
     #define SHADER_POW 22u
+    #define SHADER_ARG 23u
+    #define SHADER_MAG 24u
 #endif
 
 
@@ -266,6 +272,10 @@ vec2 evaluate_unary_operator(in uint operator, inout vec2 stack[16], inout int s
             return cexp(param);
         case LOG:
             return clog(param);
+        case MAG:
+            return cmag(param);
+        case ARG:
+            return carg(param);
         
         
     }
@@ -328,6 +338,8 @@ vec2 run_stack(in usamplerBuffer operators, in samplerBuffer constants, in vec2 
 
 #define END_INTERPRETER_SPECIFIC_FUNCTIONS HERE
 
+#define COLOR_FUNCTIONS HERE
+
 vec3 hsl2rgb(vec3 hsl) {
     vec3 rgb = clamp(abs(mod(hsl.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
     return hsl.z + hsl.y * (rgb - 0.5) * (1.0 - abs(2.0 * hsl.z - 1.0));
@@ -340,9 +352,12 @@ vec3 domain_color(in vec2 z){
     return vec3(hue,1.0f,light);
 }
 
+#define END_COLOR_FUNCTIONS HERE
+
 vec2 convert_coordinates(in vec2 pos, in vec2 resolution, in float range){
     return range * (pos - 0.5f * resolution)/resolution.y;
 }
+
 
 
 

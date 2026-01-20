@@ -6,6 +6,7 @@ unique_ptr<AstNode> differentiate(AstNode* node, const Operator var) {
 		m[Operator::SIN] = build_expression("cos(uplaceholder)");
 		m[Operator::COS] = build_expression("-sin(uplaceholder)");
 		m[Operator::TAN] = build_expression("sec(uplaceholder)^2");
+		m[Operator::LOG] = build_expression("1/uplaceholder");
 		return m;
 		}();
 	if (node->op.op == Operator::CONSTANT) {

@@ -18,7 +18,8 @@ void preprocess(const string& filename, const vector<TokenOperator>& operators) 
     const string marker = "START_WRITING_HERE HERE";
     size_t start_pos = raw_source.find(marker) + marker.length();
     // Let this exception be an exception! While I don't like the exception handling paradigm
-    //, it is a necessary evil for file handling
+    //, it is a necessary evil for file handling. [added some days after]: If only I knew...
+
     try {
         raw_source = get_source(filename);
     }

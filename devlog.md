@@ -1,19 +1,21 @@
-We've got got compiled shaders up and running!
+We can take derivatives of functions now!
 
-All the benefits and reasoning behind doing this were throughouly discussed in [Issue #23](https://url.jam06452.uk/1ff5wk1). What matters is now we have our interpreted shader as a "preview", and whenever we want improved performance, it's just a matter of hitting "enter" and we're done!
+For those not familiar with the term, a derivative is a **higher-order function** (meaning it takes a function as a parameter, and outputs another function). This is not a feature natively supported by our shader's language (GLSL), so we have to do all the higher-order logic ourselves in the parser. Which makes sense: if `d(z^2) = 2z`, and the user types `d(z^2)`, we can just send `2z` to the shader.
+Our stack is great for evaluating functions numerically, but not optimal for symbolic manipulation. An **Abstract Syntax Tree**, or AST for short, works far better for this, because it simulates the "recursive" nature of expressions. So, we had to convert our RPN queue to an AST, and then back to RPN. Some time put into that!
 
-First, we had to convert our stack of opcodes into a GLSL string. After the type overhaul, this was simple enough of a task.
-Since I'm dead-set on having a semi-decent developer experience while coding with my fragment shader (`shader/plotter.frag`), I had to do some string manipulation trickery to guarantee that all important function and coloring definitions are shared between shader modes. 
-This in turn required me to modify our existing `Shader` class dependency to accept strings rather than file paths to compile, and to create a new `CompilerShader` class to handle all the aforementioned string manipulation. There are some optimizations still there to be made to increase compile time (namely ommiting function definitions we're not using), but this is not necessary for the time being, as compile times are low.
-Also, since compile times were shown to be tiny, the async proposal related to [Issue #28](https://url.jam06452.uk/cwjcm1) might not be necessary.
-This also involved changing our global function state and callback functions to take a reference to different shaders, so we can change them on the fly. 
+Now, there is a generic way to calculate any derivative, but it would require us to work with infinitesimally small quantities, which just do not exist in computers. So, if we tried to use it, we'd get a rough approximation at best, and a very innacurate result at worst. This, however, can be fixed with a derivative table, falling back to this numeric method whenever needed
 
-That's all for this devlog. Attached, a video of me rendering a huge function with the interpreter vs compiler: the performance difference is palpable!
+All this higher-order tree manipulation is of intermediate difficult when using raw pointers (`int*`) but quickly becomes _hell_ when using C++'s smart pointers (`std::unique_ptr`). Safe to say, this difficulty is what caused most of these dev hours.
 
-**Related commits:**
-[Commit 5f38f07](https://url.jam06452.uk/sg59ba): Converting stack into glsl infix string
-[Commit 8f40852](https://url.jam06452.uk/g4japn): CompilerShader class done
-[Commit 48d3fed](https://url.jam06452.uk/1lh28x0): Added shader switching for compilation
+**Related Issues**:
+[Issue #8](https://github.com/Sekqies/complex-plotter/issues/8): Computing higher order functions [And it's sub-issues:]
+	* Issue #9: Stack into syntax tree
+	* Issue #10: Syntax tree into RPN stack
+	* Issue #11: Differentiation
+		* Issue #12: Operator rules
+		* Issue #13: Numerical differentiation
+		* Issue #14: Analytic differentiation
 
-**Related issues**
-[Issue #28](https://url.jam06452.uk/cwjcm1) and its subissues.
+**Related Commits:**
+[Commit b56b9fa](https://url.jam06452.uk/fyai8z): ast -> stack, stack -> ast
+[Commit f410dba](https://url.jam06452.uk/utr804): Finished implementing derivatives
