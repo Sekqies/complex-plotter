@@ -1,5 +1,7 @@
 #version 330 core
 
+#define HERE ;
+
 layout (location=0) in vec3 aPos;
 
 out vec2 f_z;
@@ -27,12 +29,12 @@ vec2 run_stack(samplerBuffer operator_stack, usamplerBuffer constant_stack, vec2
 #define END_FUNCTION_DEFINITIONS HERE
 
 
-#define INTERRPRETER_SPECIFIC_FUNCTIONS HERE
+#define INTERPRETER_SPECIFIC_FUNCTIONS HERE
 
-#define END_INTERRPRETER_SPECIFIC_FUNCTIONS HERE
+#define END_INTERPRETER_SPECIFIC_FUNCTIONS HERE
 
 void main(){
-	vec2 z = (aPos.xy * u_range) + shift;
+	vec2 z = (vec2(aPos.x,aPos.z) * u_range) + shift;
 
 	#define INTERPRETER_ASSIGNEMENT HERE
 	vec2 func_value = run_stack(operator_stack,constant_stack,z);
@@ -40,7 +42,7 @@ void main(){
 
 	#define INJECTION_POINT HERE
 
-	float height = length(z);
+	float height = length(func_value);
 
 	gl_Position = projection * view * model * vec4(aPos.x,height,aPos.z,1.0f);
 

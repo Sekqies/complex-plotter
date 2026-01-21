@@ -12,6 +12,7 @@ typedef struct FunctionState {
 	float last_typing_time = 0.0f;
 	bool needs_reparse = true;
 	bool is_interpreted = true;
+	bool is_3d = false;
 } FunctionState;
 
 void render(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex, Shader& interpreter_shader);

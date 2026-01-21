@@ -46,7 +46,7 @@ void compile(FunctionState& state, CompilerShader& compiler_shader) {
 	try {
 		vector<TokenOperator> stack = parser::parse(state.expression);
 		const string& expression = stack_to_glsl_string(stack);
-		compiler_shader.compile(expression);
+		compiler_shader.compile(expression,state.is_3d);
 	}
 	catch (const std::runtime_error& e) {
 		state.error_message = e.what();

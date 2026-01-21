@@ -1,5 +1,24 @@
 #include <graphics/3d/mesh.h>
 
+void link_mesh(Mesh& mesh, const vector<float>& vertices, const vector<unsigned int>& indices) {
+	glGenVertexArrays(1, &mesh.VAO);
+	glGenBuffers(1, &mesh.VBO);
+	glGenBuffers(1, &mesh.EBO);
+
+	glBindVertexArray(mesh.VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.VBO);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindVertexArray(0);
+	mesh.index_count = (unsigned int)indices.size();
+}
 /// <summary>
 /// Generates a mesh object of an n x n grid
 /// </summary>
@@ -39,22 +58,3 @@ Mesh generate_grid_mesh(const int grid_size) {
 	return mesh;
 }
 
-void link_mesh(Mesh& mesh, const vector<float>& vertices, const vector<unsigned int>& indices) {
-	glGenVertexArrays(1, &mesh.VAO);
-	glGenBuffers(1, &mesh.VBO);
-	glGenBuffers(1, &mesh.EBO);
-
-	glBindVertexArray(mesh.VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, mesh.VBO);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glBindVertexArray(0);
-	mesh.index_count = (unsigned int)indices.size();
-}
