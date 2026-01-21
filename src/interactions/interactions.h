@@ -10,6 +10,7 @@ typedef struct ViewState {
 	float width = 800.0f;
 	float height = 600.0f;
 	bool is_dragging = false;
+	bool is_3d = false;
 } ViewState;
 
 

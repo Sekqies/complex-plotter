@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <glad/glad.h>
 
@@ -7,6 +8,8 @@ struct Mesh {
 };
 
 using std::vector;
+
+
 
 /// <summary>
 /// Generates a mesh object of an n x n grid

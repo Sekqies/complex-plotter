@@ -14,6 +14,7 @@
 #include <iostream>
 #include <compiler/compiler_shader.h>
 #include <graphics/3d/mesh.h>
+#include <graphics/3d/camera_state.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -25,6 +26,13 @@ using vec2 = glm::vec2;
 
 constexpr float WIDTH = 800.00f;
 constexpr float HEIGHT = 600.00f;
+
+float last_x = 800.0f / 2.0f;
+float last_y = 600.0f / 2.0f;
+bool first_mouse = true;
+float last_frame = 0.0f;
+float delta_time = 0.0f;
+
 
 unsigned int stack_tbo_buffer, stack_tbo_texture;
 unsigned int constants_tbo_buffer, constants_tbo_texture;
@@ -76,11 +84,17 @@ int main() {
 
 	Mesh grid_mesh = generate_grid_mesh(256);
 	render(function_state, stack_tbo_texture, constants_tbo_texture,shader_program);
+	update_camera_vectors(camera_state);
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		float current_frame = (float)glfwGetTime();
+		delta_time = current_frame - last_frame;
+		last_frame = current_frame;
+		view_state.is_3d = function_state.is_3d;
 		init_imgui_loop();
 		if (function_state.is_3d) {
+			handle_camera_input(window,delta_time);
 			if (function_state.is_interpreted) {
 				function_state.current_shader = &shader_3d;
 			}
@@ -109,11 +123,8 @@ int main() {
 		}
 		if (function_state.is_3d) {
 			glm::mat4 projection = glm::perspective(glm::radians(45.0f), WIDTH / HEIGHT, 0.1f, 100.0f);
-			glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 4.0f, 4.0f),
-				glm::vec3(0.0f, 0.0f, 0.0f),
-				glm::vec3(0.0f, 1.0f, 0.0f));
+			glm::mat4 view = get_view_matrix(camera_state);
 			glm::mat4 model = glm::mat4(1.0f);
-
 			current_shader->setMat4("projection", projection);
 			current_shader->setMat4("view", view);
 			current_shader->setMat4("model", model);
