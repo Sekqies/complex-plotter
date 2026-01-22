@@ -77,9 +77,13 @@ void window_size_callback(GLFWwindow* window, const int width, const int height)
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+	ViewState* state = get_state(window);
 	if (action != GLFW_PRESS) return;
 	if (key == GLFW_KEY_ESCAPE) {
 		glfwSetWindowShouldClose(window, true);
+	}
+	if (key == GLFW_KEY_T) {
+		state->is_3d = !state->is_3d;
 	}
 	if (key == GLFW_KEY_SPACE) {
 		

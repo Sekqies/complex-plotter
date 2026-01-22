@@ -29,10 +29,10 @@ CompilerShader::CompilerShader(const std::string& vertex_path, const std::string
 void CompilerShader::prepare_source(std::string& vertex_source, const std::string& fragment_source, const bool use_vertex) {
 	this->vert_source = vertex_source;
 	this->frag_source = fragment_source;
-	std::string& source = frag_source;
-	if (use_vertex) source = vert_source;
-	clean_source(source);
-	find_injection_point(source);
+	std::string* source = &frag_source;
+	if (use_vertex) source = &vert_source;
+	clean_source(*source);
+	find_injection_point(*source);
 }
 
 void CompilerShader::compile(const std::string glsl_expression, const bool use_vertex) {

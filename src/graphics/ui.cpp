@@ -95,6 +95,7 @@ void render_and_update(FunctionState& state, unsigned int& op_tex, unsigned int&
 	ImGui::BulletText("Pan: Left Click + Drag");
 	ImGui::BulletText("Zoom: Scroll Wheel");
 	ImGui::BulletText("Enter: Compile (increases performance)");
+	ImGui::BulletText("T: Toggle 3D mode");
 
 	ImGui::End();
 }

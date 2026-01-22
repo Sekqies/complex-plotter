@@ -1,5 +1,4 @@
 #include <graphics/3d/camera_state.h>
-#include <iostream>
 CameraState camera_state;
 
 void update_camera_vectors(CameraState& state) {
@@ -56,7 +55,6 @@ void handle_camera_input(GLFWwindow* window, const float delta_time) {
         process_keyboard(camera_state, 3, delta_time);
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS)
         process_keyboard(camera_state, 4, delta_time);
-
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         process_keyboard(camera_state, 5, delta_time);
 }

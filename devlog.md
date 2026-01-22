@@ -1,21 +1,21 @@
-We can take derivatives of functions now!
+**We can do things in 3D now!**
 
-For those not familiar with the term, a derivative is a **higher-order function** (meaning it takes a function as a parameter, and outputs another function). This is not a feature natively supported by our shader's language (GLSL), so we have to do all the higher-order logic ourselves in the parser. Which makes sense: if `d(z^2) = 2z`, and the user types `d(z^2)`, we can just send `2z` to the shader.
-Our stack is great for evaluating functions numerically, but not optimal for symbolic manipulation. An **Abstract Syntax Tree**, or AST for short, works far better for this, because it simulates the "recursive" nature of expressions. So, we had to convert our RPN queue to an AST, and then back to RPN. Some time put into that!
+This might make you ask *what* are we plotting in this additional dimension, and the answer is simple: nothing that we weren't showing already
 
-Now, there is a generic way to calculate any derivative, but it would require us to work with infinitesimally small quantities, which just do not exist in computers. So, if we tried to use it, we'd get a rough approximation at best, and a very innacurate result at worst. This, however, can be fixed with a derivative table, falling back to this numeric method whenever needed
+In our plotter, we use brightness to represent magnitude (how large a number is). Black corresponds to zero, and white corresponds to a very high number, making roots of functions look like "sinks". It turns out that it's far easier to visualize these "sinks", "valleys" and "peaks" with the help of a third dimension (akin to looking at a satellite picture of a mountain range vs being there). 
 
-All this higher-order tree manipulation is of intermediate difficult when using raw pointers (`int*`) but quickly becomes _hell_ when using C++'s smart pointers (`std::unique_ptr`). Safe to say, this difficulty is what caused most of these dev hours.
+There's many ways to render functions in 3D, but the one I chose is by laying out a large 256x256 grid of "mini-planes" that are molded to look like the function (there are methods with 'infinite' precision but they are horribly slow and, if we want more precision, we can just add more segments, anyway!). This required me to create a `Mesh` struct and functions to handle their creation and use.
+Also, since all this logic operates on vertices, we have to move the 3D code into a vertex shader. This required massive refactoring of pretty much *all* of our preprocessing functions, since they were all rigged to work with the fragment shader. We also had to do more dependency injection trickery to make sure the 2D and 3D shaders remain synchronized (of course).
+Finally, we had to create a custom camera to actually move around our 3D plot, and update our state variables to see if the plot is 3D. 
 
-**Related Issues**:
-[Issue #8](https://github.com/Sekqies/complex-plotter/issues/8): Computing higher order functions [And it's sub-issues:]
-	* Issue #9: Stack into syntax tree
-	* Issue #10: Syntax tree into RPN stack
-	* Issue #11: Differentiation
-		* Issue #12: Operator rules
-		* Issue #13: Numerical differentiation
-		* Issue #14: Analytic differentiation
+Attached, the third dimension! :O
+
+**Related Issues:**
+[Issue #29](https://url.jam06452.uk/ou8zyn): 3D Plotting
 
 **Related Commits:**
-[Commit b56b9fa](https://url.jam06452.uk/fyai8z): ast -> stack, stack -> ast
-[Commit f410dba](https://url.jam06452.uk/utr804): Finished implementing derivatives
+[Commit 4a0ab12](https://url.jam06452.uk/dv60mh): Fragment and vertex shader for 3D
+[Commit 0a17f71](https://url.jam06452.uk/zsu6bw): Refactor of preprocessor logic
+[Commit 614238a](https://url.jam06452.uk/u896ze): Created mesh grid
+[Commit 4bfd2ed](https://url.jam06452.uk/fo0yqb): 3D Rendering done
+[Commit 0a17f71](https://url.jam06452.uk/a8oszc): Working camera!

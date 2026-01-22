@@ -1,0 +1,16 @@
+file(GLOB SHADER_FILES "${SHADER_SOURCE_DIR}/*")
+
+set(FILE_CONTENT "#pragma once\n#include <string>\n\n")
+
+foreach(FILE ${SHADER_FILES})
+    get_filename_component(FILENAME ${FILE} NAME)
+    string(REPLACE "." "_" VAR_NAME ${FILENAME})
+    string(TOUPPER ${VAR_NAME} VAR_NAME)
+    
+    file(READ ${FILE} SHADER_TEXT)
+    
+    string(APPEND FILE_CONTENT "const std::string SRC_${VAR_NAME} = R\"(${SHADER_TEXT})\";\n\n")
+endforeach()
+
+file(WRITE "${DEST_BUILD}" "${FILE_CONTENT}")
+file(WRITE "${DEST_SRC}" "${FILE_CONTENT}")

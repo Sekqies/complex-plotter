@@ -80,21 +80,37 @@ int main() {
 	float last_time = 0.0f;
 	init_imgui(window);
 	FunctionState function_state;
-	function_state.is_3d = true;
 
 	Mesh grid_mesh = generate_grid_mesh(256);
+
 	render(function_state, stack_tbo_texture, constants_tbo_texture,shader_program);
 	update_camera_vectors(camera_state);
+	bool pressing_t = false;
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		float current_frame = (float)glfwGetTime();
 		delta_time = current_frame - last_frame;
 		last_frame = current_frame;
-		view_state.is_3d = function_state.is_3d;
+
+		if (!pressing_t && !ImGui::GetIO().WantCaptureKeyboard && glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
+			std::cout << "pressed t";
+			pressing_t = true;
+		}
+
+		if (pressing_t && !ImGui::GetIO().WantCaptureKeyboard && glfwGetKey(window, GLFW_KEY_T) == GLFW_RELEASE) {
+			pressing_t = false;
+			if (view_state.is_3d) {
+				function_state.current_shader = &shader_program;
+			}
+			view_state.is_3d = !view_state.is_3d;
+		}
+
+		function_state.is_3d = view_state.is_3d;
 		init_imgui_loop();
 		if (function_state.is_3d) {
-			handle_camera_input(window,delta_time);
+			if(!ImGui::GetIO().WantCaptureKeyboard)
+				handle_camera_input(window,delta_time);
 			if (function_state.is_interpreted) {
 				function_state.current_shader = &shader_3d;
 			}

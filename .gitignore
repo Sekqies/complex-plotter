@@ -2,3 +2,4 @@
 out/
 build/
 CMakeSettings.json
+src/shaders/embedded_shaders.h

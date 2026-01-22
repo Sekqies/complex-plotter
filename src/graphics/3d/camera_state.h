@@ -5,17 +5,26 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 struct CameraState {
-    glm::vec3 position = glm::vec3(-10.0f, 5.0f, 3.0f);
-    glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 position = glm::vec3(8.0f, 8.0f, 8.0f);
+    glm::vec3 front;
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::vec3 right;
     glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
-    float yaw = -90.0f;
-    float pitch = 0.0f;
+    float yaw;
+    float pitch;
     float movement_speed = 2.5f;
     float mouse_sensitivity = 0.05f;
     float zoom = 45.0f;
+
+    CameraState() {
+        glm::vec3 direction = glm::normalize(-position);
+        front = direction;
+        pitch = glm::degrees(asin(direction.y));
+        yaw = glm::degrees(atan2(direction.z, direction.x));
+        right = glm::normalize(glm::cross(front, world_up));
+        up = glm::normalize(glm::cross(right, front));
+    }
 };
 
 extern CameraState camera_state;

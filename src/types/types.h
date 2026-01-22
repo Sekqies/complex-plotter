@@ -76,13 +76,13 @@ inline std::vector<FullOperator> full_operators = {
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::MAG, "mag", 4}, 0, "cmag", "MAG"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::ARG, "arg", 4}, 0, "carg", "ARG"},
 	// TRIGONOMETRIC
-	{ {Arity::UNARY, Associativity::RIGHT, Operator::SIN, "sin", 1}, 0, "csin", "SIN"},
-	{ {Arity::UNARY, Associativity::RIGHT, Operator::COS, "cos", 1}, 0, "ccos", "COS"},
-	{ {Arity::UNARY, Associativity::RIGHT, Operator::TAN, "tan", 1}, 0, "ctan", "TAN"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::SIN, "sin", 5}, 0, "csin", "SIN"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::COS, "cos", 5}, 0, "ccos", "COS"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::TAN, "tan", 5}, 0, "ctan", "TAN"},
 	// INVERSE TRIGONOMETRIC
-	{ {Arity::UNARY, Associativity::RIGHT, Operator::COSEC, "csc", 1}, 0, "ccsc", "CSC"},
-	{ {Arity::UNARY, Associativity::RIGHT, Operator::SEC, "sec", 1}, 0, "csec", "SEC"},
-	{ {Arity::UNARY, Associativity::RIGHT, Operator::COT, "cot", 1}, 0, "ccot", "COT"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::COSEC, "csc", 5}, 0, "ccsc", "CSC"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::SEC, "sec", 5}, 0, "csec", "SEC"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::COT, "cot", 5}, 0, "ccot", "COT"},
 	// OPERATORS
 	{ {Arity::BINARY, Associativity::LEFT, Operator::SUB, "-", 1}, 0, "csub", "SUB"},
 	{ {Arity::BINARY, Associativity::LEFT, Operator::ADD, "+", 1}, 0, "cadd", "ADD"},
