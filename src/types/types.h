@@ -150,8 +150,8 @@ inline std::vector<FullOperator> full_operators = {
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLET, "t", 0}, 0, "vec2(time,0.0f)", "VARIABLET"},
 	
 	//PARSER STUFF
-	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEPLACEHOLDER, "uplaceholder", 0}, 0, "THIS_SHOULDNT_BE_HERE", "VARIABLEPLACEHOLDER"},
-	{ {Arity::NULLARY, Associativity::NONE, Operator::SECONDVARIABLEPLACEHOLDER, "vplaceholder", 0}, 0, "THIS_SHOULDNT_BE_HERE", "SECONDVARIABLEPLACEHOLDER"},
+	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEPLACEHOLDER, "uplaceholder", 0}, 0},
+	{ {Arity::NULLARY, Associativity::NONE, Operator::SECONDVARIABLEPLACEHOLDER, "vplaceholder", 0}, 0},
 	{ {Arity::PAREN, Associativity::NONE, Operator::LPAREN, "(", 0}, 0, "" },
 	{ {Arity::PAREN, Associativity::NONE, Operator::RPAREN, ")", 0}, 0, "" },
 

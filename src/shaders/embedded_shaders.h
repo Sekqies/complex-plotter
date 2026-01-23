@@ -1,3 +1,6 @@
+#pragma once
+#include <string>
+
 std::string SRC_PLOTTER_FRAG = R"(#version 330
 
 // Other useful constants
@@ -206,275 +209,14 @@ vec2 cneg(vec2 a){
 
 #define INTERPRETER_SPECIFIC_FUNCTIONS HERE
 
-
 #define START_WRITING_HERE HERE
 
-#define NULL_SYMBOL SHADER_NULL_SYMBOL
-#define END SHADER_END
-#define CONSTANT SHADER_CONSTANT
-#define VARIABLEX SHADER_VARIABLEX
-#define VARIABLEY SHADER_VARIABLEY
-#define VARIABLEZ SHADER_VARIABLEZ
-#define VARIABLET SHADER_VARIABLET
-#define VALUE_BOUNDARY SHADER_VALUE_BOUNDARY
-#define ADD SHADER_ADD
-#define SUB SHADER_SUB
-#define MULT SHADER_MULT
-#define DIV SHADER_DIV
-#define BINARY_BOUNDARY SHADER_BINARY_BOUNDARY
-#define NEG SHADER_NEG
-#define SIN SHADER_SIN
-#define COS SHADER_COS
-#define TAN SHADER_TAN
-#define CSC SHADER_CSC
-#define SEC SHADER_SEC
-#define COT SHADER_COT
-#define POW SHADER_POW
-#define EXP SHADER_EXP
-#define LOG SHADER_LOG
-#define ARG SHADER_ARG
-#define MAG SHADER_MAG
-#define ASIN SHADER_ASIN
-#define ACOS SHADER_ACOS
-#define ATAN SHADER_ATAN
-#define ACSC SHADER_ACSC
-#define ASEC SHADER_ASEC
-#define ACOT SHADER_ACOT
-#define CSCH SHADER_CSCH
-#define SECH SHADER_SECH
-#define COTH SHADER_COTH
-#define ASINH SHADER_ASINH
-#define ACOSH SHADER_ACOSH
-#define ATANH SHADER_ATANH
-#define ACSCH SHADER_ACSCH
-#define ASECH SHADER_ASECH
-#define ACOTH SHADER_ACOTH
-
-#ifndef SHADER_NULL_SYMBOL
-    #define SHADER_NULL_SYMBOL 0u
-#endif
-
-#ifndef SHADER_END
-    #define SHADER_END 1u
-#endif
-
-#ifndef SHADER_CONSTANT
-    #define SHADER_CONSTANT 2u
-#endif
-
-#ifndef SHADER_VARIABLEX
-    #define SHADER_VARIABLEX 3u
-#endif
-
-#ifndef SHADER_VARIABLEY
-    #define SHADER_VARIABLEY 4u
-#endif
-
-#ifndef SHADER_VARIABLEZ
-    #define SHADER_VARIABLEZ 5u
-#endif
-
-#ifndef SHADER_VARIABLET
-    #define SHADER_VARIABLET 6u
-#endif
-
-#ifndef SHADER_VALUE_BOUNDARY
-    #define SHADER_VALUE_BOUNDARY 7u
-#endif
-
-#ifndef SHADER_ADD
-    #define SHADER_ADD 8u
-#endif
-
-#ifndef SHADER_SUB
-    #define SHADER_SUB 9u
-#endif
-
-#ifndef SHADER_MULT
-    #define SHADER_MULT 10u
-#endif
-
-#ifndef SHADER_DIV
-    #define SHADER_DIV 11u
-#endif
-
-#ifndef SHADER_BINARY_BOUNDARY
-    #define SHADER_BINARY_BOUNDARY 12u
-#endif
-
-#ifndef SHADER_NEG
-    #define SHADER_NEG 13u
-    #define SHADER_COT 14u
-    #define SHADER_CSC 15u
-    #define SHADER_SEC 16u
-    #define SHADER_SIN 17u
-    #define SHADER_COS 18u
-    #define SHADER_TAN 19u
-    #define SHADER_LOG 20u
-    #define SHADER_EXP 21u
-    #define SHADER_POW 22u
-    #define SHADER_ARG 23u
-    #define SHADER_MAG 24u
-    #define SHADER_ASIN 25u
-    #define SHADER_ACOS 26u
-    #define SHADER_ATAN 27u
-    #define SHADER_ACSC 28u
-    #define SHADER_ASEC 29u
-    #define SHADER_ACOT 30u
-    #define SHADER_CSCH 31u
-    #define SHADER_SECH 32u
-    #define SHADER_COTH 33u
-    #define SHADER_ASINH 34u
-    #define SHADER_ACOSH 35u
-    #define SHADER_ATANH 36u
-    #define SHADER_ACSCH 37u
-    #define SHADER_ASECH 38u
-    #define SHADER_ACOTH 39u
-#endif
-
-
-const uint STACK_SIZE = 1024;
-
-vec2 evaluate_constant_operator(in uint operator, in samplerBuffer constants, inout int constant_index, in vec2 pos){
-    switch(operator){
-        case CONSTANT:
-            return texelFetch(constants, constant_index++).xy;
-        case VARIABLEX:
-            return vec2(pos.x,0.0f);
-        case VARIABLEY:
-            return vec2(pos.y,0.0f);
-        case VARIABLEZ:
-            return pos;
-        case VARIABLET:
-            return vec2(time,0.0f);
-        default:
-            return vec2(0.0f);
-    }
-}
-
-vec2 pop_one(in vec2 stack[16], inout int stack_index){
-    return stack[--stack_index];
-}
-
-vec2[2] pop_two(in vec2 stack[16], inout int stack_index){
-    vec2 b = pop_one(stack,stack_index);
-    vec2 a = pop_one(stack,stack_index);
-    return vec2[2](a,b);
-}
-
-
-vec2 evaluate_unary_operator(in uint operator, inout vec2 stack[16], inout int stack_index){
-    vec2 param = pop_one(stack,stack_index);
-    switch(operator){
-        case NEG:
-            return -param;
-        case SIN:
-            return csin(param);
-        case COS:
-            return ccos(param);
-        case TAN:
-            return ctan(param);
-        case CSC:
-            return ccsc(param);
-        case SEC:
-            return csec(param);
-        case COT:
-            return ccot(param);
-        case EXP:
-            return cexp(param);
-        case LOG:
-            return clog(param);
-        case MAG:
-            return cmag(param);
-        case ARG:
-            return carg(param);
-        case ASIN:
-            return casin(param);
-        case ACOS:
-            return cacos(param);
-        case ATAN:
-            return catan(param);
-        case ACSC:
-            return cacsc(param);
-        case ASEC:
-            return casec(param);
-        case ACOT:
-            return cacot(param);
-        case CSCH:
-            return ccsch(param);
-        case SECH:
-            return csech(param);
-        case COTH:
-            return ccoth(param);
-        case ASINH:
-            return casinh(param);
-        case ACOSH:
-            return cacosh(param);
-        case ATANH:
-            return catanh(param);
-        case ACSCH:
-            return cacsch(param);
-        case ASECH:
-            return casech(param);
-        case ACOTH:
-            return cacoth(param);
-    }
-    return param;
-}
-
-uniform samplerBuffer constant_stack;
 uniform usamplerBuffer operator_stack;
+uniform samplerBuffer constant_stack;
 
+vec2 run_stack(in usamplerBuffer operator_stack, in usamplerBuffer constant_stack, in vec2 z);
 
-vec2 evaluate_binary_operator(in uint operator, inout vec2 stack[16], inout int stack_index){
-    vec2 params[2] = pop_two(stack,stack_index);
-    vec2 a = params[0];
-    vec2 b = params[1];
-    switch(operator){
-        case ADD:
-            return a + b;
-        case SUB:
-            return a - b;
-        case MULT:
-            return cmult(a,b);
-        case DIV:
-            return cdiv(a,b);
-        case POW:
-            return cpow(a,b);
-    }
-    return vec2(0.0f);
-}
-
-vec2 evaluate_stack_operator(in uint operator, inout vec2 stack[16], inout int stack_index){
-    if(operator < BINARY_BOUNDARY)
-        return evaluate_binary_operator(operator,stack,stack_index);
-    return evaluate_unary_operator(operator,stack,stack_index);
-}
-
-vec2 run_stack(in usamplerBuffer operators, in samplerBuffer constants, in vec2 pos){
-    vec2 stack[16];
-    int stack_index = 0;
-    int constant_index = 0;
-    
-    for(int i = 0; i < 1024; ++i){
-        uint operator = texelFetch(operators,i).x;
-        if(operator == END){
-            break;
-        }
-        if(operator == NULL_SYMBOL){
-            continue;
-        }
-        vec2 result;
-
-        if(operator < VALUE_BOUNDARY)
-            result = evaluate_constant_operator(operator,constants, constant_index, pos);
-        else            
-            result = evaluate_stack_operator(operator,stack,stack_index);
-        
-        stack[stack_index++] = result;
-    }
-    return (stack_index > 0)? stack[stack_index-1] : vec2(0.0f);
-}
+#define INTERPRETER_DEFINITION HERE
 
 #define END_INTERPRETER_SPECIFIC_FUNCTIONS HERE
 
@@ -513,7 +255,8 @@ void main(){
     
     vec3 hsl = domain_color(func_value);
     FragColor = vec4(hsl2rgb(hsl),1.0f);
-})";
+}
+)";
 
 std::string SRC_PLOTTER_VERT = R"(#version 330
 

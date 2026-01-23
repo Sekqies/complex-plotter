@@ -1,4 +1,8 @@
-file(GLOB SHADER_FILES "${SHADER_SOURCE_DIR}/*")
+file(GLOB SHADER_FILES 
+    "${SHADER_SOURCE_DIR}/*.vert"
+    "${SHADER_SOURCE_DIR}/*.frag"
+    "${SHADER_SOURCE_DIR}/*.geom"
+    "${SHADER_SOURCE_DIR}/*.glsl")
 
 set(FILE_CONTENT "#pragma once\n#include <string>\n\n")
 

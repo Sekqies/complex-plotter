@@ -85,7 +85,7 @@ int main() {
 	FunctionState function_state;
 	function_state.current_shader = &shader_program;
 
-	Mesh grid_mesh = generate_grid_mesh(256);
+	Mesh grid_mesh = generate_grid_mesh(350);
 
 	render(function_state, stack_tbo_texture, constants_tbo_texture,shader_program);
 	update_camera_vectors(camera_state);

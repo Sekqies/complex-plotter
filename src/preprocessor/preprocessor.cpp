@@ -32,12 +32,9 @@ void preprocess_string(const string& filename, const vector<TokenOperator>& oper
     string raw_source = get_source(filename);
     initialize_map_id();
     const string marker = "START_WRITING_HERE HERE";
-    size_t start_pos = raw_source.find(marker) + marker.length();
-    if (start_pos == string::npos) {
-        std::cerr << "Marker does not exist";
-        return;
-    }
-    raw_source.insert(start_pos, "\n" + preprocessed_string + "\n");
+    const string interpreter = write_interpreter();
+    inject_at(raw_source, "START_WRITING_HERE HERE", "\n" + preprocessed_string + "\n");
+    inject_at(raw_source, "INTERPRETER_DEFINITION HERE", "\n" + interpreter + "\n");
     if (filename == "shaders/plotter.frag") {
         SRC_PLOTTER_FRAG = raw_source;
     }
@@ -53,28 +50,15 @@ void preprocess_file(const string& filename, const vector<TokenOperator>& operat
     initialize_map_id();
     string raw_source = get_source(filename);
     const string marker = "START_WRITING_HERE HERE";
-    size_t start_pos = raw_source.find(marker) + marker.length();
-    // Let this exception be an exception! While I don't like the exception handling paradigm
-    //, it is a necessary evil for file handling. [added some days after]: If only I knew...
-
-    try {
-        raw_source = get_source(filename);
-    }
-    catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        return;
-    }
-    if (start_pos == string::npos) {
-        std::cerr << "Marker does not exist";
-        return;
-    }
-    raw_source.insert(start_pos, "\n" + preprocessed_string + "\n");
+    const string interpreter = write_interpreter();
+    inject_at(raw_source, "START_WRITING_HERE HERE", "\n" + preprocessed_string + "\n");
+    inject_at(raw_source, "INTERPRETER_DEFINITION HERE", "\n" + interpreter + "\n");
     std::ofstream out(filename);
     if (!out.is_open()) {
         std::cerr << "Could not open output file";
         return;
     }
-    out << raw_source;
+    out << interpreter;
     out.close();
 }
 
@@ -88,6 +72,7 @@ string build_shader_string(const string& new_shader, const string& origin) {
     }
     return out;
 }
+
 
 static bool found_bounds(const string& source, const string& tag, size_t& out_start, size_t& out_length) {
     string start_marker = "#define " + tag;
@@ -129,6 +114,13 @@ string erase_block(const string& source, const string& tag) {
     return copy;
 }
 
+void erase_block(string& source, const string& tag) {
+    size_t start, length;
+    while (found_bounds(source, tag, start, length)) {
+        source.erase(start, length);
+    }
+}
+
 string inject_at(const string& source, const string& tag, const string& payload) {
     string copy = source;
     const string marker = "#define " + tag;
@@ -147,6 +139,7 @@ void inject_at(string& source, const string& tag, const string& payload) {
     const string marker = "#define " + tag;
     size_t pos = source.find(marker);
     if (pos == string::npos) {
+        std::cout << tag;
         throw std::runtime_error("Injection marker '" + tag + "' not found");
     }
     size_t end = source.find('\n', pos);
