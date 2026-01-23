@@ -1,27 +1,8 @@
 #include <compiler/compiler_shader.h>
-
+#include <preprocessor/preprocessor.h>
 CompilerShader::CompilerShader(const std::string& vertex_path, const std::string& frag_path, const bool use_vertex) {
-	std::ifstream vfile;
-	std::ifstream ffile;
-	vfile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-	ffile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-	try {
-		vfile.open(vertex_path);
-		ffile.open(frag_path);
-		std::stringstream v_ss, f_ss;
-
-		v_ss << vfile.rdbuf();
-		f_ss << ffile.rdbuf();
-
-		vfile.close();
-		ffile.close();
-
-		vert_source = v_ss.str();
-		frag_source = f_ss.str();
-	}
-	catch (const std::ifstream::failure& e) {
-		std::cerr << "Error: failed reading contents of file '" << vertex_path << "' or '" << frag_path << "'";
-	}
+	vert_source = get_source(vertex_path);
+	frag_source = get_source(frag_path);
 	prepare_source(vert_source, frag_source, use_vertex);
 }
 

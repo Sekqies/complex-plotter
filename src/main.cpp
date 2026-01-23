@@ -40,15 +40,18 @@ unsigned int constants_tbo_buffer, constants_tbo_texture;
 
 int main() {
 	GLFWwindow* window = initalize_window(WIDTH, HEIGHT, "Domain Coloring");
-	preprocess("shaders/plotter.frag", operators);
+	preprocess_string("shaders/plotter.frag", operators);
 	
-	Shader shader_program("shaders/plotter.vert", "shaders/plotter.frag");
+	Shader shader_program;
+	build_shader_path(shader_program, "shaders/plotter.vert", "shaders/plotter.frag");
+	
+	std::cout << get_source("shaders/plotter.frag"); 
+
 
 	Shader shader_3d;
 	const string frag_source = shader_program.fragment_source;
 	string vert_source_3d = get_source("shaders/plotter3d.vert");
 	const string frag_source_3d = get_source("shaders/plotter3d.frag");
-	std::cout << vert_source_3d;
 	try {
 		vert_source_3d = build_shader_string(vert_source_3d, frag_source);
 		std::cout << vert_source_3d;
@@ -80,6 +83,7 @@ int main() {
 	float last_time = 0.0f;
 	init_imgui(window);
 	FunctionState function_state;
+	function_state.current_shader = &shader_program;
 
 	Mesh grid_mesh = generate_grid_mesh(256);
 

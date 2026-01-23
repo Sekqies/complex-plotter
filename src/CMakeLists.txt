@@ -6,7 +6,12 @@ set(SHADERS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 set(HEADER_BUILD "${CMAKE_CURRENT_BINARY_DIR}/shaders/embedded_shaders.h")
 set(HEADER_SRC   "${CMAKE_CURRENT_SOURCE_DIR}/shaders/embedded_shaders.h")
 
-file(GLOB SHADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*")
+file(GLOB_RECURSE SHADER_FILES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.geom"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.glsl"
+)
 
 add_custom_command(
     OUTPUT ${HEADER_BUILD} ${HEADER_SRC}
@@ -17,7 +22,7 @@ add_custom_command(
         -DDEST_SRC="${HEADER_SRC}"
         -P "${CMAKE_CURRENT_SOURCE_DIR}/scripts/embed_shaders.cmake"
         
-    DEPENDS ${SHADERS_DIR}
+    DEPENDS ${SHADER_FILES}
     COMMENT "[Custom] Generating embedded_shaders.h in build and src folders..."
 )
 

@@ -6,7 +6,9 @@
 
 string get_source(const string& filename);
 
-void preprocess(const string& filename, const vector<TokenOperator>& operators);
+void preprocess_string(const string& filename, const vector<TokenOperator>& operators);
+
+void preprocess_file(const string& filename, const vector<TokenOperator>& operators);
 
 string build_shader_string(const string& new_shader, const string& origin);
 

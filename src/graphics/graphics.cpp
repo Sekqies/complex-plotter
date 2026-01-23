@@ -6,6 +6,8 @@
 #include <vector>
 #include <iostream>
 #include <parser/parser.h>
+#include <preprocessor/preprocessor.h>
+#include <stdexcept>
 
 using std::string;
 GLFWwindow* initalize_window(const float width, const float height, const string windowname) {
@@ -44,4 +46,14 @@ void populate_texture(unsigned int& tbo_buffer, unsigned int& tbo_texture, const
 	glGenTextures(1, &tbo_texture);
 	glBindTexture(GL_TEXTURE_BUFFER, tbo_texture);
 	glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32F, tbo_buffer);
+}
+
+void build_shader_source(Shader& shader, const std::string& vert_source, const std::string& frag_source) {
+	shader.compile(vert_source, frag_source);
+}
+
+void build_shader_path(Shader& shader, const std::string& vert_path, const std::string& frag_path) {
+	const std::string vert_source = get_source(vert_path);
+	const std::string frag_source = get_source(frag_path);
+	return build_shader_source(shader, vert_source, frag_source);
 }

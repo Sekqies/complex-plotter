@@ -99,6 +99,8 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
 }
 
 void Shader::compile(const std::string& vertex_shader, const std::string& fragment_shader) {
+    fragment_source = fragment_shader;
+    vertex_source = vertex_shader;
     unsigned int vertex, fragment;
     // vertex shader
     const char* vertex_str = vertex_shader.c_str();

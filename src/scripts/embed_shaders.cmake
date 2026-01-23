@@ -9,7 +9,7 @@ foreach(FILE ${SHADER_FILES})
     
     file(READ ${FILE} SHADER_TEXT)
     
-    string(APPEND FILE_CONTENT "const std::string SRC_${VAR_NAME} = R\"(${SHADER_TEXT})\";\n\n")
+    string(APPEND FILE_CONTENT "std::string SRC_${VAR_NAME} = R\"(${SHADER_TEXT})\";\n\n")
 endforeach()
 
 file(WRITE "${DEST_BUILD}" "${FILE_CONTENT}")

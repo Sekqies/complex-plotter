@@ -2,8 +2,21 @@
 #include <types/type_mapper.h>
 #include <array>
 #include <stdexcept>
+#include <shaders/embedded_shaders.h>
 
 string get_source(const string& filename) {
+    static std::map<string, string&> known_files = {
+        {"shaders/plotter.frag",SRC_PLOTTER_FRAG},
+        {"shaders/plotter.vert",SRC_PLOTTER_VERT},
+        {"shaders/plotter3d.frag",SRC_PLOTTER3D_FRAG},
+        {"shaders/plotter3d.vert",SRC_PLOTTER3D_VERT}
+    };
+    const auto it = known_files.find(filename);
+    if (it != known_files.end()) {
+        return it->second;
+    }
+
+
     std::ifstream file(filename);
     if (!file.is_open()) {
         throw std::runtime_error("Could not open source file '" + filename + "'");
@@ -14,7 +27,28 @@ string get_source(const string& filename) {
 }
 
 
-void preprocess(const string& filename, const vector<TokenOperator>& operators) {
+void preprocess_string(const string& filename, const vector<TokenOperator>& operators) {
+    string preprocessed_string = get_preprocessor_string(operators);
+    string raw_source = get_source(filename);
+    initialize_map_id();
+    const string marker = "START_WRITING_HERE HERE";
+    size_t start_pos = raw_source.find(marker) + marker.length();
+    if (start_pos == string::npos) {
+        std::cerr << "Marker does not exist";
+        return;
+    }
+    raw_source.insert(start_pos, "\n" + preprocessed_string + "\n");
+    if (filename == "shaders/plotter.frag") {
+        SRC_PLOTTER_FRAG = raw_source;
+    }
+    if (filename == "shaders/plotter.vert") SRC_PLOTTER_VERT = raw_source;
+    if (filename == "shaders/plotter3d.vert") SRC_PLOTTER3D_VERT = raw_source;
+    if (filename == "shaders/plotter3d.frag") SRC_PLOTTER3D_FRAG = raw_source;
+    std::cout << raw_source;
+    return;
+}
+
+void preprocess_file(const string& filename, const vector<TokenOperator>& operators) {
     string preprocessed_string = get_preprocessor_string(operators);
     initialize_map_id();
     string raw_source = get_source(filename);
