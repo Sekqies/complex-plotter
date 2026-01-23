@@ -33,6 +33,8 @@ enum Operator {
 	EXP,
 	LOG,
 	POW,
+	SQRT,
+	RECIPROCAL,
 	LPAREN,
 	RPAREN,
 	COMMA,
@@ -92,6 +94,7 @@ inline std::vector<FullOperator> full_operators = {
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::NEG, "~", 4}, 0, "cneg", "NEG"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::MAG, "mag", 4}, 0, "cmag", "MAG"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::ARG, "arg", 4}, 0, "carg", "ARG"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::RECIPROCAL, "reciprocal", 4}, 0, "reciprocal", "RECIPROCAL"},
 
 	// TRIGONOMETRIC
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::SIN, "sin", 5}, 0, "csin", "SIN"},
@@ -107,6 +110,7 @@ inline std::vector<FullOperator> full_operators = {
 	{ {Arity::BINARY, Associativity::LEFT, Operator::MULT, "*", 3}, 0, "cmult", "MULT"},
 	{ {Arity::BINARY, Associativity::LEFT, Operator::DIV, "/", 3}, 0, "cdiv", "DIV"},
 	{ {Arity::BINARY, Associativity::RIGHT, Operator::POW, "^", 4}, 0, "cpow", "POW"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::SQRT, "sqrt", 5}, 0, "csqrt", "SQRT"},
 	// EXPONENTIAL
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::LOG, "ln", 4}, 0, "clog", "LOG"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::EXP, "exp", 4}, 0, "cexp", "EXP"},

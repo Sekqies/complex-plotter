@@ -9,7 +9,32 @@ unique_ptr<AstNode> differentiate(AstNode* node, const Operator var) {
 		m[Operator::LOG] = build_expression("1/uplaceholder");
 		
 		m[Operator::COSEC] = build_expression("-csc(uplaceholder) * cot(uplaceholder)");
+		m[Operator::SEC] = build_expression("sec(uplaceholder) * tan(uplaceholder)");
+		m[Operator::COT] = build_expression("-csc(uplaceholder)^2");
 
+		m[Operator::ASIN] = build_expression("reciprocal(sqrt(1-uplaceholder^2))");
+		m[Operator::ACOS] = build_expression("-reciprocal(sqrt(1-uplaceholder^2))");
+		m[Operator::ATAN] = build_expression("reciprocal(1+uplaceholder^2)");
+
+		m[Operator::ACSC] = build_expression("-reciprocal(uplaceholder * sqrt(uplaceholder^2 - 1))");
+		m[Operator::ASEC] = build_expression("reciprocal(uplaceholder * sqrt(uplaceholder^2 - 1))");
+		m[Operator::ACOT] = build_expression("-reciprocal(1+uplaceholder^2)");
+
+		m[Operator::SINH] = build_expression("cosh(uplaceholder)");
+		m[Operator::COSH] = build_expression("sinh(uplaceholder)");
+		m[Operator::TANH] = build_expression("sech(uplaceholder)^2");
+
+		m[Operator::CSCH] = build_expression("-csch(uplaceholder) * coth(uplaceholder)");
+		m[Operator::SECH] = build_expression("-sech(uplaceholder) * tanh(uplaceholder)");
+		m[Operator::COTH] = build_expression("-csch(uplaceholder)^2");
+
+		m[Operator::ASINH] = build_expression("reciprocal(sqrt(uplaceholder^2 + 1))");
+		m[Operator::ACOSH] = build_expression("reciprocal(sqrt(uplaceholder^2 - 1))");
+		m[Operator::ATANH] = build_expression("reciprocal(1 - uplaceholder^2)");
+
+		m[Operator::ACSCH] = build_expression("-reciprocal(uplaceholder*sqrt(1+uplaceholder^2))");
+		m[Operator::ASECH] = build_expression("-reciprocal(uplaceholder * sqrt(1-uplaceholder^2))");
+		m[Operator::ACOTH] = build_expression("reciprocal(1-uplaceholder^2)");
 		return m;
 		}();
 	if (node->op.op == Operator::CONSTANT) {
