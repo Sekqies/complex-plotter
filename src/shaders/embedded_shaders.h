@@ -1,8 +1,4 @@
-#pragma once
-#include <string>
-
-
- std::string SRC_PLOTTER_FRAG = R"(#version 330
+std::string SRC_PLOTTER_FRAG = R"(#version 330
 
 // Other useful constants
 
@@ -12,6 +8,10 @@
 const float PI = 3.141591f;
 const float TWO_PI_OVER_3 = 2*PI*0.66666f;
 const float TWO_OVER_PI = 2.0f / PI;
+
+const vec2 CPI = vec2(PI,0.0f);
+const vec2 ONE = vec2(1.0f,0.0f);
+const vec2 I = vec2(0.0f,1.0f);
 
 #define END_CONSTANT_DEFINITIONS HERE
 
@@ -117,6 +117,84 @@ vec2 ctanh(vec2 a) {
     return vec2(sinh(2.0f * a.x) / div, sin(2.0f * a.y) / div);
 }
 
+vec2 csqrt(vec2 a) {
+    return cpow(a,vec2(0.5f,0.0f));
+}
+
+vec2 reciprocal(vec2 z){
+    return cdiv(ONE,z);
+}
+
+// Inverse trigonometric
+vec2 casin(vec2 z){
+    vec2 iz = vec2(-z.y,z.x);
+    vec2 root = csqrt(csub(vec2(1.0f,0.0f),cmult(z,z)));
+    return cmult(vec2(0.0f,-1.0f),clog(cadd(iz,root)));
+}
+
+vec2 cacos(vec2 z){
+    return csub(vec2(PI/2.0f, 0.0f), casin(z));
+}
+
+vec2 catan(vec2 z){
+    vec2 iz = vec2(-z.y,z.x);
+    vec2 term = cdiv(csub(ONE,iz),cadd(ONE,iz));
+    return cmult(vec2(0.0f,0.5f),clog(term));
+}
+
+vec2 cacsc(vec2 z){
+    return casin(reciprocal(z));
+}
+
+vec2 casec(vec2 z){
+    return cacos(reciprocal(z));
+}
+
+vec2 cacot(vec2 z){
+    return catan(reciprocal(z));
+}
+
+// Reciprocal hyperbolic
+
+vec2 csech(vec2 z){
+    return reciprocal(ccosh(z));
+}
+
+vec2 ccsch(vec2 z){
+    return reciprocal(csinh(z));
+}
+
+vec2 ccoth(vec2 z){
+    return cdiv(ccosh(z),csinh(z));
+}
+
+// Inverse hyperbolic
+vec2 casinh(vec2 z){
+    vec2 root = csqrt(cadd(cmult(z,z),ONE));
+    return clog(cadd(z,root));
+}
+
+vec2 cacosh(vec2 z){
+    vec2 root = csqrt(csub(cmult(z,z),ONE));
+    return clog(cadd(z,root));
+}
+
+vec2 catanh(vec2 z){
+    vec2 term = cdiv(cadd(ONE,z),csub(ONE,z));
+    return cmult(vec2(0.5f,0.0f),clog(term));
+}
+
+vec2 cacsch(vec2 z){
+    return casinh(reciprocal(z));
+}
+
+vec2 casech(vec2 z){
+    return cacosh(reciprocal(z));
+}
+
+vec2 cacoth(vec2 z){
+    return catanh(reciprocal(z));
+}
 
 vec2 cneg(vec2 a){
     return -a;
@@ -156,6 +234,21 @@ vec2 cneg(vec2 a){
 #define LOG SHADER_LOG
 #define ARG SHADER_ARG
 #define MAG SHADER_MAG
+#define ASIN SHADER_ASIN
+#define ACOS SHADER_ACOS
+#define ATAN SHADER_ATAN
+#define ACSC SHADER_ACSC
+#define ASEC SHADER_ASEC
+#define ACOT SHADER_ACOT
+#define CSCH SHADER_CSCH
+#define SECH SHADER_SECH
+#define COTH SHADER_COTH
+#define ASINH SHADER_ASINH
+#define ACOSH SHADER_ACOSH
+#define ATANH SHADER_ATANH
+#define ACSCH SHADER_ACSCH
+#define ASECH SHADER_ASECH
+#define ACOTH SHADER_ACOTH
 
 #ifndef SHADER_NULL_SYMBOL
     #define SHADER_NULL_SYMBOL 0u
@@ -222,6 +315,21 @@ vec2 cneg(vec2 a){
     #define SHADER_POW 22u
     #define SHADER_ARG 23u
     #define SHADER_MAG 24u
+    #define SHADER_ASIN 25u
+    #define SHADER_ACOS 26u
+    #define SHADER_ATAN 27u
+    #define SHADER_ACSC 28u
+    #define SHADER_ASEC 29u
+    #define SHADER_ACOT 30u
+    #define SHADER_CSCH 31u
+    #define SHADER_SECH 32u
+    #define SHADER_COTH 33u
+    #define SHADER_ASINH 34u
+    #define SHADER_ACOSH 35u
+    #define SHADER_ATANH 36u
+    #define SHADER_ACSCH 37u
+    #define SHADER_ASECH 38u
+    #define SHADER_ACOTH 39u
 #endif
 
 
@@ -280,8 +388,36 @@ vec2 evaluate_unary_operator(in uint operator, inout vec2 stack[16], inout int s
             return cmag(param);
         case ARG:
             return carg(param);
-        
-        
+        case ASIN:
+            return casin(param);
+        case ACOS:
+            return cacos(param);
+        case ATAN:
+            return catan(param);
+        case ACSC:
+            return cacsc(param);
+        case ASEC:
+            return casec(param);
+        case ACOT:
+            return cacot(param);
+        case CSCH:
+            return ccsch(param);
+        case SECH:
+            return csech(param);
+        case COTH:
+            return ccoth(param);
+        case ASINH:
+            return casinh(param);
+        case ACOSH:
+            return cacosh(param);
+        case ATANH:
+            return catanh(param);
+        case ACSCH:
+            return cacsch(param);
+        case ASECH:
+            return casech(param);
+        case ACOTH:
+            return cacoth(param);
     }
     return param;
 }
@@ -379,7 +515,7 @@ void main(){
     FragColor = vec4(hsl2rgb(hsl),1.0f);
 })";
 
- std::string SRC_PLOTTER_VERT = R"(#version 330
+std::string SRC_PLOTTER_VERT = R"(#version 330
 
 out vec2 pos;
 
@@ -390,7 +526,7 @@ void main(){
     gl_Position = vec4(x,y,0.0f,1.0f);
 })";
 
- std::string SRC_PLOTTER3D_FRAG = R"(#version 330 core
+std::string SRC_PLOTTER3D_FRAG = R"(#version 330 core
 
 in vec2 f_z;
 out vec4 FragColor;
@@ -415,7 +551,7 @@ void main(){
     FragColor = vec4(hsl2rgb(hsl),1.0f);
 })";
 
- std::string SRC_PLOTTER3D_VERT = R"(#version 330 core
+std::string SRC_PLOTTER3D_VERT = R"(#version 330 core
 
 #define HERE ;
 

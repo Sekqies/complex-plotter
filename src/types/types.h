@@ -15,9 +15,9 @@ enum Associativity {
 	NONE
 };
 
-enum Operator{
+enum Operator {
 	NULL_SYMBOL = 0u,
-	CONSTANT=1u,
+	CONSTANT = 1u,
 	CONSTANTH,
 	VARIABLEX,
 	VARIABLEY,
@@ -44,7 +44,24 @@ enum Operator{
 	COT,
 	ARG,
 	MAG,
-
+	ASIN,
+	ACOS,
+	ATAN,
+	ACSC,
+	ASEC,
+	ACOT,
+	SINH,
+	COSH,
+	TANH,
+	CSCH,
+	SECH,
+	COTH,
+	ASINH,
+	ACOSH,
+	ATANH,
+	ACSCH,
+	ASECH,
+	ACOTH,
 	DERIVATIVE
 };
 
@@ -75,6 +92,7 @@ inline std::vector<FullOperator> full_operators = {
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::NEG, "~", 4}, 0, "cneg", "NEG"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::MAG, "mag", 4}, 0, "cmag", "MAG"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::ARG, "arg", 4}, 0, "carg", "ARG"},
+
 	// TRIGONOMETRIC
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::SIN, "sin", 5}, 0, "csin", "SIN"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::COS, "cos", 5}, 0, "ccos", "COS"},
@@ -92,17 +110,48 @@ inline std::vector<FullOperator> full_operators = {
 	// EXPONENTIAL
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::LOG, "ln", 4}, 0, "clog", "LOG"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::EXP, "exp", 4}, 0, "cexp", "EXP"},
-	//
+
+	// INVERSE TRIGONOMETRIC 
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ASIN, "asin", 5}, 0, "casin", "ASIN"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ACOS, "acos", 5}, 0, "cacos", "ACOS"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ATAN, "atan", 5}, 0, "catan", "ATAN"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ACSC, "acsc", 5}, 0, "cacsc", "ACSC"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ASEC, "asec", 5}, 0, "casec", "ASEC"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ACOT, "acot", 5}, 0, "cacot", "ACOT"},
+
+	// HYPERBOLIC
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::SINH, "sinh", 5}, 0, "csinh", "SINH"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::COSH, "cosh", 5}, 0, "ccosh", "COSH"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::TANH, "tanh", 5}, 0, "ctanh", "TANH"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::CSCH, "csch", 5}, 0, "ccsch", "CSCH"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::SECH, "sech", 5}, 0, "csech", "SECH"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::COTH, "coth", 5}, 0, "ccoth", "COTH"},
+
+	// INVERSE HYPERBOLIC
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ASINH, "asinh", 5}, 0, "casinh", "ASINH"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ACOSH, "acosh", 5}, 0, "cacosh", "ACOSH"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ATANH, "atanh", 5}, 0, "catanh", "ATANH"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ACSCH, "acsch", 5}, 0, "cacsch", "ACSCH"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ASECH, "asech", 5}, 0, "casech", "ASECH"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ACOTH, "acoth", 5}, 0, "cacoth", "ACOTH"},
+
+	//CONSTANTS
 	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "CONSTANT", 0, glm::vec2(0.0f)}, 0, "", "CONSTANT"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "i", 0, glm::vec2(0,1)}, 0, ""},
+
+	//VARIABLES
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEZ, "z", 0}, 0, "z", "VARIABLEZ"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEX, "x", 0}, 0, "vec2(z.x,0.0f)", "VARIABLEX"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEY, "y", 0}, 0, "vec2(z.y,0.0f)", "VARIABLEY"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLET, "t", 0}, 0, "vec2(time,0.0f)", "VARIABLET"},
+	
+	//PARSER STUFF
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEPLACEHOLDER, "uplaceholder", 0}, 0, "THIS_SHOULDNT_BE_HERE", "VARIABLEPLACEHOLDER"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::SECONDVARIABLEPLACEHOLDER, "vplaceholder", 0}, 0, "THIS_SHOULDNT_BE_HERE", "SECONDVARIABLEPLACEHOLDER"},
 	{ {Arity::PAREN, Associativity::NONE, Operator::LPAREN, "(", 0}, 0, "" },
 	{ {Arity::PAREN, Associativity::NONE, Operator::RPAREN, ")", 0}, 0, "" },
+
+	//HIGHER ORDER
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::DERIVATIVE, "derivative", 0,glm::vec2(0.0f),true}, 0, ""},
 
 
