@@ -64,8 +64,11 @@ enum Operator {
 	ACSCH,
 	ASECH,
 	ACOTH,
-	DERIVATIVE
+	DERIVATIVE,
+	MOD
 };
+
+
 
 typedef struct TokenOperator {
 	Arity arity = Arity::NULLARY;
@@ -110,6 +113,8 @@ inline std::vector<FullOperator> full_operators = {
 	{ {Arity::BINARY, Associativity::LEFT, Operator::MULT, "*", 3}, 0, "cmult", "MULT"},
 	{ {Arity::BINARY, Associativity::LEFT, Operator::DIV, "/", 3}, 0, "cdiv", "DIV"},
 	{ {Arity::BINARY, Associativity::RIGHT, Operator::POW, "^", 4}, 0, "cpow", "POW"},
+	{ {Arity::BINARY, Associativity::LEFT, Operator::MOD, "%", 4}, 0, "cmod", "MOD"},
+
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::SQRT, "sqrt", 5}, 0, "csqrt", "SQRT"},
 	// EXPONENTIAL
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::LOG, "ln", 4}, 0, "clog", "LOG"},
@@ -142,6 +147,9 @@ inline std::vector<FullOperator> full_operators = {
 	//CONSTANTS
 	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "CONSTANT", 0, glm::vec2(0.0f)}, 0, "", "CONSTANT"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "i", 0, glm::vec2(0,1)}, 0, ""},
+	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "e", 0, glm::vec2(2.718281828459045 ,0.0f)}, 0, ""},
+	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "pi", 0, glm::vec2(3.141592653589793,0)}, 0, ""},
+
 
 	//VARIABLES
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEZ, "z", 0}, 0, "z", "VARIABLEZ"},

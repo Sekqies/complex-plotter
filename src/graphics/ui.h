@@ -4,6 +4,7 @@
 #include <compiler/compiler_shader.h>
 #include <graphics/ui_init.h>
 #include <string>
+#include <interactions/interactions.h>
 
 typedef struct FunctionState {
 	Shader* current_shader = nullptr;
@@ -17,4 +18,6 @@ typedef struct FunctionState {
 
 void render(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex, Shader& interpreter_shader);
 
-void render_and_update(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex, Shader& interpreter_shader, CompilerShader& compiler_shader);
+void compile(FunctionState& state, CompilerShader& compiler_shader);
+
+void render_and_update(FunctionState& state,ViewState& view_state, unsigned int& op_tex, unsigned int& const_tex, Shader& interpreter_shader, CompilerShader& compiler_shader, bool& should_switch);

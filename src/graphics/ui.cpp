@@ -2,6 +2,7 @@
 #include <parser/parser.h>
 #include <transformer/transformer.h>
 #include <graphics/graphics.h>
+#include <interactions/interactions.h>
 #include <string>
 #include <iostream>
 
@@ -56,46 +57,118 @@ void compile(FunctionState& state, CompilerShader& compiler_shader) {
 	state.is_interpreted = false;
 }
 
-void render_and_update(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex, Shader& interpreter_shader, CompilerShader& compiler_shader){
-	ImGui::Begin("Function editor");
-	ImGui::Text("Enter a complex function f(z)=");
-	ImGui::SetNextItemWidth(-FLT_MIN);
-	bool pressed_enter = ImGui::InputText("##source",
-		static_cast<char*>(state.expression.data()),
-		state.expression.capacity() + 1,
-		ImGuiInputTextFlags_CallbackResize |
-		ImGuiInputTextFlags_EnterReturnsTrue,
-		input_text_callback,
-		&state.expression);
-	bool typed = ImGui::IsItemEdited();
+void change_3d_mode(ViewState& view_state) {
 
-	if (typed && !pressed_enter) {
-		state.last_typing_time = glfwGetTime();
-		state.needs_reparse = true;
-	}
+}
 
-	const float current_time = glfwGetTime();
-	const float time_dif = current_time - state.last_typing_time;
-	const bool debounced = time_dif > DEBOUNCE_DELAY;
 
-	if (pressed_enter) {
-		compile(state, compiler_shader);
-	}
-	if (state.needs_reparse && debounced && !pressed_enter) {
-		render(state, op_tex, const_tex, interpreter_shader);
-	}
-	if (!state.error_message.empty()) {
-		ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Error: %s", state.error_message.c_str());
-	}
-	else {
-		ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "Valid function!");
-	}
-	ImGui::Separator();
-	ImGui::Text("Controls:");
-	ImGui::BulletText("Pan: Left Click + Drag");
-	ImGui::BulletText("Zoom: Scroll Wheel");
-	ImGui::BulletText("Enter: Compile (increases performance)");
-	ImGui::BulletText("T: Toggle 3D mode");
+void render_and_update(FunctionState& state, ViewState& view_state, unsigned int& op_tex, unsigned int& const_tex, Shader& interpreter_shader, CompilerShader& compiler_shader, bool& should_switch) {
+    ImGui::Begin("Function Control", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::SameLine();
+    if (state.is_interpreted) {
+        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "[ INTERPRETED ]");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("May be slow for large expressions. Press enter to increase performance");
+    }
+    else {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "[ COMPILED ]");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Faster for large expressions");
+    }
+    ImGui::Separator();
 
-	ImGui::End();
+    ImGui::Text("f(z) = ");
+    ImGui::SameLine();
+
+    static bool auto_reparse = true;
+
+    bool pressed_enter = ImGui::InputText("##source",
+        static_cast<char*>(state.expression.data()),
+        state.expression.capacity() + 1,
+        ImGuiInputTextFlags_CallbackResize | ImGuiInputTextFlags_EnterReturnsTrue,
+        input_text_callback,
+        &state.expression);
+
+    bool typed = ImGui::IsItemEdited();
+
+    if (typed && !pressed_enter && auto_reparse) {
+        state.last_typing_time = glfwGetTime();
+        state.needs_reparse = true;
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Compile")) {
+        pressed_enter = true; 
+    }
+
+    const float current_time = glfwGetTime();
+    const float time_dif = current_time - state.last_typing_time;
+    const bool debounced = time_dif > DEBOUNCE_DELAY;
+
+    if (pressed_enter) {
+        compile(state, compiler_shader);
+    }
+    if (state.needs_reparse && debounced && !pressed_enter) {
+        render(state, op_tex, const_tex, interpreter_shader);
+    }
+
+    if (!state.error_message.empty()) {
+        ImGui::Spacing();
+        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Error: %s", state.error_message.c_str());
+        ImGui::Spacing();
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Checkbox("Auto-Reparse (Live Edit)", &auto_reparse);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("If disabled, you must press Enter to see changes.");
+
+        ImGui::Text("View Mode:");
+        ImGui::SameLine();
+        if (ImGui::RadioButton("2D Plane", !state.is_3d)) {
+            view_state.is_3d = false;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("3D Surface", state.is_3d)) {
+            view_state.is_3d = true;
+        }
+    }
+
+    if (ImGui::CollapsingHeader("3D Keybinds")) {
+        ImGui::BulletText("WASD: Move");
+        ImGui::BulletText("Right click + Drag: Move camera");
+        ImGui::BulletText("Shift/Spacebar: Go up");
+        ImGui::BulletText("Ctrl: Go down");
+    }
+    if (ImGui::CollapsingHeader("Help & Keybinds")) {
+        ImGui::BulletText("Left Click + Drag: Pan Camera");
+        ImGui::BulletText("Scroll Wheel: Zoom");
+        ImGui::BulletText("Enter: Compile (High Performance)");
+        ImGui::BulletText("T: Quick Toggle 2D/3D");
+        ImGui::TextDisabled("Supported Symbols:");
+        static string supported_operators = []() {
+            string out;
+            for (const auto& op : full_operators) {
+                if (op.token_operator.op != Operator::VARIABLEPLACEHOLDER && op.token_operator.op != Operator::SECONDVARIABLEPLACEHOLDER)
+                    out += op.token_operator.str_repr + ", ";
+            }
+            return out;
+            }();
+        ImGui::TextWrapped(supported_operators.c_str());
+    }
+    if (ImGui::CollapsingHeader("Presets")) {
+        static const char* presets[] = {
+                                        "z",
+                                        "sin(z)",
+                                        "(z^2+1)/(z^2-1)",
+                                        "exp(1/z)",
+                                        "sin(z)*cos(10/z)"
+        };
+        static int current_preset = -1;
+        if (ImGui::Combo("Choose", & current_preset, presets, IM_ARRAYSIZE(presets))) {
+            state.expression = string(presets[current_preset]);
+            state.needs_reparse = true; 
+        }
+    }
+
+    ImGui::End();
 }

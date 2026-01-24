@@ -90,23 +90,25 @@ int main() {
 	render(function_state, stack_tbo_texture, constants_tbo_texture,shader_program);
 	update_camera_vectors(camera_state);
 	bool pressing_t = false;
+	bool should_switch = false;
+
+
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		bool is_3d = view_state.is_3d;
+
 		float current_frame = (float)glfwGetTime();
 		delta_time = current_frame - last_frame;
 		last_frame = current_frame;
 
 		if (!pressing_t && !ImGui::GetIO().WantCaptureKeyboard && glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
-			std::cout << "pressed t";
 			pressing_t = true;
 		}
 
 		if (pressing_t && !ImGui::GetIO().WantCaptureKeyboard && glfwGetKey(window, GLFW_KEY_T) == GLFW_RELEASE) {
 			pressing_t = false;
-			if (view_state.is_3d) {
-				function_state.current_shader = &shader_program;
-			}
 			view_state.is_3d = !view_state.is_3d;
 		}
 
@@ -119,11 +121,11 @@ int main() {
 				function_state.current_shader = &shader_3d;
 			}
 			glEnable(GL_DEPTH_TEST);
-			render_and_update(function_state, stack_tbo_texture, constants_tbo_texture, shader_3d, compiled_shader_3d);
+			render_and_update(function_state,view_state, stack_tbo_texture, constants_tbo_texture, shader_3d, compiled_shader_3d, should_switch);
 		}
 		else {
 			glDisable(GL_DEPTH_TEST);
-			render_and_update(function_state, stack_tbo_texture, constants_tbo_texture, shader_program, compiled_shader);
+			render_and_update(function_state,view_state, stack_tbo_texture, constants_tbo_texture, shader_program, compiled_shader, should_switch);
 		}
 		Shader* current_shader = function_state.current_shader;
 		current_shader->use();
@@ -154,6 +156,17 @@ int main() {
 		else {
 			glBindVertexArray(VAO);
 			glDrawArrays(GL_TRIANGLES, 0, 3);
+		}
+
+		if (is_3d != view_state.is_3d) {
+			function_state.is_3d = view_state.is_3d;
+			if (view_state.is_3d) {
+				function_state.current_shader = &shader_3d;
+			}
+			else {
+				function_state.current_shader = &shader_program;
+			}
+			std::cout << "Switched to " << (view_state.is_3d ? "3D" : "2D") << std::endl;
 		}
 
 		render_imgui();

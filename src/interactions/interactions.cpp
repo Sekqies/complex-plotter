@@ -10,6 +10,7 @@ ViewState* get_state(GLFWwindow* window) {
 
 void scroll_callback(GLFWwindow* window, const double xoffset, const double yoffset) {
 	ViewState* state = get_state(window);
+	if (ImGui::GetIO().WantCaptureMouse) return;
 	if (!state) return;
 	const float zoom_factor = 0.9f;
 	double x, y;
@@ -24,6 +25,8 @@ void scroll_callback(GLFWwindow* window, const double xoffset, const double yoff
 	}
 	else 
 		state->range /= zoom_factor;
+	if (state->is_3d) return;
+
 	state->shift += (prev_range - state->range) * norm;
 }
 
@@ -73,19 +76,4 @@ void window_size_callback(GLFWwindow* window, const int width, const int height)
 	state->width = static_cast<float>(width);
 	state->height = static_cast<float>(height);
 	glViewport(0, 0, width, height);
-}
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	ViewState* state = get_state(window);
-	if (action != GLFW_PRESS) return;
-	if (key == GLFW_KEY_ESCAPE) {
-		glfwSetWindowShouldClose(window, true);
-	}
-	if (key == GLFW_KEY_T) {
-		state->is_3d = !state->is_3d;
-	}
-	if (key == GLFW_KEY_SPACE) {
-		
-	}
 }

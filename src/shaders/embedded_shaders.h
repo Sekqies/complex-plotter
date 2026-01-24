@@ -203,6 +203,10 @@ vec2 cneg(vec2 a){
     return -a;
 }
 
+vec2 cmod(vec2 a, vec2 b){
+    return csub(a,cmult(b,floor(cdiv(a,b))));
+}
+
 
 #define END_FUNCTION_DEFINITIONS HERE
 
