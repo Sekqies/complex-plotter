@@ -188,6 +188,7 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
             ImGui::Checkbox("Follow Mouse", &view_state.inspector_follows_mouse);
             ImGui::Unindent();
         }
+        ImGui::Checkbox("Show Grid", &view_state.show_grid);
     }
 
     if (ImGui::CollapsingHeader("3D Keybinds")) {

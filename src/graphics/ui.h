@@ -17,6 +17,7 @@ typedef struct FunctionState {
 	bool needs_reparse = true;
 	bool is_interpreted = true;
 	bool is_3d = false;
+	bool show_grid = true;
 } FunctionState;
 
 void render(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex, Shader& interpreter_shader);

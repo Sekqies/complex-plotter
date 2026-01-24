@@ -5,7 +5,7 @@
 layout (location=0) in vec3 aPos;
 
 out vec2 f_z;
-
+out vec2 z_val;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -47,6 +47,7 @@ void main(){
 	gl_Position = projection * view * model * vec4(aPos.x,height,aPos.z,1.0f);
 
 	f_z = func_value;
+	z_val = z;
 }
 
 

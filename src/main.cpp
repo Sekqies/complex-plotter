@@ -140,7 +140,7 @@ int main() {
 		current_shader->setFloat("u_range", view_state.range);
 		current_shader->setVec2("shift", view_state.shift);
 		current_shader->setVec2("u_resolution", glm::vec2(view_state.width,view_state.height));
-
+		current_shader->setBool("show_grid", view_state.show_grid);
 		if (function_state.is_interpreted) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_BUFFER, stack_tbo_texture);
