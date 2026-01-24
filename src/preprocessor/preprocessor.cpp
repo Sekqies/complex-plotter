@@ -96,12 +96,12 @@ string get_block(const string& source, const string& tag) {
     size_t start, length;
     if (!found_bounds(source, tag, start, length)) return "";
 
-    string start_str = "#define " + tag;
-    size_t content_start = start + start_str.length();
-    
+    size_t newline_pos = source.find('\n', start);
+    if (newline_pos == string::npos) return ""; 
+    size_t content_start = newline_pos + 1;
     string end_str = "#define END_" + tag;
-    size_t content_end = source.find(end_str, start);
-
+    size_t content_end = source.find(end_str, content_start);
+    if (content_end == string::npos) return "";
     return source.substr(content_start, content_end - content_start);
 }
 

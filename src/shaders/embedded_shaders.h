@@ -1,7 +1,38 @@
 #pragma once
 #include <string>
 
-std::string SRC_PLOTTER_FRAG = R"(#version 330
+inline std::string SRC_PICKER_FRAG = R"(#version 330 core
+layout (location = 0) out vec4 FragData;
+
+uniform float u_range;
+uniform vec2 shift;
+uniform vec2 u_resolution;
+uniform vec2 u_mouse;
+uniform float time;
+
+#define CONSTANT_DEFINITIONS HERE
+
+#define END_CONSTANT_DEFINITIONS HERE
+
+#define FUNCTION_DEFINITIONS HERE
+
+#define END_FUNCTION_DEFINITIONS HERE
+
+#define INTERPRETER_SPECIFIC_FUNCTIONS HERE
+
+#define END_INTERPRETER_SPECIFIC_FUNCTIONS HERE
+
+void main(){
+	vec2 z = (u_mouse/u_resolution.y) * u_range;
+	z -= (u_resolution / u_resolution.y) * 0.5 * u_range;
+	z += shift;
+
+	vec2 val = run_stack(operator_stack,constant_stack,z);
+
+	FragData = vec4(val.x,val.y,z.x,z.y);	
+})";
+
+inline std::string SRC_PLOTTER_FRAG = R"(#version 330
 
 // Other useful constants
 
@@ -262,7 +293,7 @@ void main(){
 }
 )";
 
-std::string SRC_PLOTTER_VERT = R"(#version 330
+inline std::string SRC_PLOTTER_VERT = R"(#version 330
 
 out vec2 pos;
 
@@ -273,7 +304,7 @@ void main(){
     gl_Position = vec4(x,y,0.0f,1.0f);
 })";
 
-std::string SRC_PLOTTER3D_FRAG = R"(#version 330 core
+inline std::string SRC_PLOTTER3D_FRAG = R"(#version 330 core
 
 in vec2 f_z;
 out vec4 FragColor;
@@ -298,7 +329,7 @@ void main(){
     FragColor = vec4(hsl2rgb(hsl),1.0f);
 })";
 
-std::string SRC_PLOTTER3D_VERT = R"(#version 330 core
+inline std::string SRC_PLOTTER3D_VERT = R"(#version 330 core
 
 #define HERE ;
 

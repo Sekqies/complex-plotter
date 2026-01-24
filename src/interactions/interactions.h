@@ -11,6 +11,8 @@ typedef struct ViewState {
 	float height = 600.0f;
 	bool is_dragging = false;
 	bool is_3d = false;
+	bool show_inspector = true;
+	bool inspector_follows_mouse = true;
 } ViewState;
 
 

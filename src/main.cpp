@@ -15,6 +15,7 @@
 #include <compiler/compiler_shader.h>
 #include <graphics/3d/mesh.h>
 #include <graphics/3d/camera_state.h>
+#include <shaders/embedded_shaders.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -38,15 +39,20 @@ unsigned int stack_tbo_buffer, stack_tbo_texture;
 unsigned int constants_tbo_buffer, constants_tbo_texture;
 
 
+
 int main() {
 	GLFWwindow* window = initalize_window(WIDTH, HEIGHT, "Domain Coloring");
 	preprocess_string("shaders/plotter.frag", operators);
 	
 	Shader shader_program;
 	build_shader_path(shader_program, "shaders/plotter.vert", "shaders/plotter.frag");
-	
-	std::cout << get_source("shaders/plotter.frag"); 
 
+	Shader picker;
+	string picker_frag = SRC_PICKER_FRAG;
+	inject_at(picker_frag, "FUNCTION_DEFINITIONS HERE", get_block(shader_program.fragment_source, "FUNCTION_DEFINITIONS"));
+	inject_at(picker_frag, "INTERPRETER_SPECIFIC_FUNCTIONS", get_block(shader_program.fragment_source, "INTERPRETER_SPECIFIC_FUNCTIONS"));
+	inject_at(picker_frag, "CONSTANT_DEFINITIONS HERE", get_block(shader_program.fragment_source, "CONSTANT_DEFINITIONS"));
+	picker.compile(shader_program.vertex_source, picker_frag);
 
 	Shader shader_3d;
 	const string frag_source = shader_program.fragment_source;
@@ -90,9 +96,10 @@ int main() {
 	render(function_state, stack_tbo_texture, constants_tbo_texture,shader_program);
 	update_camera_vectors(camera_state);
 	bool pressing_t = false;
-	bool should_switch = false;
 
+	unsigned int picker_tex, picker_fbo;
 
+	init_picker(picker_tex,picker_fbo);
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -121,11 +128,11 @@ int main() {
 				function_state.current_shader = &shader_3d;
 			}
 			glEnable(GL_DEPTH_TEST);
-			render_and_update(function_state,view_state, stack_tbo_texture, constants_tbo_texture, shader_3d, compiled_shader_3d, should_switch);
+			render_and_update(function_state,view_state, stack_tbo_texture, constants_tbo_texture, shader_3d, compiled_shader_3d);
 		}
 		else {
 			glDisable(GL_DEPTH_TEST);
-			render_and_update(function_state,view_state, stack_tbo_texture, constants_tbo_texture, shader_program, compiled_shader, should_switch);
+			render_and_update(function_state,view_state, stack_tbo_texture, constants_tbo_texture, shader_program, compiled_shader);
 		}
 		Shader* current_shader = function_state.current_shader;
 		current_shader->use();
@@ -167,6 +174,15 @@ int main() {
 				function_state.current_shader = &shader_program;
 			}
 			std::cout << "Switched to " << (view_state.is_3d ? "3D" : "2D") << std::endl;
+		}
+
+
+		if (view_state.show_inspector) {
+			double xpos, ypos;
+			glfwGetCursorPos(window, &xpos, &ypos);
+
+			PickerResult hover = get_hover_value(xpos, ypos, view_state, stack_tbo_texture, constants_tbo_texture, picker, picker_fbo);
+			render_inspector_overlay(hover, view_state);
 		}
 
 		render_imgui();
