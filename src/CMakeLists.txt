@@ -6,6 +6,10 @@ set(SHADERS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 set(HEADER_BUILD "${CMAKE_CURRENT_BINARY_DIR}/shaders/embedded_shaders.h")
 set(HEADER_SRC   "${CMAKE_CURRENT_SOURCE_DIR}/shaders/embedded_shaders.h")
 
+if(WIN32)
+    list(APPEND SOURCE_FILES "app.rc")
+endif()
+
 file(GLOB_RECURSE SHADER_FILES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert"
     "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag"
@@ -27,7 +31,7 @@ add_custom_command(
 )
 
 
-add_executable(complex-plotter ${SOURCE_FILES} ${HEADER_SRC} "main.cpp")
+add_executable(complex-plotter WIN32 ${SOURCE_FILES} ${HEADER_SRC} "main.cpp")
 find_package(OpenGL REQUIRED)
 
 target_link_libraries(complex-plotter PRIVATE 
@@ -38,12 +42,15 @@ target_link_libraries(complex-plotter PRIVATE
     learnopengl
     imgui
 )
-add_custom_target(copy-additional-folders ALL
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${CMAKE_CURRENT_SOURCE_DIR}/shaders"
-    "${CMAKE_CURRENT_BINARY_DIR}/shaders" 
-    COMMENT "[Custom] Copying additional folders to build directory..."
-)
 
-add_dependencies(complex-plotter copy-additional-folders)
+if(UNIX AND NOT APPLE)
+    target_link_libraries(complex-plotter PRIVATE pthread dl)
+endif()
+
+if(MSVC)
+    set_target_properties(complex-plotter PROPERTIES LINK_FLAGS "/ENTRY:mainCRTStartup")
+endif()
+
+
+add_dependencies(complex-plotter)
 target_include_directories(complex-plotter PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ".")

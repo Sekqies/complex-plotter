@@ -1,22 +1,24 @@
-Unfortunately, it's time to do our laundry.
+We've got a usable UI, and the good stuff that comes necessary for any good math program, now! 
 
-With 3D rendering complete, all of the essential features of the _plotter_ are done. This means that, had we wanted to, we could ship this as a fully-fledged math engine and leave the job of actually turning it into an application to someone else. But we can't be doing that! Therefore, it's time for us to start making way to shipping the project.
+First, let's get the developer stuff out of the way. Before, if we wanted to add a new function, we'd have to write code in 6 distinct spots, as discussed in [Issue #31](https://url.jam06452.uk/lputto), a consequence of my `#ifndef` clauses black magic. This, now, is all done in load time,making my life far easier.
 
-First of all, I wanted this plotter to be complete, meaning that it implements _every_ elementary function (those being, in simple terms, a set of well-behaved functions that mathematicians use). This is simply a manner of writing the already existing real and imaginary components of these functions (and their derivatives), which are well-known and defined. 
-Is this essentially just writing boilerplate? Yes! Thankfully, this is not my first rodeo implementing these functions, so I could port a good amount of code from an old project. This is all done now: all elementary functions and their derivatives have been implemented!
+Now, for the math stuff. I'll make a rare use of bullet points, I:
+- Added every elementary function to our constant-folding simplification step.
+- Added some (one) utility function: the modulo (%) operator!
 
-Now, for the engine-specific things: so far we have been writing shaders into files and reading them at runtime. This works, but adds unnecesary file I/O operations, and makes it impossible to port our entire project as one .exe file. So we had to remove that!
-One way to do this would be by writing our GLSL code in strings, but this removes linting. Instead, I implemented a dynamic source string builder at build time. 
+Our most important addition is, by far, **hovering** to show a function's value. All our functions are calculated on shaders, so we'd either have to hard code a C++ counterpart for ever GLSL function, or find a way to send data from the shader to the main program.
+The problem is, while it's easy to send data _to_ shaders (through `uniform` variables), it's quite difficult to do the opposite. And even if there was an easy way to do this, remember: our fragment shader runs for _every_ pixel, so they all would be sending data to the CPU at the same time, which would be far too expensive.
+Instead, what we do is create a 1x1 pixel shader, and send it a copy of our function, plus the mouse coordinates. It then shares a single `vec4` variable that stores both `z` (the input) and `f(z)` (the output). Voilá, we can _get_ things from the shader, now!
 
-Attached, the new functions!
-
+Drawing the grid is just some additional math in the fragment shader, and the UI changes are, well, UI. 
 
 **Related Commits**
+[Commit 1d123a6](https://url.jam06452.uk/e1qeij): Automated interpreter shader creation
+[Commit ba3f299](https://url.jam06452.uk/1n8chst): UI and constant folder overhaul
+[Commit 5893ae0](https://url.jam06452.uk/t2uooa): Inspector done!
+[Commit 1ff791c](https://url.jam06452.uk/1kc13d6): Added grid
 
-[Commit 7923ee3](https://url.jam06452.uk/1vzsu0m): File conversion to strings at build-time
-[Commit 5ba94c0](https://url.jam06452.uk/7erthk): Complete removal of file reading logic
-[Commit 0a56357](https://url.jam06452.uk/1g1lfwm): Finished implementing elementary functions
-[Commit 48d08fc](https://url.jam06452.uk/15x1axn): Derivatives of elementary functions
 
 **Related Issues**
-[Issue #30](https://url.jam06452.uk/fvwf6y): Switch from shader files to strings
+[Issue #31](https://url.jam06452.uk/lputto)
+

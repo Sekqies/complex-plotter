@@ -25,11 +25,11 @@
 
 using vec2 = glm::vec2;
 
-constexpr float WIDTH = 800.00f;
-constexpr float HEIGHT = 600.00f;
+constexpr float WIDTH = 800.00f * 1.5f;
+constexpr float HEIGHT = 600.00f * 1.5f;
 
-float last_x = 800.0f / 2.0f;
-float last_y = 600.0f / 2.0f;
+float last_x = WIDTH / 2.0f;
+float last_y = HEIGHT / 2.0f;
 bool first_mouse = true;
 float last_frame = 0.0f;
 float delta_time = 0.0f;
@@ -71,7 +71,6 @@ int main() {
 	compiled_shader_3d.prepare_source(vert_source_3d, frag_source_3d, true);
 
 	CompilerShader compiled_shader("shaders/plotter.vert", "shaders/plotter.frag");
-
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);
 
@@ -177,7 +176,7 @@ int main() {
 		}
 
 
-		if (view_state.show_inspector) {
+		if (view_state.show_inspector && !view_state.is_3d) {
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
 

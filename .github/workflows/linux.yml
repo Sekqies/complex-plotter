@@ -1,0 +1,24 @@
+name: Build Linux
+
+on: [push, pull_request]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu latest
+
+    steps:
+      - uses: action/checkout@v3
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential cmake libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build
+      - name: Upload Linux Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: complex-plotter-linux
+          path: build/src/complex-plotter
+          
