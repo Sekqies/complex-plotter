@@ -14,6 +14,7 @@ typedef struct ViewState {
 	bool show_inspector = true;
 	bool inspector_follows_mouse = true;
 	bool show_grid = true;
+	bool warp_grid = false;
 } ViewState;
 
 

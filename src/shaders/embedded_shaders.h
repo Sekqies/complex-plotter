@@ -60,6 +60,7 @@ uniform float u_range;
 uniform vec2 shift;
 uniform float time;
 uniform bool show_grid;
+uniform bool warp_grid;
 
 #define END_UNIFORM_DECLARATIONS HERE
 
@@ -292,16 +293,18 @@ void main(){
     vec3 hsl = domain_color(func_value);
 
     if(show_grid){
+        vec2 target = z;
+        if(warp_grid) target = func_value;
         const float axis_width = 1.5f;
         const float grid_width = 1.0f;
         
-        vec2 df = fwidth(z);
+        vec2 df = fwidth(target);
 
-        vec2 grid_dist = abs(fract(z+0.5f)-0.5f);
+        vec2 grid_dist = abs(fract(target+0.5f)-0.5f);
         vec2 grid_px = grid_dist/df;
         float grid_val = min(grid_px.x,grid_px.y);
 
-        vec2 axis_px = abs(z) / df;
+        vec2 axis_px = abs(target) / df;
         float axis_val = min(axis_px.x, axis_px.y);
 
         float grid_alpha = 1.0 - smoothstep(0.0, grid_width, grid_val);
@@ -334,6 +337,8 @@ in vec2 f_z;
 out vec4 FragColor;
 
 uniform bool show_grid;
+uniform bool warp_grid;
+
 
 const float PI = 3.14159265359;
 const float TWO_OVER_PI = 2.0 / PI;

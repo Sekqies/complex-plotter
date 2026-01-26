@@ -189,6 +189,13 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
             ImGui::Unindent();
         }
         ImGui::Checkbox("Show Grid", &view_state.show_grid);
+        if (view_state.show_grid) {
+            ImGui::Indent();
+            ImGui::Checkbox("Warp Grid", &view_state.warp_grid);
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("This maps the grid to f(z), which shows how the functions warps space.");
+            ImGui::Unindent();
+        }
     }
 
     if (ImGui::CollapsingHeader("3D Keybinds")) {

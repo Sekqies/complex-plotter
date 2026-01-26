@@ -4,6 +4,8 @@ in vec2 f_z;
 out vec4 FragColor;
 
 uniform bool show_grid;
+uniform bool warp_grid;
+
 
 const float PI = 3.14159265359;
 const float TWO_OVER_PI = 2.0 / PI;
