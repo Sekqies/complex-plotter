@@ -3,3 +3,6 @@
 out/
 build/
 CMakeSettings.json
+docs/manim/.venv/
+docs/manim/__pycache__/
+docs/manim/media/
