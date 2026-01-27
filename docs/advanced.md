@@ -52,7 +52,7 @@ This step is used for two main purposes:
 We tell the preprocessor where these "blocks" are with the following syntax:
 ```c++
 #define BLOCK_NAME HERE
-[block content...]
+[block content...];
 #define END_BLOCK_NAME HERE
 ```
 
@@ -92,3 +92,6 @@ Where $|l(z)| = \frac{2}{\pi}\arctan(|z|)$
 ## 3D mode
 3D mode is rendered by making an NxN grid mesh, handled by the `Mesh` struct and `create_grid_mesh` function, and shaping it around the function's "real" shape (picking points in set spaces and placing vertices there). 
 Height is directly mapped to |f(z)|, so information is redundant. Movement is done through a custom `Camera` struct.
+
+## Picker
+Whenever you hover over a value and get a number back, this is done through a "picker" shader. It's a 1x1 grid rendered off-screen that calculates the value of f(z) precisely where you are hovering. The result is then shared as an `out vec4`, the first two floats being `z`, and second two, `f(z)`.
