@@ -64,6 +64,9 @@ enum Operator {
 	ACSCH,
 	ASECH,
 	ACOTH,
+	CONJ,
+	RE,
+	IM,
 	DERIVATIVE,
 	MOD
 };
@@ -95,8 +98,16 @@ typedef struct AmbiguousOperator {
 
 inline std::vector<FullOperator> full_operators = {
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::NEG, "~", 4}, 0, "cneg", "NEG"},
+
+	// COMPLEX SPECIFIC
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::MAG, "mag", 4}, 0, "cmag", "MAG"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::ARG, "arg", 4}, 0, "carg", "ARG"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::CONJ, "conj", 4}, 0, "conj", "CONJ"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::RE, "re", 4}, 0, "re", "RE"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::IM, "im", 4}, 0, "im", "IM"},
+
+
+
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::RECIPROCAL, "reciprocal", 4}, 0, "reciprocal", "RECIPROCAL"},
 
 	// TRIGONOMETRIC

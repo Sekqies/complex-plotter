@@ -240,6 +240,17 @@ vec2 cmod(vec2 a, vec2 b){
     return csub(a,cmult(b,floor(cdiv(a,b))));
 }
 
+vec2 conj(vec2 z){
+    return vec2(z.x,-z.y);
+}
+
+vec2 re(vec2 z){
+    return vec2(z.x,0.0f);
+}
+
+vec2 im(vec2 z){
+    return vec2(z.y,0.0f);
+}
 
 #define END_FUNCTION_DEFINITIONS HERE
 
@@ -266,7 +277,7 @@ vec3 hsl2rgb(vec3 hsl) {
 
 vec3 domain_color(in vec2 z){
     float angle = atan(z.y,z.x);
-    float hue = (angle/(2.0 * PI)) + 0.5f;
+    float hue = (angle/(2.0 * PI));
     float light = (TWO_OVER_PI) * atan(length(z));
     return vec3(hue,1.0f,light);
 }
