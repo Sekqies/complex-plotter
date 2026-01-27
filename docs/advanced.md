@@ -88,7 +88,7 @@ The domain_coloring function is what maps `f(z)` to a color. These are the param
 $$
 \begin{cases}
   H = \arg z + 2\pi/3, \\
-  S = 100\%, \\
+  S = 1.00, \\
   L = \ell(|z|).
 \end{cases}
 $$
