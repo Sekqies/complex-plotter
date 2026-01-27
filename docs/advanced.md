@@ -85,7 +85,13 @@ Here's where all our math logic is ran. We have a block in `plotter.frag` that c
 The grid is drawn either using `z` or `f(z)` as a parameter, which is what the "distort grid" parameter does.
 The domain_coloring function is what maps `f(z)` to a color. These are the parameters used:
 
-![Domain Coloring parameters](assets\HSL.png)
+$$
+\begin{cases}
+  H = \arg z + 2\pi/3, \\
+  S = 100\%, \\
+  L = \ell(|z|).
+\end{cases}
+$$
 
 Where $|l(z)| = \frac{2}{\pi}\arctan(|z|)$
 

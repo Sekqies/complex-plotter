@@ -60,7 +60,7 @@ To represent a complex number visually, a number line doesn't suffice. We need t
 Now, if we want to plot a complex _function_ in a 2D screen, one will notice we're already out of dimensions. We have one trick up our sleeves though: color!
 If you've ever used an image editing software, you've likely come across an image of the color wheel. In this case, we're using the HSL wheel, which stands for Hue, Saturation and Light. 
 
-![HSL Color Wheel](assets/gifs/color-wheel.png)
+![HSL Color Wheel](assets/color-wheel.png)
 
 Simply, if you draw a line coming out of the circle's center, how _long_ the line is will tell you the color's brightness (or light), and the _angle_ it makes will decide it's color (or hue). This means that we can map a pair of numbers $(r, \theta)$ to a color! Indeed, this means that _color_ has two dimensions.
 
@@ -70,7 +70,7 @@ Since the dimensionality of color and a complex number are the same, we can map 
 
 If we do this for every color in our screen with, for instance, $f(z) = z$, we get our reference map back:
 
-![f of z equals z](assets/gifs/z.png)
+![f of z equals z](assets/z.png)
 
 Notice how the very center is black: this is the root of our equation, when f(z) = 0. Keep track on how each color shows up exactly once, and our grid is perfectly straight - this means that no transformations were done, and this is a 1:1 map.
 Now, in the reals, $f(x) = x^2$ is a 2:1 map, because f(x) = f(-x). We can expect a similar behavior in the complexes, but since we're working in higher dimensions, $f(z) = z^2$ will warp the very _grid_ in which the numbers are. 
@@ -80,6 +80,6 @@ Now, in the reals, $f(x) = x^2$ is a 2:1 map, because f(x) = f(-x). We can expec
 Think of transformations as moving around the points that our identity function defines, and thus moving their colors with them. We can see this transformation bending and duplicating our grid, like two intersecting parabolas, which is expected!
 With all in this in mind, here's how this function looks like:
 
-![f of z equals z squared](assets/gifs/gifs/z_squared.png)
+![f of z equals z squared](assets/z_squared.png)
 
 All checks out! The grid is being warped, and the colors are being repeated (notice how red shows up twice). There are many fun transformations to explore, and I incentivize you to try them out yourself! This the plotter's purpose, after all.
