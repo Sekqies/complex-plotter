@@ -4,10 +4,10 @@ on: [push, pull_request]
 
 jobs:
   build-linux:
-    runs-on: ubuntu latest
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: action/checkout@v3
+      - uses: actions/checkout@v3
       - name: Install System Dependencies
         run: |
           sudo apt-get update
@@ -16,6 +16,8 @@ jobs:
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: cmake --build build
+      - name: Make Executable
+        run: chmod +x build/ComplexPlotter
       - name: Upload Linux Binary
         uses: actions/upload-artifact@v4
         with:

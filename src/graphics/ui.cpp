@@ -113,6 +113,7 @@ void render_inspector_overlay(const PickerResult& hover, ViewState& view_state) 
 
 
 void render_and_update(FunctionState& state, ViewState& view_state, unsigned int& op_tex, unsigned int& const_tex, Shader& interpreter_shader, CompilerShader& compiler_shader) {
+    state.is_3d = view_state.is_3d;
     ImGui::Begin("Function Editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::SameLine();
     if (state.is_interpreted) {
@@ -174,11 +175,11 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
 
         ImGui::Text("View Mode:");
         ImGui::SameLine();
-        if (ImGui::RadioButton("2D Plane", !state.is_3d)) {
+        if (ImGui::RadioButton("2D Plane", !view_state.is_3d)) {
             view_state.is_3d = false;
         }
         ImGui::SameLine();
-        if (ImGui::RadioButton("3D Surface", state.is_3d)) {
+        if (ImGui::RadioButton("3D Surface", view_state.is_3d)) {
             view_state.is_3d = true;
         }
         ImGui::Checkbox("Show Value Inspector", &view_state.show_inspector);

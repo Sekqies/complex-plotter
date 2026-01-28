@@ -6,8 +6,17 @@ vector<TokenOperator> to_rpn(const vector<TokenOperator>& tokens) {
 	vector<TokenOperator> out;
 	for (const TokenOperator& token : tokens) {
 		if (token.op == Operator::COMMA) {
-			expecting_operand = true;
-			continue;
+			if (token.op == Operator::COMMA) {
+				while (!operator_stack.empty() && operator_stack.top().op != Operator::LPAREN) {
+					out.push_back(operator_stack.top());
+					operator_stack.pop();
+				}
+				if (operator_stack.empty()) {
+					throw std::runtime_error("Misplaced comma or missing parenthesis");
+				}
+				expecting_operand = true;
+				continue;
+			}
 		}
 		if (token.arity == NULLARY) {
 			if (!expecting_operand) {

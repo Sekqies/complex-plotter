@@ -18,5 +18,8 @@ bool is_valid_rpn(const vector<TokenOperator>& operator_stack) {
 		}
 		stack_depth -= value_arity - 1;
 	}
+	if (stack_depth != 1) {
+		throw std::runtime_error("Invalid RPN: Leftover operators in the stack");
+	}
 	return stack_depth == 1;
 }

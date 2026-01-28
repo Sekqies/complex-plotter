@@ -23,7 +23,7 @@ unique_ptr<AstNode> stack_to_syntax_tree(const vector<TokenOperator>& stack) {
 		operator_stack.push(std::move(current_node));
 	}
 	if (operator_stack.size() != 1) {
-		//throw std::runtime_error("Malformed expression");
+		throw std::runtime_error("Malformed expression");
 	}
 	return std::move(operator_stack.top());
 }

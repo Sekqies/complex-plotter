@@ -16,7 +16,7 @@ bool is_number(const std::string& s)
 
 bool is_word(const std::string& s) {
 	for (const char c : s) {
-		if (!is_character(c)) return false;
+		if (!is_character(c) && c != '_') return false;
 	}
 	return true;
 }

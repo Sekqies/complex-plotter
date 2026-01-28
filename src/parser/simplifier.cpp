@@ -82,7 +82,7 @@ complex<float> eval_binary_op(Operator op, complex<float> lhs, complex<float> rh
     case Operator::DIV:  return lhs / rhs;
     case Operator::POW:  return std::pow(lhs, rhs);
     case Operator::MOD: {
-        if (std::abs(rhs) < 1e-6) return complex<float>(0.0f); 
+        if (std::abs(rhs) < 1e-12) return complex<float>(0.0f); 
         complex<float> div = lhs / rhs;
         return lhs - rhs * cfloor(div);
     }
@@ -92,7 +92,9 @@ complex<float> eval_binary_op(Operator op, complex<float> lhs, complex<float> rh
 }
 
 void handle_unary(stack<vector<TokenOperator>>& s, const TokenOperator& op_token) {
-    if (s.empty()) return;
+    if (s.empty()) {
+        throw std::runtime_error("Missing operand for operator '" + op_token.str_repr + "'");
+    }
 
     vector<TokenOperator> op1 = s.top();
     s.pop();
@@ -114,7 +116,9 @@ void handle_unary(stack<vector<TokenOperator>>& s, const TokenOperator& op_token
 }
 
 void handle_binary(stack<vector<TokenOperator>>& s, const TokenOperator& op_token) {
-    if (s.size() < 2) return;
+    if (s.size() < 2) {
+        throw std::runtime_error("Missing operands for binary operator '" + op_token.str_repr + "'");
+    }
 
     vector<TokenOperator> op2 = s.top(); s.pop();
     vector<TokenOperator> op1 = s.top(); s.pop();

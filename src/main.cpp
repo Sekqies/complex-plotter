@@ -168,10 +168,20 @@ int main() {
 		if (is_3d != view_state.is_3d) {
 			function_state.is_3d = view_state.is_3d;
 			if (view_state.is_3d) {
-				function_state.current_shader = &shader_3d;
+				if (function_state.is_interpreted)
+					function_state.current_shader = &shader_3d;
+				else {
+					compile(function_state, compiled_shader_3d, stack_tbo_texture, constants_tbo_texture);
+					function_state.current_shader = &compiled_shader_3d.shader;
+				}
 			}
 			else {
-				function_state.current_shader = &shader_program;
+				if(function_state.is_interpreted)
+					function_state.current_shader = &shader_program;
+				else {
+					compile(function_state, compiled_shader, stack_tbo_texture, constants_tbo_texture);
+					function_state.current_shader = &compiled_shader.shader;
+				}
 			}
 			std::cout << "Switched to " << (view_state.is_3d ? "3D" : "2D") << std::endl;
 		}

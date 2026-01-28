@@ -30,7 +30,19 @@ GLFWwindow* initalize_window(const float width, const float height, const string
 	return window;
 }
 
+void clean_texture_buffers(unsigned int& tbo_buffer, unsigned int& tbo_texture) {
+	if (tbo_buffer != 0) {
+		glDeleteBuffers(1, &tbo_buffer);
+		tbo_buffer = 0;
+	}
+	if (tbo_texture != 0) {
+		glDeleteTextures(1, &tbo_texture);
+		tbo_texture = 0;
+	}
+}
+
 void populate_texture(unsigned int& tbo_buffer, unsigned int& tbo_texture, const std::vector<unsigned char>& bytes) {
+	clean_texture_buffers(tbo_buffer, tbo_texture);
 	glGenBuffers(1, &tbo_buffer);
 	glBindBuffer(GL_TEXTURE_BUFFER, tbo_buffer);
 	glBufferData(GL_TEXTURE_BUFFER, bytes.size() * sizeof(unsigned char), bytes.data(), GL_STATIC_DRAW);
@@ -40,6 +52,7 @@ void populate_texture(unsigned int& tbo_buffer, unsigned int& tbo_texture, const
 }
 
 void populate_texture(unsigned int& tbo_buffer, unsigned int& tbo_texture, const std::vector<glm::vec2>& vec_data) {
+	clean_texture_buffers(tbo_buffer, tbo_texture);
 	glGenBuffers(1, &tbo_buffer);
 	glBindBuffer(GL_TEXTURE_BUFFER, tbo_buffer);
 	glBufferData(GL_TEXTURE_BUFFER, vec_data.size() * sizeof(glm::vec2), vec_data.data(), GL_STATIC_DRAW);

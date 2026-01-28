@@ -6,14 +6,22 @@
 
 TokenOperator get_operator(const string& s) {
 	if (is_number(s)) {
-		TokenOperator val = get_token_operator("CONSTANT");
-		size_t idx;
-		const float value = std::stof(s, &idx);
-		if (idx != s.size()) {
-			throw std::runtime_error("Invalid number: '" + s + "'");
+		try {
+			TokenOperator val = get_token_operator("CONSTANT");
+			size_t idx;
+			const float value = std::stof(s, &idx);
+			if (idx != s.size()) {
+				throw std::runtime_error("Invalid number: '" + s + "'");
+			}
+			val.value = { std::stof(s),0.0f };
+			return val;
 		}
-		val.value = { std::stof(s),0.0f };
-		return val;
+		catch (const std::invalid_argument&) {
+			throw std::runtime_error("Invalid number format: '" + s + "'");
+		}
+		catch (const std::out_of_range&) {
+			throw std::runtime_error("Number out of range: '" + s + "'");
+		}
 	}
 	return get_token_operator(s);
 }
@@ -76,7 +84,7 @@ vector<TokenOperator> tokenize(const string& s) {
 	vector<TokenOperator> tokens;
 	for (size_t i = 0; i < s.size(); ++i) {
 		const char c = s[i];
-		if (c == ' ') continue;
+		if (std::isspace(c)) continue;
 		if (!is_digit(c) && !is_character(c)) {
 			tokens.push_back(get_operator({ c }));
 		}
