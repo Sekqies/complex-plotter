@@ -1,5 +1,3 @@
-#pragma once
-
 #include <shader/shader.h>
 #include <glad/glad.h>
 #include <glm/glm.hpp>

@@ -1,4 +1,5 @@
 #include <parser/checker.h>
+#include <cstring>
 
 bool is_digit(const char c) {
 	const int digit = c - '0';
