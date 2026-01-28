@@ -52,5 +52,4 @@ if(MSVC)
 endif()
 
 
-add_dependencies(complex-plotter)
 target_include_directories(complex-plotter PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ".")
