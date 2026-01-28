@@ -44,12 +44,23 @@ target_link_libraries(complex-plotter PRIVATE
 )
 
 if(UNIX AND NOT APPLE)
-    target_link_libraries(complex-plotter PRIVATE pthread dl)
+    target_link_libraries(complex-plotter PRIVATE 
+    pthread 
+    dl
+    ${X11_LIBRARIES}
+    Xrandr Xinerama Xcursor Xi)
 endif()
 
 if(MSVC)
     set_target_properties(complex-plotter PROPERTIES LINK_FLAGS "/ENTRY:mainCRTStartup")
 endif()
 
+add_custom_target(GenerateShaders DEPENDS ${HEADER_SRC})
+add_dependencies(complex-plotter GenerateShaders)
 
-target_include_directories(complex-plotter PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ".")
+target_include_directories(complex-plotter PRIVATE 
+    ${CMAKE_CURRENT_BINARY_DIR} 
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../dependencies/learnopengl/include" 
+    "."
+)
