@@ -1,4 +1,4 @@
-#include <VAO/vao.h>
+/*#include <VAO/vao.h>
 #include <glad/glad.h>
 
 VAO::VAO() {
@@ -33,3 +33,4 @@ void VAO::unbind() {
 VAO::~VAO() {
 	glDeleteVertexArrays(1, &ID);
 }
+*/
