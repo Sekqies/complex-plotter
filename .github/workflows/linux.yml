@@ -17,7 +17,7 @@ jobs:
       - name: Build
         run: cmake --build build
       - name: Make Executable
-        run: chmod +x build/ComplexPlotter
+        run: chmod +x build/src/complex-plotter
       - name: Upload Linux Binary
         uses: actions/upload-artifact@v4
         with:
