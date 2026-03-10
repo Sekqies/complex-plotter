@@ -1,4 +1,8 @@
-#version 330 core
+#version 300 es
+precision highp float;
+precision highp int;
+precision highp sampler2D;
+precision highp usampler2D;
 layout (location = 0) out vec4 FragData;
 
 uniform float u_range;

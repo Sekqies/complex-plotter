@@ -1,0 +1,15 @@
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/CMakeFiles/edit_cache.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/CMakeFiles/rebuild_cache.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/dependencies/CMakeFiles/learnopengl.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/dependencies/CMakeFiles/imgui.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/dependencies/CMakeFiles/edit_cache.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/dependencies/CMakeFiles/rebuild_cache.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-build/CMakeFiles/edit_cache.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-build/CMakeFiles/rebuild_cache.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-build/glm/CMakeFiles/glm.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-build/glm/CMakeFiles/edit_cache.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-build/glm/CMakeFiles/rebuild_cache.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/src/CMakeFiles/complex-plotter.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/src/CMakeFiles/GenerateShaders.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/src/CMakeFiles/edit_cache.dir
+C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/src/CMakeFiles/rebuild_cache.dir

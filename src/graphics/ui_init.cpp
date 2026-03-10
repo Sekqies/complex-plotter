@@ -1,5 +1,7 @@
 #include <graphics/ui_init.h>
 
+
+
 void init_imgui(GLFWwindow* window) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -10,7 +12,11 @@ void init_imgui(GLFWwindow* window) {
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init();
+	#ifdef __EMSCRIPTEN__
+		ImGui_ImplOpenGL3_Init("#version 300 es");
+	#else
+		ImGui_ImplOpenGL3_Init();
+	#endif
 }
 
 void init_imgui_loop() {

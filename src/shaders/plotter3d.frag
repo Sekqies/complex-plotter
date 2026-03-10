@@ -1,4 +1,8 @@
-#version 330 core
+#version 300 es
+precision highp float;
+precision highp int;
+precision highp sampler2D;
+precision highp usampler2D;
 in vec2 z_val;
 in vec2 f_z;
 out vec4 FragColor;

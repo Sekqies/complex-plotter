@@ -1,5 +1,5 @@
 /*#pragma once
-#include <glad/glad.h>
+#include <glad_include_guard.h>
 #include <VBO/VBO.h>
 #include <vector>
 

@@ -1,0 +1,21 @@
+# ninja log v6
+7	62	7948090942737976	glm-populate-prefix/src/glm-populate-stamp/glm-populate-mkdir	637a2058046fb880
+7	62	7948090942737976	C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-mkdir	637a2058046fb880
+63	5614	7948090998259328	glm-populate-prefix/src/glm-populate-stamp/glm-populate-download	2b4e346942ca306b
+63	5614	7948090998259328	C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-download	2b4e346942ca306b
+5615	5730	7948090998354452	glm-populate-prefix/src/glm-populate-stamp/glm-populate-update	3d5459a12d450b0c
+5615	5730	7948090998354452	C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-update	3d5459a12d450b0c
+5731	5783	7948090999960695	glm-populate-prefix/src/glm-populate-stamp/glm-populate-patch	aaadee2cf7f85eb
+5731	5783	7948090999960695	C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-patch	aaadee2cf7f85eb
+5783	5842	7948091000546358	glm-populate-prefix/src/glm-populate-stamp/glm-populate-configure	a02f4fe427b5211f
+5783	5842	7948091000546358	C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-configure	a02f4fe427b5211f
+5842	5892	7948091001055430	glm-populate-prefix/src/glm-populate-stamp/glm-populate-build	9d3dfc21fb99e294
+5842	5892	7948091001055430	C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-build	9d3dfc21fb99e294
+5893	5950	7948091001633724	glm-populate-prefix/src/glm-populate-stamp/glm-populate-install	a69f6671d71cace9
+5893	5950	7948091001633724	C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-install	a69f6671d71cace9
+5950	6009	7948091002197140	glm-populate-prefix/src/glm-populate-stamp/glm-populate-test	a4c6ec281f3bcbf2
+5950	6009	7948091002197140	C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-test	a4c6ec281f3bcbf2
+6009	6078	7948091002913695	CMakeFiles/glm-populate-complete	b7a3a5bf01773f7f
+6009	6078	7948091002913695	glm-populate-prefix/src/glm-populate-stamp/glm-populate-done	b7a3a5bf01773f7f
+6009	6078	7948091002913695	C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-subbuild/CMakeFiles/glm-populate-complete	b7a3a5bf01773f7f
+6009	6078	7948091002913695	C:/Users/Fernando/Documents/projetos-pessoais/complex-plotter/web-build/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-done	b7a3a5bf01773f7f

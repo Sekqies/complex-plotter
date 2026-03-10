@@ -15,11 +15,11 @@ PickerResult get_hover_value(double raw_x, double raw_y, ViewState& view_state, 
 	picker_shader.setFloat("time", glfwGetTime());
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_BUFFER, stack_tex);
+	glBindTexture(GL_TEXTURE_2D, stack_tex);
 	picker_shader.setInt("operator_stack", 0);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_BUFFER, const_tex);
+	glBindTexture(GL_TEXTURE_2D, const_tex);
 	picker_shader.setInt("constant_stack", 1);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);

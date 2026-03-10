@@ -1,4 +1,8 @@
-#version 330
+#version 300 es
+precision highp float;
+precision highp int;
+precision highp sampler2D;
+precision highp usampler2D;
 
 // Other useful constants
 
@@ -6,7 +10,7 @@
 #define CONSTANT_DEFINITIONS HERE
 
 const float PI = 3.141591f;
-const float TWO_PI_OVER_3 = 2*PI*0.66666f;
+const float TWO_PI_OVER_3 = 2.0f*PI*0.66666f;
 const float TWO_OVER_PI = 2.0f / PI;
 
 const vec2 CPI = vec2(PI,0.0f);
@@ -225,10 +229,10 @@ vec2 im(vec2 z){
 
 #define START_WRITING_HERE HERE
 
-uniform usamplerBuffer operator_stack;
-uniform samplerBuffer constant_stack;
+uniform usampler2D operator_stack;
+uniform sampler2D constant_stack;
 
-vec2 run_stack(in usamplerBuffer operator_stack, in usamplerBuffer constant_stack, in vec2 z);
+vec2 run_stack(in usampler2D operator_stack, in sampler2D constant_stack, in vec2 z);
 
 #define INTERPRETER_DEFINITION HERE
 

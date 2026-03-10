@@ -3,8 +3,11 @@
 #include <iostream>
 #include <stb_image/stb_image.h>
 #include <shader/shader.h>
+#ifdef __EMSCRIPTEN__
+#include <GLES3/gl3.h>
+#else
 #include <glad/glad.h>
-
+#endif
 using std::string;
 
 class Texture {
