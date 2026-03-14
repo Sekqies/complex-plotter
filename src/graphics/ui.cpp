@@ -265,7 +265,7 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
             }
             return out;
             }();
-        ImGui::TextWrapped(supported_operators.c_str());
+        ImGui::TextWrapped("%s", supported_operators.c_str());
     }
     if (UI::CollapsingHeader("Presets")) {
         static const char* presets[] = {
