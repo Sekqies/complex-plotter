@@ -20,10 +20,10 @@ vec3 hsl2rgb(vec3 hsl) {
 }
 
 vec3 domain_color(in vec2 z){
-    float angle = atan(z.y, z.x);
-    float hue = (angle / (2.0 * PI)) + 0.5;
+    float angle = atan(z.y,z.x);
+    float hue = (angle/(2.0 * PI));
     float light = (TWO_OVER_PI) * atan(length(z));
-    return vec3(hue, 1.0, light);
+    return vec3(hue,1.0f,light);
 }
 
 void main(){
