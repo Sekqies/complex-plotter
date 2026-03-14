@@ -38,11 +38,11 @@ jobs:
         run: cmake --build build-web
 
       - name: Prepare Deployment Folder
-        run: |
-          mkdir -p dist
-          cp build-web/src/complex-plotter.js dist/
-          cp build-web/src/complex-plotter.wasm dist/
-          cp build-web/src/index.html dist/
+          run: |
+            mkdir -p dist
+            cp build-web/src/complex-plotter.js dist/
+            cp build-web/src/complex-plotter.wasm dist/
+            cp build-web/src/index.html dist/
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
