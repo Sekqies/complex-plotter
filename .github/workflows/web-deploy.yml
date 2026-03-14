@@ -1,0 +1,57 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  push:
+    branches: ["main"] 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Ninja Build
+        run: sudo apt-get install ninja-build
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+
+      - name: Configure CMake
+        run: emcmake cmake -G Ninja -B build-web
+
+      - name: Build the project
+        run: cmake --build build-web
+
+      - name: Prepare Deployment Folder
+        run: |
+          mkdir -p dist
+          cp build-web/complex-plotter.js dist/
+          cp build-web/complex-plotter.wasm dist/
+          cp build-web/index.html dist/
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
