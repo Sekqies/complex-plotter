@@ -30,8 +30,8 @@
 
 using vec2 = glm::vec2;
 
-constexpr float WIDTH = 800.00f * 1.5f;
-constexpr float HEIGHT = 600.00f * 1.5f;
+constexpr float WIDTH = 800.00f * 2.0f;
+constexpr float HEIGHT = WIDTH * 3/4;
 
 float last_x = WIDTH / 2.0f;
 float last_y = HEIGHT / 2.0f;
@@ -116,7 +116,7 @@ void main_loop_step(AppContext* ctx) {
 	}
 
 	if (ctx->function_state->is_3d) {
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), WIDTH / HEIGHT, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), ctx->view_state->width / ctx->view_state->height, 0.1f, 100.0f);
 		glm::mat4 view = get_view_matrix(camera_state);
 		glm::mat4 model = glm::mat4(1.0f);
 		current_shader->setMat4("projection", projection);
@@ -273,6 +273,8 @@ int main() {
 
 	
 #ifdef __EMSCRIPTEN__
+	//glViewport(0, 0, (int)view_state.width, (int)view_state.height);
+	emscripten_set_canvas_element_size("#canvas", (int)view_state.width, (int)view_state.height);
 	emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, window, EM_FALSE, browser_resize_callback);
 	EmscriptenUiEvent fake_event;
 	fake_event.windowInnerWidth = EM_ASM_INT({ return window.innerWidth; });

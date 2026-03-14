@@ -17,11 +17,12 @@
       align-items: center;
     }
     canvas {
-      width: 100vw;
-      height: 100vh;
+      width: 100vw !important;
+      height: 100vh !important;
       display: block;
       outline: none;
       touch-action: none;
+      image-rendering: pixelated;
     }
     #loading-overlay {
       position: absolute;
@@ -66,6 +67,11 @@
     
     var Module = {
       canvas: canvas,
+      setCanvasSize: function(width, height, noRepaint) {
+    const dpr = window.devicePixelRatio || 1;
+    this.canvas.width = width * dpr;
+    this.canvas.height = height * dpr;
+  },
       onRuntimeInitialized: function() {
         document.getElementById('loading-overlay').style.display = 'none';
       }

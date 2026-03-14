@@ -94,7 +94,9 @@ EM_BOOL browser_resize_callback(int event_type, const EmscriptenUiEvent* ui_even
 
 	emscripten_set_canvas_element_size("#canvas", width * ratio, height * ratio);
 
-	glfwSetWindowSize(window, static_cast<int>(width), static_cast<int>(height));
+	int phys_width = static_cast<int>(width * ratio);
+    int phys_height = static_cast<int>(height * ratio);
+	glfwSetWindowSize(window, phys_width, phys_height);
 	return EM_TRUE;
 }
 #endif 
