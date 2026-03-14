@@ -13,6 +13,7 @@ const float PI = 3.141591f;
 const float TWO_PI_OVER_3 = 2.0f*PI*0.66666f;
 const float TWO_OVER_PI = 2.0f / PI;
 
+const vec2 ZERO = vec2(0.0,0.0);
 const vec2 CPI = vec2(PI,0.0f);
 const vec2 ONE = vec2(1.0f,0.0f);
 const vec2 MINUS_ONE = vec2(-1.0f,0.0f);
@@ -61,7 +62,7 @@ vec2 cexp(vec2 z){
 }
 
 vec2 clog(vec2 z){
-    return vec2(log(length(z)), carg(z));
+    return vec2(log(length(z)), carg(z).x);
 }
 
 vec2 cpow(vec2 a, vec2 b){
@@ -227,6 +228,8 @@ vec2 im(vec2 z){
 
 const int GAMMA_PRECISION = 7;
 
+const float INF = 1.0/0.0;
+
 const float GAMMA_COEFFICIENTS[7] = float[](
     1.000000000190015, 76.18009172947146, -86.50532032941677,
     24.01409824083091, -1.231739572450155, 1.208650973866179e-3, -5.395239384953e-6
@@ -234,47 +237,55 @@ const float GAMMA_COEFFICIENTS[7] = float[](
 
 const vec2 SQUARE_ROOT_TWO_PI = vec2(sqrt(PI * 2.0f),0.0f);
 
-vec2 cgamma(vec2 z){
-    vec2 sum = vec2(GAMMA_COEFFICIENTS[0],0.0);
+vec2 clngamma(vec2 z) {
+    vec2 sum = vec2(GAMMA_COEFFICIENTS[0], 0.0);
     for(int i = 1; i < 7; ++i) {
         sum = cadd(sum, cdiv(vec2(GAMMA_COEFFICIENTS[i], 0.0), cadd(z, vec2(float(i), 0.0))));
     }
-    vec2 t = cadd(z, vec2(5.5, 0.0));
-    vec2 exp_term = cmult(cpow(t, cadd(z, vec2(0.5, 0.0))), cexp(-t));
-    vec2 result_pos = cdiv(cmult(cmult(exp_term, SQUARE_ROOT_TWO_PI), sum),z);
 
-    vec2 z_neg = cneg(z);
-    vec2 sum_neg = vec2(GAMMA_COEFFICIENTS[0],0.0);
-    for(int i = 1; i < 7; ++i) {
-        sum_neg = cadd(sum_neg, cdiv(vec2(GAMMA_COEFFICIENTS[i], 0.0), cadd(z_neg, vec2(float(i), 0.0))));
-    }
-    vec2 t_neg = cadd(z_neg,vec2(5.5,0.0));
-    vec2 exp_term_neg = cmult(cpow(t_neg, cadd(z_neg, vec2(0.5, 0.0))), cexp(-t_neg));
-    vec2 gamma_1_minus_z = cmult(cmult(exp_term_neg, SQUARE_ROOT_TWO_PI), sum_neg);
-    vec2 pi_z = cmult(z,vec2(PI,0.0));
-    vec2 result_neg = cdiv(vec2(PI,0.0),cmult(csin(pi_z),gamma_1_minus_z));
-
-    float is_positive = step(0.5,z.x);
-    return mix(result_neg,result_pos,is_positive);
+    vec2 t = cadd(z, vec2(5.5, 0.0)); 
+    vec2 log_term = cmult(cadd(z, vec2(0.5, 0.0)), clog(t));
+    const vec2 ln_sqrt_2pi = vec2(0.9189385332, 0.0);
+    return cadd(csub(cadd(ln_sqrt_2pi, log_term), t), clog(sum));
 }
 
-const int ZETA_PRECISION = 10;
-const float ZETA_COEFFICIENTS [10] = float[](1.0, 513.0, 23041.0, 263169.0, 1153025.0, 2306049.0, 2191361.0, 950273.0, 171537.0, 9217.0);
+vec2 cgamma(vec2 z) {   
+    if(z.x > 0.5)
+        return cexp(clngamma(z));
+    vec2 gamma_1_z = cexp(clngamma(ONE-z));
+    vec2 denom = cmult(gamma_1_z,csin(cmult(CPI,z)));
+    vec2 result = cdiv(CPI,denom);
+    if(isnan(result.x)){
+        result.x = 0.0;
+    }
+    if(isnan(result.y)){
+        result.y = 0.0;
+    }
+    return result;
+}
+
+const float ZETA_WEIGHTS[10] = float[](
+    1.000000, 0.999023, 0.989258, 0.945312, 0.828125, 
+    0.623047, 0.376953, 0.171875, 0.054688, 0.010742
+);
 
 vec2 czeta_main_branch(vec2 s){
     vec2 sum = vec2(0.0, 0.0);
     float sign = 1.0;
+    
     for(int n = 0; n < 10; ++n){
-        vec2 n_to_neg_s = cpow(vec2(float(n+1),0.0), cmult(s, MINUS_ONE));
-
-        n_to_neg_s = cmult(n_to_neg_s, vec2(sign * ZETA_COEFFICIENTS[ ZETA_PRECISION - 1 - n], 0.0));
-        sum = cadd(sum,n_to_neg_s);
+        vec2 n_to_neg_s = cpow(vec2(float(n+1), 0.0), cmult(s, MINUS_ONE));
+        
+        n_to_neg_s = cmult(n_to_neg_s, vec2(sign * ZETA_WEIGHTS[n], 0.0));
+        sum = cadd(sum, n_to_neg_s);
+        
         sign = -sign;
     }
-    vec2 eta = cmult(sum,vec2(1.0/ZETA_COEFFICIENTS[ZETA_PRECISION - 1], 0.0));
-    vec2 one_minus_s = csub(ONE,s);
-    vec2 two_pow = cpow(vec2(2.0,0.0),one_minus_s);
-    return cdiv(eta,csub(ONE,two_pow));
+    
+    vec2 one_minus_s = csub(ONE, s);
+    vec2 two_pow = cpow(vec2(2.0, 0.0), one_minus_s);
+    
+    return cdiv(sum, csub(ONE, two_pow));
 }
 
 vec2 czeta_negative_branch(vec2 s){
@@ -344,6 +355,7 @@ void main(){
     
     #define INTERPRETER_ASSIGNEMENT HERE
     vec2 func_value = run_stack(operator_stack,constant_stack,z);
+    func_value = clamp(func_value, -1e38, 1e38);
     #define END_INTERPRETER_ASSIGNEMENT HERE
     
     #define INJECTION_POINT HERE
