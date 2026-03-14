@@ -38,7 +38,7 @@ jobs:
         run: cmake --build build-web
 
       - name: Prepare Deployment Folder
-          run: |
+        run: |
             mkdir -p dist
             cp build-web/src/complex-plotter.js dist/
             cp build-web/src/complex-plotter.wasm dist/

@@ -43,6 +43,19 @@ unique_ptr<AstNode> differentiate(AstNode* node, const Operator var) {
 	if (node->op.op == var) {
 		return make_constant(1.0f, 0.0f);
 	}
+
+	if(var == Operator::VARIABLEZ){
+		if(node->op.op == Operator::VARIABLEX){
+			return make_constant(0.5f,0.0f);
+		}
+		if(node->op.op == Operator::VARIABLEY){
+			return make_constant(0.0f,-0.5f);
+		}
+		if(node->op.op == Operator::CONJ){
+			return make_constant(0.0f,0.0f);
+		}
+	}
+
 	if (node->op.arity == Arity::NULLARY) {
 		return make_constant(0.0f, 0.0f);
 	}
