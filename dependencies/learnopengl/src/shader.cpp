@@ -1,5 +1,4 @@
 #include <shader/shader.h>
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 
 #include <string>
@@ -72,6 +71,8 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
     checkCompileErrors(fragment, "FRAGMENT");
     // if geometry shader is given, compile geometry shader
     unsigned int geometry;
+#ifndef __EMSCRIPTEN__
+
     if (geometryPath != nullptr)
     {
         const char* gShaderCode = geometryCode.c_str();
@@ -80,6 +81,8 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
         glCompileShader(geometry);
         checkCompileErrors(geometry, "GEOMETRY");
     }
+
+#endif
     // shader Program
     ID = glCreateProgram();
     glAttachShader(ID, vertex);

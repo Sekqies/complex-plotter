@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <glad/glad.h>
+#include <glad_include_guard.h>
 
 struct Mesh {
 	unsigned int VAO, VBO, EBO;

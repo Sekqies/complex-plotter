@@ -1,5 +1,5 @@
 #pragma once
-#include <glad/glad.h>
+#include <glad_include_guard.h>
 #include <shader/shader.h>
 #include <compiler/compiler_shader.h>
 #include <graphics/ui_init.h>

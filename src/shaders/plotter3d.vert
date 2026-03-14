@@ -1,4 +1,8 @@
-#version 330 core
+#version 300 es
+precision highp float;
+precision highp int;
+precision highp sampler2D;
+precision highp usampler2D;
 
 #define HERE ;
 
@@ -17,7 +21,7 @@ uniform float time;
 
 
 
-vec2 run_stack(samplerBuffer operator_stack, usamplerBuffer constant_stack, vec2 z);
+vec2 run_stack(usampler2D operator_stack, sampler2D constant_stack, vec2 z);
 
 #define CONSTANT_DEFINITIONS HERE
 

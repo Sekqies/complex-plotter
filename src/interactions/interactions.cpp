@@ -2,6 +2,7 @@
 #include <graphics/ui.h>
 #include <graphics/3d/camera_state.h>
 #include <imgui.h>
+
 ViewState* get_state(GLFWwindow* window) {
 	return (ViewState*)glfwGetWindowUserPointer(window);
 }
@@ -75,5 +76,25 @@ void window_size_callback(GLFWwindow* window, const int width, const int height)
 	if (!state) return;
 	state->width = static_cast<float>(width);
 	state->height = static_cast<float>(height);
-	glViewport(0, 0, width, height);
 }
+
+void framebuffer_size_callback(GLFWwindow* window, const int width, const int height){
+	glViewport(0,0,width,height);
+}
+
+
+
+#ifdef __EMSCRIPTEN__
+EM_BOOL browser_resize_callback(int event_type, const EmscriptenUiEvent* ui_event, void* data){
+	GLFWwindow* window = static_cast<GLFWwindow*>(data);
+
+	const double width = ui_event->windowInnerWidth;
+	const double height = ui_event->windowInnerHeight;
+	const double ratio = emscripten_get_device_pixel_ratio();
+
+	emscripten_set_canvas_element_size("#canvas", width * ratio, height * ratio);
+
+	glfwSetWindowSize(window, static_cast<int>(width), static_cast<int>(height));
+	return EM_TRUE;
+}
+#endif 

@@ -70,7 +70,7 @@ string write_case(const FullOperator& op) {
     switch (op.token_operator.arity) {
     case NULLARY:
         if (op.token_operator.op == CONSTANT)
-            arity_str = "stack[sp++] = texelFetch(constants,cp++).xy;";
+            arity_str = "ivec2 c_uv = ivec2(cp % texture_width, cp / texture_width); stack[sp++] = texelFetch(constants, c_uv, 0).xy; cp++;";
         else
             arity_str = "stack[sp++] = " + op.gl_name;
         break;
@@ -84,13 +84,15 @@ string write_case(const FullOperator& op) {
 
 string write_interpreter() {
     string out = R"(
+const int texture_width = 32;
 const uint stack_size = 1024u;
-vec2 run_stack(in usamplerBuffer operators, in samplerBuffer constants, in vec2 z){
+vec2 run_stack(in usampler2D operators, in sampler2D constants, in vec2 z){
     vec2 stack[16];
     int sp = 0;
     int cp = 0;
     for(int i=0;i<1024;++i){
-        uint op = texelFetch(operators,i).x;
+        ivec2 op_uv = ivec2(i % texture_width, i / texture_width);
+        uint op = texelFetch(operators,op_uv,0).x;
         if (op == END) break;
         if (op == NULL_SYMBOL) continue;
 )";

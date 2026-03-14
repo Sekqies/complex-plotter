@@ -1,5 +1,5 @@
 #pragma once
-#include <glad/glad.h>
+#include <glad_include_guard.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

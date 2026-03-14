@@ -1,7 +1,12 @@
 #pragma once
-#include <glad/glad.h>
+#include <glad_include_guard.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <emscripten/html5.h>
+#endif
 
 typedef struct ViewState {
 	glm::vec2 shift = glm::vec2(0.0f);
@@ -22,3 +27,7 @@ void scroll_callback(GLFWwindow* window, const double xoffset, const double yoff
 void mouse_button_callback(GLFWwindow* window, const int button, const int action, const int mods);
 void cursor_position_callback(GLFWwindow* window, const double xpos, const double ypos);
 void window_size_callback(GLFWwindow* window, const int width, const int height);
+void framebuffer_size_callback(GLFWwindow* window, const int width, const int height);
+#ifdef __EMSCRIPTEN__
+EM_BOOL browser_resize_callback(int event_type, const EmscriptenUiEvent* ui_event, void* data);
+#endif
