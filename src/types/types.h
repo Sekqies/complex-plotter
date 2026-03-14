@@ -65,6 +65,9 @@ enum Operator {
 	ASECH,
 	ACOTH,
 	CONJ,
+	ZETA,
+	GAMMA,
+	FACTORIAL,
 	RE,
 	IM,
 	DERIVATIVE,
@@ -155,6 +158,10 @@ inline std::vector<FullOperator> full_operators = {
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::ASECH, "asech", 5}, 0, "casech", "ASECH"},
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::ACOTH, "acoth", 5}, 0, "cacoth", "ACOTH"},
 
+	// NON ELEMANTARY
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::GAMMA, "gamma", 5}, 0, "cgamma", "GAMMA"},
+	{ {Arity::UNARY, Associativity::RIGHT, Operator::ZETA, "zeta", 5}, 0, "czeta", "ZETA"},
+
 	//CONSTANTS
 	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "CONSTANT", 0, glm::vec2(0.0f)}, 0, "", "CONSTANT"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::CONSTANT, "i", 0, glm::vec2(0,1)}, 0, ""},
@@ -167,12 +174,13 @@ inline std::vector<FullOperator> full_operators = {
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEX, "x", 0}, 0, "vec2(z.x,0.0f)", "VARIABLEX"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEY, "y", 0}, 0, "vec2(z.y,0.0f)", "VARIABLEY"},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLET, "t", 0}, 0, "vec2(time,0.0f)", "VARIABLET"},
-	
+
 	//PARSER STUFF
 	{ {Arity::NULLARY, Associativity::NONE, Operator::VARIABLEPLACEHOLDER, "uplaceholder", 0}, 0},
 	{ {Arity::NULLARY, Associativity::NONE, Operator::SECONDVARIABLEPLACEHOLDER, "vplaceholder", 0}, 0},
 	{ {Arity::PAREN, Associativity::NONE, Operator::LPAREN, "(", 0}, 0, "" },
 	{ {Arity::PAREN, Associativity::NONE, Operator::RPAREN, ")", 0}, 0, "" },
+
 
 	//HIGHER ORDER
 	{ {Arity::UNARY, Associativity::RIGHT, Operator::DERIVATIVE, "derivative", 0,glm::vec2(0.0f),true}, 0, ""},
