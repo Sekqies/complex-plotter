@@ -40,9 +40,9 @@ jobs:
       - name: Prepare Deployment Folder
         run: |
           mkdir -p dist
-          cp build-web/complex-plotter.js dist/
-          cp build-web/complex-plotter.wasm dist/
-          cp build-web/index.html dist/
+          cp build-web/src/complex-plotter.js dist/
+          cp build-web/src/complex-plotter.wasm dist/
+          cp build-web/src/index.html dist/
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
