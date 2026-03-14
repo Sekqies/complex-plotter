@@ -12,6 +12,40 @@ using glm::vec2;
 
 const float DEBOUNCE_DELAY = 0.05f;
 
+namespace UI {
+    bool Button(const char* label, const ImVec2& size = ImVec2(0, 0)) {
+        bool clicked = ImGui::Button(label, size);
+        
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        }
+        return clicked;
+    }
+
+    bool RadioButton(const char* label, const bool cond) {
+        bool clicked = ImGui::RadioButton(label,cond);
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        }
+        return clicked;
+    }
+    bool Checkbox(const char* label, bool* v) {
+        bool clicked = ImGui::Checkbox(label, v);
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        }
+        return clicked;
+    }
+    bool CollapsingHeader(const char* label, ImGuiTreeNodeFlags flags = 0) {
+        bool is_open = ImGui::CollapsingHeader(label, flags);
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        }
+        return is_open;
+    }
+}
+
+
 int input_text_callback(ImGuiInputTextCallbackData* data) {
 	if (data->EventFlag != ImGuiInputTextFlags_CallbackResize) {
 		return 0;
@@ -146,8 +180,11 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Compile")) {
+    if (UI::Button("Compile")) {
         pressed_enter = true; 
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
     }
 
     const float current_time = glfwGetTime();
@@ -169,43 +206,52 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
 
     ImGui::Spacing();
     ImGui::Separator();
-    if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::Checkbox("Auto-Reparse (Live Edit)", &auto_reparse);
+    if (UI::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+        UI::Checkbox("Auto-Reparse (Live Edit)", &auto_reparse);
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("If disabled, you must press Enter to see changes.");
 
         ImGui::Text("View Mode:");
         ImGui::SameLine();
-        if (ImGui::RadioButton("2D Plane", !view_state.is_3d)) {
+        if (UI::RadioButton("2D Plane", !view_state.is_3d)) {
             view_state.is_3d = false;
         }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        }
         ImGui::SameLine();
-        if (ImGui::RadioButton("3D Surface", view_state.is_3d)) {
+        if (UI::RadioButton("3D Surface", view_state.is_3d)) {
             view_state.is_3d = true;
         }
-        ImGui::Checkbox("Show Value Inspector", &view_state.show_inspector);
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        }
+        UI::Checkbox("Show Value Inspector", &view_state.show_inspector);
 
         if (view_state.show_inspector) {
             ImGui::Indent();
-            ImGui::Checkbox("Follow Mouse", &view_state.inspector_follows_mouse);
+            UI::Checkbox("Follow Mouse", &view_state.inspector_follows_mouse);
             ImGui::Unindent();
         }
-        ImGui::Checkbox("Show Grid", &view_state.show_grid);
+        UI::Checkbox("Show Grid", &view_state.show_grid);
         if (view_state.show_grid) {
             ImGui::Indent();
-            ImGui::Checkbox("Warp Grid", &view_state.warp_grid);
+            UI::Checkbox("Warp Grid", &view_state.warp_grid);
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("This maps the grid to f(z), which shows how the functions warps space.");
             ImGui::Unindent();
         }
     }
 
-    if (ImGui::CollapsingHeader("3D Keybinds")) {
+    if (UI::CollapsingHeader("3D Keybinds")) {
         ImGui::BulletText("WASD: Move");
         ImGui::BulletText("Right click + Drag: Move camera");
         ImGui::BulletText("Shift/Spacebar: Go up");
         ImGui::BulletText("Ctrl: Go down");
     }
-    if (ImGui::CollapsingHeader("Help & Keybinds")) {
+    if (UI::CollapsingHeader("Help & Keybinds")) {
         ImGui::BulletText("Left Click + Drag: Pan Camera");
         ImGui::BulletText("Scroll Wheel: Zoom");
         ImGui::BulletText("Enter: Compile (High Performance)");
@@ -221,7 +267,7 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
             }();
         ImGui::TextWrapped(supported_operators.c_str());
     }
-    if (ImGui::CollapsingHeader("Presets")) {
+    if (UI::CollapsingHeader("Presets")) {
         static const char* presets[] = {
                                         "z",
                                         "sin(z)",

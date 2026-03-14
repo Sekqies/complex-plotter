@@ -78,9 +78,15 @@ target_include_directories(complex-plotter PRIVATE
 )
 
 if(EMSCRIPTEN)
-    set(EMSCRIPTEN_LINK_FLAGS "-s USE_GLFW=3 -s USE_WEBGL2=1 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2 -s ALLOW_MEMORY_GROWTH=1")
-    
+    set(EMSCRIPTEN_LINK_FLAGS "-s USE_GLFW=3 -s USE_WEBGL2=1 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2 -s ALLOW_MEMORY_GROWTH=1 -fexceptions -s ASSERTIONS=1")
     set_target_properties(complex-plotter PROPERTIES LINK_FLAGS "${EMSCRIPTEN_LINK_FLAGS}")
-    target_compile_options(complex-plotter PRIVATE "-s" "USE_GLFW=3")
-    set_target_properties(complex-plotter PROPERTIES SUFFIX ".html")
+    target_compile_options(complex-plotter PRIVATE "-s" "USE_GLFW=3" "-fexceptions")
+    set_target_properties(complex-plotter PROPERTIES SUFFIX ".js")
+    add_custom_command(TARGET complex-plotter POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_CURRENT_SOURCE_DIR}/index.html"
+        "${CMAKE_CURRENT_BINARY_DIR}/index.html"
+        COMMENT "Copying custom index.html to build directory..."
+    )
 endif()
+

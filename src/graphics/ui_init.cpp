@@ -14,6 +14,7 @@ void init_imgui(GLFWwindow* window) {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	#ifdef __EMSCRIPTEN__
 		ImGui_ImplOpenGL3_Init("#version 300 es");
+		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 	#else
 		ImGui_ImplOpenGL3_Init();
 	#endif

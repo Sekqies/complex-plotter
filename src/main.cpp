@@ -23,6 +23,7 @@
 
 #ifdef __EMSCRIPTEN__
 	#include <emscripten.h>
+	#include <emscripten/html5.h>
 #endif
 
 
@@ -159,11 +160,40 @@ void main_loop_step(AppContext* ctx) {
 	}
 
 	render_imgui();
+	ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
+    #ifdef __EMSCRIPTEN__
+    EM_ASM_({
+        const canvas = document.getElementById('canvas');
+        if (!canvas) return;
+        
+        let css_cursor = 'default';
+        switch ($0) {
+            case 0: css_cursor = 'default'; break;      
+            case 1: css_cursor = 'text'; break;        
+            case 2: css_cursor = 'move'; break;        
+            case 3: css_cursor = 'ns-resize'; break;  
+            case 4: css_cursor = 'ew-resize'; break;   
+            case 5: css_cursor = 'nesw-resize'; break;
+            case 6: css_cursor = 'nwse-resize'; break;
+            case 7: css_cursor = 'pointer'; break;
+            case 8: css_cursor = 'not-allowed'; break;
+            case -1: css_cursor = 'none'; break;
+        }
+        if (canvas.style.cursor !== css_cursor) {
+            canvas.style.cursor = css_cursor;
+        }
+    }, cursor);
+	#endif
 	glfwSwapBuffers(ctx->window);
 }
 
 void main_loop_step_void(void* arg) {
-	main_loop_step(static_cast<AppContext*>(arg));
+	try {
+		main_loop_step(static_cast<AppContext*>(arg));
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Uncaught exception in the main loop: " << e.what() << std::endl;
+	}
 }
 
 int main() {
@@ -206,7 +236,6 @@ int main() {
 	shader_program.use();
 
 	float last_time = 0.0f;
-	init_imgui(window);
 	static FunctionState function_state;
 	function_state.current_shader = &shader_program;
 
@@ -234,14 +263,21 @@ int main() {
 	ctx.picker_fbo = picker_fbo;
 	ctx.pressing_t = false;
 
-		glfwSetWindowUserPointer(window, &view_state);
+	glfwSetWindowUserPointer(window, &view_state);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetCursorPosCallback(window, cursor_position_callback);
-	glfwSetFramebufferSizeCallback(window, window_size_callback);
+	glfwSetWindowSizeCallback(window, window_size_callback);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	init_imgui(window);
 
 	
 #ifdef __EMSCRIPTEN__
+	emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, window, EM_FALSE, browser_resize_callback);
+	EmscriptenUiEvent fake_event;
+	fake_event.windowInnerWidth = EM_ASM_INT({ return window.innerWidth; });
+	fake_event.windowInnerHeight = EM_ASM_INT({ return window.innerHeight; });
+	browser_resize_callback(EMSCRIPTEN_EVENT_RESIZE, &fake_event, window);
 	emscripten_set_main_loop_arg(main_loop_step_void, &ctx, 0, false);
 #else
 	while (!glfwWindowShouldClose(window)) {
