@@ -64,7 +64,7 @@ vector<TokenOperator> handle_implicit(vector<TokenOperator>& tokens) {
 		if (token.arity != Arity::NULLARY && token.op != Operator::RPAREN) continue;
 
 		const TokenOperator& next = tokens[i + 1];
-		if (next.arity == Arity::NULLARY || next.op == Operator::LPAREN)
+		if (next.arity == Arity::NULLARY || next.op == Operator::LPAREN || next.arity == Arity::UNARY) 
 			pos.push({ i, times });
 	}
 
