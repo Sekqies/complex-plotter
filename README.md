@@ -60,9 +60,9 @@ This tool solves this problem using **Domain Coloring** (mapping complex nummber
 ## Quick Start
 
 ### Downloading & Running
-A compiled binary for both windows and linux is available in the [Releases]() section of this repository. They are both compiled for 64-bit architectures. 
-- [x64 Windows]()
-- [x64 Linux]()
+A compiled binary for both windows and linux is available in the [Releases](https://github.com/Sekqies/complex-plotter/releases) section of this repository. They are both compiled for 64-bit architectures. 
+- [x64 Windows](https://github.com/Sekqies/complex-plotter/releases/tag/v1.0.0)
+- [x64 Linux](https://github.com/Sekqies/complex-plotter/releases/tag/v1.0.0)
 To use the program, simply install the executable file, and run it. 
 > Note: In Linux, you have to allow the executable to run. To do so, run `chmod +x complex_plotter`
 
