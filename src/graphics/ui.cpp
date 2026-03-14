@@ -6,6 +6,8 @@
 #include <string>
 #include <iostream>
 
+#include <interactions/export.h>
+
 
 using string = std::string;
 using glm::vec2;
@@ -203,7 +205,6 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
         ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Error: %s", state.error_message.c_str());
         ImGui::Spacing();
     }
-
     ImGui::Spacing();
     ImGui::Separator();
     if (UI::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -279,6 +280,32 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
         if (ImGui::Combo("Choose", & current_preset, presets, IM_ARRAYSIZE(presets))) {
             state.expression = string(presets[current_preset]);
             state.needs_reparse = true; 
+        }
+    }
+    if (UI::CollapsingHeader("Export")) {
+        static int export_w = 1920;
+        static int export_h = 1080;
+
+        ImGui::Text("Resolution:");
+        ImGui::SetNextItemWidth(75);
+        ImGui::InputInt("Width", &export_w, 0);
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(75);
+        ImGui::InputInt("Height", &export_h, 0);
+
+        if (UI::Button("1080p")) { export_w = 1920; export_h = 1080; }
+        ImGui::SameLine();
+        if (UI::Button("4K")) { export_w = 3840; export_h = 2160; }
+
+        ImGui::Spacing();
+
+        if (UI::Button("Export plot as PNG")) {
+            export_w = std::max(100, std::min(export_w, 8192));
+            export_h = std::max(100, std::min(export_h, 8192));
+
+            view_state.export_width = export_w;
+            view_state.export_height = export_h;
+            view_state.wants_export = true;
         }
     }
 

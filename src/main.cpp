@@ -16,6 +16,8 @@
 #include <graphics/3d/mesh.h>
 #include <graphics/3d/camera_state.h>
 #include <shaders/embedded_shaders.h>
+#include <interactions/export.h>
+#include <stb_image/stb_image_write.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -60,6 +62,103 @@ struct AppContext {
 };
 
 
+void draw_scene(AppContext* ctx, float render_width, float render_height) {
+	Shader* current_shader = ctx->function_state->current_shader;
+	current_shader->use();
+	current_shader->setFloat("time", glfwGetTime());
+	current_shader->setFloat("u_range", ctx->view_state->range);
+	current_shader->setVec2("shift", ctx->view_state->shift);
+	current_shader->setVec2("u_resolution", glm::vec2(render_width, render_height));
+	current_shader->setBool("show_grid", ctx->view_state->show_grid);
+	current_shader->setBool("warp_grid", ctx->view_state->warp_grid);
+
+	if (ctx->function_state->is_interpreted) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, stack_tbo_texture);
+		current_shader->setInt("operator_stack", 0);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, constants_tbo_texture);
+		current_shader->setInt("constant_stack", 1);
+	}
+
+	if (ctx->function_state->is_3d) {
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), render_width / render_height, 0.1f, 100.0f);
+		glm::mat4 view = get_view_matrix(camera_state);
+		glm::mat4 model = glm::mat4(1.0f);
+		current_shader->setMat4("projection", projection);
+		current_shader->setMat4("view", view);
+		current_shader->setMat4("model", model);
+		glBindVertexArray(ctx->grid_mesh->VAO);
+		glDrawElements(GL_TRIANGLES, ctx->grid_mesh->index_count, GL_UNSIGNED_INT, 0);
+	}
+	else {
+		glBindVertexArray(ctx->VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+}
+
+
+void export_to_png(AppContext* ctx, int target_width, int target_height, const char* filename) {
+	unsigned int fbo, texture, rbo;
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, target_width, target_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, target_width, target_height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	int old_viewport[4];
+	glGetIntegerv(GL_VIEWPORT, old_viewport);
+	glViewport(0, 0, target_width, target_height);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (ctx->function_state->is_3d) glEnable(GL_DEPTH_TEST);
+	else glDisable(GL_DEPTH_TEST);
+
+	draw_scene(ctx, (float)target_width, (float)target_height);
+
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	unsigned char* pixels = new unsigned char[target_width * target_height * 4];
+	glReadPixels(0, 0, target_width, target_height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+	for (int i = 0; i < target_width * target_height * 4; i += 4) { pixels[i + 3] = 255; }
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(old_viewport[0], old_viewport[1], old_viewport[2], old_viewport[3]);
+	glDeleteTextures(1, &texture);
+	glDeleteRenderbuffers(1, &rbo);
+	glDeleteFramebuffers(1, &fbo);
+
+	stbi_flip_vertically_on_write(true);
+	stbi_write_png(filename, target_width, target_height, 4, pixels, target_width * 4);
+	delete[] pixels;
+
+#ifdef __EMSCRIPTEN__
+	EM_ASM_({
+		const js_filename = UTF8ToString($0);
+		const file_data = FS.readFile(js_filename);
+		const blob = new Blob([file_data], { type: 'image/png' });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url; link.download = js_filename;
+		document.body.appendChild(link); link.click(); document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+		}, filename);
+#else
+	std::cout << "Successfully exported " << target_width << "x" << target_height << " plot to " << filename << std::endl;
+#endif
+}
+
+
 void main_loop_step(AppContext* ctx) {
 	glfwPollEvents();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -96,39 +195,7 @@ void main_loop_step(AppContext* ctx) {
 		render_and_update(*(ctx->function_state), *(ctx->view_state), stack_tbo_texture, constants_tbo_texture, *(ctx->shader_program), *(ctx->compiled_shader));
 	}
 
-	Shader* current_shader = ctx->function_state->current_shader;
-	current_shader->use();
-	current_shader->setFloat("time", glfwGetTime());
-	current_shader->setFloat("u_range", ctx->view_state->range);
-	current_shader->setVec2("shift", ctx->view_state->shift);
-	current_shader->setVec2("u_resolution", glm::vec2(ctx->view_state->width, ctx->view_state->height));
-	current_shader->setBool("show_grid", ctx->view_state->show_grid);
-	current_shader->setBool("warp_grid", ctx->view_state->warp_grid);
-
-	if (ctx->function_state->is_interpreted) {
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, stack_tbo_texture);
-		current_shader->setInt("operator_stack", 0);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, constants_tbo_texture);
-		current_shader->setInt("constant_stack", 1);
-	}
-
-	if (ctx->function_state->is_3d) {
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), ctx->view_state->width / ctx->view_state->height, 0.1f, 100.0f);
-		glm::mat4 view = get_view_matrix(camera_state);
-		glm::mat4 model = glm::mat4(1.0f);
-		current_shader->setMat4("projection", projection);
-		current_shader->setMat4("view", view);
-		current_shader->setMat4("model", model);
-		glBindVertexArray(ctx->grid_mesh->VAO);
-		glDrawElements(GL_TRIANGLES, ctx->grid_mesh->index_count, GL_UNSIGNED_INT, 0);
-	}
-	else {
-		glBindVertexArray(ctx->VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-	}
+	draw_scene(ctx, ctx->view_state->width, ctx->view_state->height);
 
 	if (is_3d != ctx->view_state->is_3d) {
 		ctx->function_state->is_3d = ctx->view_state->is_3d;
@@ -157,6 +224,11 @@ void main_loop_step(AppContext* ctx) {
 
 		PickerResult hover = get_hover_value(xpos, ypos, *(ctx->view_state), stack_tbo_texture, constants_tbo_texture, *(ctx->picker), ctx->picker_fbo);
 		render_inspector_overlay(hover, *(ctx->view_state));
+	}
+
+	if (ctx->view_state->wants_export) {
+		export_to_png(ctx, ctx->view_state->export_width, ctx->view_state->export_height, "complex-plot.png");
+		ctx->view_state->wants_export = false;
 	}
 
 	render_imgui();

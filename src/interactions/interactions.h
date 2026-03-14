@@ -20,6 +20,9 @@ typedef struct ViewState {
 	bool inspector_follows_mouse = true;
 	bool show_grid = true;
 	bool warp_grid = false;
+	bool wants_export = false;
+	int export_height = 1080;
+	int export_width = 1920;
 } ViewState;
 
 
