@@ -308,6 +308,34 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
             view_state.wants_export = true;
         }
     }
+    if (view_state.show_export_success) {
+        ImGui::OpenPopup("Export Successful!");
+        view_state.show_export_success = false; 
+    }
+
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    if (ImGui::BeginPopupModal("Export Successful!", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Your plot has been saved.");
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        #ifndef __EMSCRIPTEN__
+        ImGui::TextDisabled("Check the folder where your executable is located.");
+        #else
+        ImGui::TextDisabled("Check your browser's downloads folder.");
+        #endif
+        ImGui::Spacing();
+        
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120.0f) * 0.5f);
+        if (UI::Button("Awesome", ImVec2(120, 0))) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SetItemDefaultFocus();
+        
+        ImGui::EndPopup();
+    }
 
     ImGui::End();
 }

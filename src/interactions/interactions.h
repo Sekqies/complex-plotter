@@ -23,6 +23,7 @@ typedef struct ViewState {
 	bool wants_export = false;
 	int export_height = 1080;
 	int export_width = 1920;
+	bool show_export_success = false;
 } ViewState;
 
 

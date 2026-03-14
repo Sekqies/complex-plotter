@@ -156,6 +156,7 @@ void export_to_png(AppContext* ctx, int target_width, int target_height, const c
 #else
 	std::cout << "Successfully exported " << target_width << "x" << target_height << " plot to " << filename << std::endl;
 #endif
+	ctx->view_state->show_export_success = true;
 }
 
 
