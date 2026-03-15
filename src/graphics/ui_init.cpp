@@ -1,4 +1,12 @@
 #include <graphics/ui_init.h>
+#include <string>
+#include <iostream>
+#include <iomanip>
+#ifdef __EMSCRIPTEN__
+#include <emscripten_browser_clipboard.h>
+#include <emscripten.h>
+
+#endif
 
 
 
@@ -10,14 +18,18 @@ void init_imgui(GLFWwindow* window) {
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	#ifdef __EMSCRIPTEN__
-		ImGui_ImplOpenGL3_Init("#version 300 es");
-		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
-	#else
-		ImGui_ImplOpenGL3_Init();
-	#endif
+#ifdef __EMSCRIPTEN__
+
+	emscripten_browser_clipboard::paste([](std::string&& paste_data, void* callback_data) {
+		clip_content = std::move(paste_data);
+		just_pasted = true;
+		}, nullptr); 
+	
+	ImGui_ImplOpenGL3_Init("#version 300 es");
+#else
+	ImGui_ImplOpenGL3_Init();
+#endif
 }
 
 void init_imgui_loop() {

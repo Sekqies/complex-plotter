@@ -12,3 +12,10 @@ void init_imgui_loop();
 void render_imgui();
 
 void shutdown_imgui();
+
+
+#ifdef __EMSCRIPTEN__
+#include <string>
+inline bool just_pasted = false;
+inline std::string clip_content;
+#endif 

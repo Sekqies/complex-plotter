@@ -7,15 +7,54 @@
 #include <iostream>
 
 #include <imgui.h>
+#include <imgui_internal.h>
+#include <imstb_textedit.h>
 #include <imgui_stdlib.h>
 
 #include <interactions/export.h>
+
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten_browser_clipboard.h>
+
+#endif
 
 
 using string = std::string;
 using glm::vec2;
 
 const float DEBOUNCE_DELAY = 0.05f;
+
+
+
+
+
+static int FunctionInputCallback(ImGuiInputTextCallbackData* data) {
+    FunctionState* state = (FunctionState*)data->UserData;
+    if (data->HasSelection()) {
+        state->selected_text = state->expression.substr(
+            data->SelectionStart,
+            data->SelectionEnd - data->SelectionStart
+        );
+    }
+    else {
+        state->selected_text = "";
+    }
+
+#ifdef __EMSCRIPTEN__
+    if (just_pasted) {
+        if (data->HasSelection()) {
+            data->DeleteChars(data->SelectionStart, data->SelectionEnd - data->SelectionStart);
+        }
+        data->InsertChars(data->CursorPos, clip_content.c_str());
+        just_pasted = false;
+        clip_content.clear();
+        state->needs_reparse = true;
+    }
+#endif
+    return 0;
+}
+
 
 namespace UI {
     bool Button(const char* label, const ImVec2& size = ImVec2(0, 0)) {
@@ -139,7 +178,22 @@ void render_inspector_overlay(const PickerResult& hover, ViewState& view_state) 
 }
 
 
+
 void render_and_update(FunctionState& state, ViewState& view_state, unsigned int& op_tex, unsigned int& const_tex, Shader& interpreter_shader, CompilerShader& compiler_shader) {
+    #ifdef __EMSCRIPTEN__
+    static bool clipboard_initialized = false;
+    if (!clipboard_initialized) {
+        emscripten_browser_clipboard::copy([](void* callback_data) -> const char* {
+            FunctionState* s = static_cast<FunctionState*>(callback_data);
+            if (!s->selected_text.empty()) {
+                return s->selected_text.c_str();
+            }
+            return s->expression.c_str();
+        }, (void*)&state);
+
+        clipboard_initialized = true;
+    }
+    #endif
     state.is_3d = view_state.is_3d;
     ImGui::Begin("Function Editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::SameLine();
@@ -157,11 +211,30 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
     ImGui::SameLine();
 
     static bool auto_reparse = true;
-
     bool pressed_enter = ImGui::InputText("##source",
         &state.expression,
-        ImGuiInputTextFlags_EnterReturnsTrue);
+        ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackAlways,
+        FunctionInputCallback,
+        (void*)&state);
+    if (ImGui::IsItemActive()) {
+        ImGuiInputTextState* edit_state = ImGui::GetInputTextState(ImGui::GetActiveID());
 
+        if (edit_state && edit_state->HasSelection()) {
+            int start = edit_state->GetSelectionStart();
+            int end = edit_state->GetSelectionEnd();
+
+            int real_start = std::min(start, end);
+            int real_end = std::max(start, end);
+
+            if (real_start < (int)state.expression.length()) {
+                int len = std::min((int)state.expression.length() - real_start, real_end - real_start);
+                state.selected_text = state.expression.substr(real_start, len);
+            }
+        }
+        else {
+            state.selected_text = "";
+        }
+    }
     bool typed = ImGui::IsItemEdited();
 
     if (typed && !pressed_enter && auto_reparse) {
@@ -232,6 +305,12 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
                 ImGui::SetTooltip("This maps the grid to f(z), which shows how the functions warps space.");
             ImGui::Unindent();
         }
+    }
+    if (ImGui::Button("Test Clipboard Callbacks")) {
+        ImGui::SetClipboardText("Testing 123");
+
+        const char* text = ImGui::GetClipboardText();
+        std::cout << "Manual check: " << (text ? text : "NULL") << std::endl;
     }
 
     if (UI::CollapsingHeader("3D Keybinds")) {

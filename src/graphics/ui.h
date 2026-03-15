@@ -12,6 +12,7 @@ struct PickerResult;
 typedef struct FunctionState {
 	Shader* current_shader = nullptr;
 	std::string expression = "z";
+	std::string selected_text = "";
 	std::string error_message = "";
 	float last_typing_time = 0.0f;
 	bool needs_reparse = true;
