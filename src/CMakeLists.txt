@@ -87,7 +87,6 @@ if(EMSCRIPTEN)
     -sALLOW_MEMORY_GROWTH=1
     -fexceptions
     -sASSERTIONS=1
-    -sASYNCIFY=1
     -sEXPORTED_RUNTIME_METHODS=[ccall])
     target_compile_options(complex-plotter PRIVATE "-s" "USE_GLFW=3" "-fexceptions")
     set_target_properties(complex-plotter PROPERTIES SUFFIX ".js")
