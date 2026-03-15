@@ -55,8 +55,9 @@
 
   <div id="loading-overlay">
     <div class="spinner"></div>
-    <h2>Loading...</h2>
+    <h2>Loading!...</h2>
   </div>
+  
   <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
   <script type="text/javascript">
     const canvas = document.getElementById('canvas');
@@ -67,6 +68,14 @@
     
     var Module = {
       canvas: canvas,
+      print: function(text) {
+        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+        console.log(text);
+      },
+      printErr: function(text) {
+        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+        console.error(text);
+      },
       setCanvasSize: function(width, height, noRepaint) {
     const dpr = window.devicePixelRatio || 1;
     this.canvas.width = width * dpr;
@@ -74,9 +83,11 @@
   },
       onRuntimeInitialized: function() {
         document.getElementById('loading-overlay').style.display = 'none';
+        canvas.focus();
       }
   };
   </script>
+  <textarea id="clipping" style="position:absolute; width:0; height:0; border:0; opacity:0; pointer-events:none;" aria-hidden="true"></textarea>
 
   <script async type="text/javascript" src="complex-plotter.js"></script>
 </body>

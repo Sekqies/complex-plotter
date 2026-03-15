@@ -43,7 +43,7 @@ add_library(learnopengl
     "learnopengl/src/shader.cpp"
     "learnopengl/include/shader/shader.h"
     "learnopengl/include/stb_image/stb_image.h" 
-    "learnopengl/src/stb_image.cpp" "learnopengl/include/camera/camera.h" "learnopengl/src/camera.cpp" "learnopengl/include/VAO/VAO.h" "learnopengl/include/VBO/VBO.h" "learnopengl/src/VAO.cpp" "learnopengl/src/VBO.cpp" "learnopengl/include/texture/texture.h" "learnopengl/src/texture.cpp" "learnopengl/include/stb_image/stb_image_write.h" "learnopengl/src/stb_image_write.cpp")
+    "learnopengl/src/stb_image.cpp" "learnopengl/include/camera/camera.h" "learnopengl/src/camera.cpp" "learnopengl/include/VAO/VAO.h" "learnopengl/include/VBO/VBO.h" "learnopengl/src/VAO.cpp" "learnopengl/src/VBO.cpp" "learnopengl/include/texture/texture.h" "learnopengl/src/texture.cpp" "learnopengl/include/stb_image/stb_image_write.h" "learnopengl/src/stb_image_write.cpp" "learnopengl/include/emscripten_browser_clipboard.h")
 
 target_include_directories(learnopengl PUBLIC learnopengl/include)
 if(EMSCRIPTEN)
@@ -64,6 +64,7 @@ add_library(imgui STATIC
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
     ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
  )
@@ -71,6 +72,7 @@ add_library(imgui STATIC
 target_include_directories(imgui PUBLIC 
     ${imgui_SOURCE_DIR} 
     ${imgui_SOURCE_DIR}/backends
+    ${imgui_SOURCE_DIR}/misc/cpp
 )
 
 if(EMSCRIPTEN)

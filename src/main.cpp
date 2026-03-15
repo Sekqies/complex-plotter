@@ -142,6 +142,8 @@ void export_to_png(AppContext* ctx, int target_width, int target_height, const c
 	stbi_write_png(filename, target_width, target_height, 4, pixels, target_width * 4);
 	delete[] pixels;
 
+	const int hours_wasted = 4;
+
 #ifdef __EMSCRIPTEN__
 	EM_ASM_({
 		const js_filename = UTF8ToString($0);
