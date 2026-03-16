@@ -730,3 +730,11 @@ number hp_atan2(number y, number x) {
 number hp_length(hp_vec2 z){
     return hp_sqrt(add(mult(z.x,z.x),mult(z.y,z.y)));
 }
+
+number hp_sinh(number x){
+    return shift_right(sub(hp_exp(x),hp_exp(neg(x))),1);
+}
+
+number hp_cosh(number x){
+     return shift_right(add(hp_exp(x),hp_exp(neg(x))),1);
+}
