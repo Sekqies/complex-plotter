@@ -63,3 +63,5 @@ number mult_scalar_16(number a, uint b_16);
 number hp_div(number n, number d);
 
 number div_uint(number n, uint d);
+
+number hp_sqrt(number x);

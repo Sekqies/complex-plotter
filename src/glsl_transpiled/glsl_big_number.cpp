@@ -379,4 +379,103 @@ number div_uint(number n, uint d) {
     return q;
 }
 
+number float_to_number(float f) {
+    if (f == 0.0) return null_number();
+
+    uint f_bits = floatBitsToUint(f);
+    uint sign_bit = f_bits >> 31;
+    uint exp_bits = (f_bits >> 23) & 0xFFu;
+    uint mantissa_bits = f_bits & 0x7FFFFFu;
+
+    if (exp_bits == 255u) {
+        number inf = infinite_number();
+        inf.sign = (sign_bit == 1u) ? -1 : 1;
+        return inf;
+    }
+
+    if (exp_bits == 0u) return null_number();
+
+    number res = null_number();
+    res.sign = (sign_bit == 1u) ? -1 : 1;
+
+    uint mantissa = mantissa_bits | 0x800000u;
+
+    res.limb[FRACTIONAL_SIZE] = mantissa;
+
+    int shift = int(exp_bits) - 127 - 23;
+
+    if (shift > 0) {
+        res = shift_left(res, shift);
+    }
+    else if (shift < 0) {
+        res = shift_right(res, -shift);
+    }
+
+    return res;
+}
+
+#include <bit>
+
+float uintBitsToFloat(const uint n) {
+    return std::bit_cast<float>(n);
+}
+
+float number_to_float(number n) {
+    if (is_zero(n)) return 0.0;
+    if (n.is_infinite) {
+        return (n.sign == 1) ? uintBitsToFloat(0x7F800000u) : uintBitsToFloat(0xFF800000u);
+    }
+    int msb = find_msb(n);
+    int true_exp = msb - (FRACTIONAL_SIZE * 32);
+    if (true_exp > 127) {
+        return (n.sign == 1) ? uintBitsToFloat(0x7F800000u) : uintBitsToFloat(0xFF800000u);
+    }
+    if (true_exp < -126) {
+        return 0.0;
+    }
+
+    uint exp_bits = uint(true_exp + 127);
+    uint mantissa = 0u;
+
+    int limb_idx = msb / 32;
+    int bit_idx = msb % 32;
+
+    if (bit_idx >= 23) {
+        mantissa = (n.limb[limb_idx] >> (bit_idx - 23)) & 0x7FFFFFu;
+    }
+    else {
+        uint top = n.limb[limb_idx] << (23 - bit_idx);
+        uint bottom = 0u;
+        if (limb_idx > 0) {
+            bottom = n.limb[limb_idx - 1] >> (32 - (23 - bit_idx));
+        }
+        mantissa = (top | bottom) & 0x7FFFFFu;
+    }
+    uint sign_bit = (n.sign == -1) ? 1u : 0u;
+    uint float_bits = (sign_bit << 31) | (exp_bits << 23) | mantissa;
+
+    return uintBitsToFloat(float_bits);
+}
+
+number hp_sqrt(number x) {
+    if (is_zero(x) || x.sign == -1) return null_number();
+
+    float x_float = number_to_float(x);
+    float guess_float = sqrt(x_float);
+    number n_k = float_to_number(guess_float);
+
+    number n_k_next = null_number();
+
+    for (int i = 0; i < (LIMB_SIZE / 23 + 2); ++i) {
+        number div_term = hp_div(x, n_k);
+        n_k_next = hp_add(n_k, div_term);
+        n_k_next = shift_right(n_k_next, 1);
+        if (compare_abs(n_k, n_k_next) == 0) {
+            break;
+        }
+        n_k = n_k_next;
+    }
+    return n_k;
+}
+
 inline number::number() : limb(LIMB_SIZE, 0), sign(1), is_infinite(false) {}
