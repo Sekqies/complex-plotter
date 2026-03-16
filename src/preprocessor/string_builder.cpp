@@ -1,5 +1,8 @@
 #include <preprocessor/string_builder.h>
 #include <types/type_mapper.h>
+#include <transformer/transformer.h>
+#include <preprocessor/transpiler.h>
+#include <high_precision/high_precision_constant.h>
 static std::map<Operator, unsigned char> operator_to_id_mapper;
 
 static bool handled_const = false;
@@ -133,4 +136,52 @@ string get_preprocessor_string(const vector<TokenOperator>& operators) {
     std::cout << ss.str();
 
     return ss.str();
+}
+
+string convert_number_to_glsl(const number& num){
+    return big_number_to_glsl_string(num.limb,num.sign,num.is_infinite);
+}
+
+string declare_constant(const std::string& variable_name, const number& value){
+    return "const number " + variable_name + " = " + convert_number_to_glsl(value) + ";\n"; 
+}
+
+string declare_constant_with_expression(const std::string& variable_name, const std::string& value){
+    return "const number " + variable_name + " = " + value + ";\n";
+}
+
+string declare_constant(const std::string& variable_name, const hp_vec2& value){
+    return "const number " + variable_name + " = initialize_hp_vec2(" + convert_number_to_glsl(value.x) + "," + convert_number_to_glsl(value.y) + ");\n"; 
+}
+
+string build_high_precision_shader_string(const std::string& highp_header, const std::string& highp_function_declarations, const std::string& lowp_function_declarations){
+    string out = highp_header;
+    const number pi = compute_pi();
+    const number e = compute_e();
+    const number ln_2 = compute_ln2();
+    const number one = number_one();
+    const number two = number_integer(2);
+    const number three = number_integer(3);
+    const number zero = null_number();
+
+    declare_constant("PI",pi);
+    declare_constant("E", e);
+    declare_constant("LN2", ln_2);
+    declare_constant("REAL_ZERO", zero);
+    declare_constant("REAL_ONE", number_one());
+    declare_constant("REAL_TWO", two);
+    declare_constant("INFINITY", infinite_number());
+
+    declare_constant("TWO_PI_OVER_3", hp_div(hp_mult(two,pi),three));
+    declare_constant("TWO_OVER_PI", hp_div(two,pi));
+
+    declare_constant("ZERO", hp_vec2(zero,zero));
+    declare_constant("CPI", hp_vec2(pi,zero));
+    declare_constant("ONE", hp_vec2(one,zero));
+    declare_constant("MINUS_ONE", hp_vec2(hp_neg(one),zero));
+    declare_constant("I", hp_vec2(zero,one));
+
+    out += transpile_to_highp_glsl(lowp_function_declarations,highp_function_declarations);
+
+    
 }

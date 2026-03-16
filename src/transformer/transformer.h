@@ -10,5 +10,5 @@ string stack_to_glsl_string(const vector <TokenOperator>& stack);
 
 string vector_to_glsl_array(const vector<unsigned int>& limbs);
 
-string big_number_to_glsl_string(const vector<unsigned int>& limbs, const int sign, const bool is_infinite = false);
+string big_number_to_glsl_string(const vector<unsigned int>& limbs, const int sign, const bool is_infinite);
 

@@ -279,7 +279,7 @@ int main() {
 	
 	static Shader shader_program;
 	build_shader_path(shader_program, "shaders/plotter.vert", "shaders/plotter.frag");
-	std::cout << transpile_to_highp_glsl(get_block(shader_program.fragment_source, "ELEMENTARY_FUNCTION_DEFINITIONS"), SRC_HIGH_PRECISION_FRAG);
+	std::cout << transpile_to_highp_glsl(get_block(shader_program.fragment_source, "ELEMENTARY_FUNCTION_DEFINITIONS"), SRC_HIGH_PRECISION_FUNCTIONS_FRAG);
 	return 0;
 	static Shader picker;
 	string picker_frag = SRC_PICKER_FRAG;

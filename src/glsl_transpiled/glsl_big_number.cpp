@@ -1,4 +1,7 @@
 #include <glsl_transpiled/glsl_big_number.h>
+#include <bit>
+#include <cstdint>
+
 
 hp_vec2 initialize_hp_vec2(number x, number y) {
     hp_vec2 res;
@@ -23,6 +26,12 @@ number infinite_number() {
     }
     res.sign = 1;
     res.is_infinite = true;
+    return res;
+}
+
+number number_integer(const uint n){
+    number res = null_number();
+    res.limb[FRACTIONAL_SIZE] = n;
     return res;
 }
 
@@ -379,6 +388,16 @@ number div_uint(number n, uint d) {
     return q;
 }
 
+
+
+float uintBitsToFloat(const uint n) {
+    return std::bit_cast<float>(n);
+}
+
+uint floatBitsToUint(const float n){
+    return std::bit_cast<uint>(n);
+}
+
 number float_to_number(float f) {
     if (f == 0.0) return null_number();
 
@@ -412,12 +431,6 @@ number float_to_number(float f) {
     }
 
     return res;
-}
-
-#include <bit>
-
-float uintBitsToFloat(const uint n) {
-    return std::bit_cast<float>(n);
 }
 
 float number_to_float(number n) {

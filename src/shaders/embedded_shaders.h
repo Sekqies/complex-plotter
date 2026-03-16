@@ -1,58 +1,8 @@
 #pragma once
 #include <string>
 
-inline std::string SRC_HIGH_PRECISION_FRAG = 
-    R"shdr(#version 300 es
-
-precision highp float;
-
-const int LIMB_SIZE = 32;
-const int FRACTIONAL_SIZE = LIMB_SIZE/2;
-
-struct number{
-	uint limb[LIMB_SIZE];
-	int sign;
-    bool is_infinite;
-};
-
-struct hp_vec2{
-	number x;
-	number y;
-};
-
-hp_vec2 initialize_hp_vec2(number x, number y){
-    hp_vec2 res;
-    res.x = x;
-    res.y = y;
-    return res;
-}
-
-number null_number(){
-	number res;
-	for(int i = 0; i < LIMB_SIZE; ++i){
-		res.limb[i] = 0u;
-	}
-	res.sign = 1;
-	return res;
-}
-
-number infinite_number(){
-    number res;
-    for(int i = 0; i < LIMB_SIZE; ++i){
-        res.limb[i] = (1u<<31u)-1u;
-    }
-    res.sign = 1;
-    res.is_infinite = true;
-    return res;
-}
-
-number number_one() {
-    number res = null_number();
-    res.limb[FRACTIONAL_SIZE] = 1u; 
-    return res;
-}
-
-number hp_neg(number a){
+inline std::string SRC_HIGH_PRECISION_FUNCTIONS_FRAG = 
+    R"shdr(number hp_neg(number a){
 	a.sign *= -1;
 	return a;
 }
@@ -344,7 +294,7 @@ number hp_div(number n, number d){
             q_hat = 0xFFFFu;
             r_hat = u_jn1 + v_n1;
         } else {
-            )shdr" R"shdr(q_hat = dividend / v_n1;
+            q_hat = dividend / v_n1;
             r_hat = dividend % v_n1;
         }
 
@@ -367,7 +317,7 @@ number hp_div(number n, number d){
             borrow = (diff < 0) ? 1u : 0u;
         }
         int final_diff = int(get_half(u, j + n_len)) - int(k) - int(borrow);
-        set_half(u, j + n_len, uint(final_diff) & 0xFFFFu);
+        set_half(u, j + n_len, uint(final_diff) & 0x)shdr" R"shdr(FFFFu);
         if (final_diff < 0) {
             q_hat--;
             uint carry_hp_add = 0u;
@@ -658,7 +608,7 @@ number hp_cos(number x) {
         if (is_zero(term)) break; 
         
         if (i % 2 == 1) {
-            sum = hp_su)shdr" R"shdr(b(sum, term);
+            sum = hp_sub(sum, term);
         } else {
             sum = hp_add(sum, term);
         }
@@ -690,7 +640,7 @@ number hp_atan(number z){
             sum = hp_sub(sum,iteration_term);
         }
         else{
-            sum = hp_add(sum,iteration_term);
+            sum = hp_add(sum)shdr" R"shdr(,iteration_term);
         }
     }
     return shift_left(sum, 1);
@@ -808,6 +758,64 @@ hp_vec2 hp_mult(hp_vec2 a, number b) {
 
 hp_vec2 hp_mult(number a, hp_vec2 b) {
     return initialize_hp_vec2(hp_mult(a, b.x), hp_mult(a, b.y));
+})shdr" ;
+
+inline std::string SRC_HIGH_PRECISION_HEADER_FRAG = 
+    R"shdr(#version 300 es
+
+precision highp float;
+
+const int LIMB_SIZE = 32;
+const int FRACTIONAL_SIZE = LIMB_SIZE/2;
+
+struct number{
+	uint limb[LIMB_SIZE];
+	int sign;
+    bool is_infinite;
+};
+
+struct hp_vec2{
+	number x;
+	number y;
+};
+
+hp_vec2 initialize_hp_vec2(number x, number y){
+    hp_vec2 res;
+    res.x = x;
+    res.y = y;
+    return res;
+}
+
+number initialize_number(uint limb[LIMB_SIZE], int sign, bool is_infinite){
+    number res;
+    res.limb = limb;
+    res.sign = sign;
+    res.is_infinite = is_infinite;
+}
+
+number null_number(){
+	number res;
+	for(int i = 0; i < LIMB_SIZE; ++i){
+		res.limb[i] = 0u;
+	}
+	res.sign = 1;
+	return res;
+}
+
+number infinite_number(){
+    number res;
+    for(int i = 0; i < LIMB_SIZE; ++i){
+        res.limb[i] = (1u<<31u)-1u;
+    }
+    res.sign = 1;
+    res.is_infinite = true;
+    return res;
+}
+
+number number_one() {
+    number res = null_number();
+    res.limb[FRACTIONAL_SIZE] = 1u; 
+    return res;
 })shdr" ;
 
 inline std::string SRC_PICKER_FRAG = 

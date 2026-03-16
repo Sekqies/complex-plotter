@@ -13,6 +13,7 @@ struct number {
 struct hp_vec2 {
     number x;
     number y;
+    hp_vec2(number x,number y) : x(x), y(y){};
 };
 
 hp_vec2 initialize_hp_vec2(number x, number y);
@@ -65,3 +66,5 @@ number hp_div(number n, number d);
 number div_uint(number n, uint d);
 
 number hp_sqrt(number x);
+
+number number_integer(const uint n);

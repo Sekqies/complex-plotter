@@ -49,7 +49,8 @@ string vector_to_glsl_array(const vector<unsigned int>& limbs){
 		out += std::to_string(limb) + "u,";
 	}
 	out.pop_back();
-	out += ");";
+	out += ")";
+	return out;
 }
 
 string big_number_to_glsl_string(const vector<unsigned int>& limbs, const int sign, const bool is_infinite = false){

@@ -64,4 +64,3 @@ number compute_ln2(){
     }
     return shift_left(sum, 1); 
 }
-
