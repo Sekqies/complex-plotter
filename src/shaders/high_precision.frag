@@ -524,3 +524,209 @@ number hp_ln(number x){
     number k_ln2 = mult(k_num, get_ln2_constant());
     return add(k_ln2, sum);
 }
+
+number hp_pow(number a, number b){
+    return hp_exp(mult(hp_ln(a),b));
+}
+
+number hp_sqrt(number x){
+    if(is_zero(x) || x.sign == -1) return null_number();
+    
+    float x_float = number_to_float(x);
+    float guess_float = sqrt(x_float);
+    number n_k = float_to_number(guess_float);
+
+    number n_k_next = null_number();
+
+    for(int i = 0; i < (LIMB_SIZE / 23 + 2); ++i){
+        number div_term = div(x,n_k);
+        n_k_next = add(n_k,div_term);
+        n_k_next = shift_right(n_k_next,1);
+        if(compare_abs(n_k,n_k_next) == 0){
+            break;
+        }
+        n_k = n_k_next;
+    }
+    return n_k;
+}
+
+number hp_floor(number a) {
+    if (a.is_infinite || is_zero(a)) return a;
+
+    number c = a;
+    bool has_fraction = false;
+
+    for (int i = 0; i < FRACTIONAL_SIZE; ++i) {
+        if (c.limb[i] != 0u) {
+            has_fraction = true;
+            c.limb[i] = 0u;
+        }
+    }
+
+    if (c.sign == -1 && has_fraction) {
+        c = sub(c, number_one());
+    }
+    return c;
+}
+
+number hp_mod(number a, number b){
+    if (is_zero(b)) return null_number();
+    
+    number div_ab = div(a,b);
+    number floor_div = hp_floor(div_ab);
+    number mult_b_floor = mult(b, floor_div);
+    
+    return sub(a, mult_b_floor);
+}
+
+number get_two_pi_constant(){
+    return float_to_number(2.0f * 3.141592);
+}
+
+number get_pi_constant(){
+    return float_to_number(3.141592);
+}
+
+number reduce_trig_range(number x) {
+    number two_pi = get_two_pi_constant();
+    number pi = get_pi_constant();
+    
+    number x_mod = hp_mod(x, two_pi);
+    
+    if (x_mod.sign == -1 && !is_zero(x_mod)) {
+        x_mod = add(x_mod, two_pi);
+    }
+    
+    if (compare_abs(x_mod, pi) == 1) { 
+        x_mod = sub(x_mod, two_pi);
+    }
+    
+    return x_mod;
+}
+
+number hp_sin(number x){
+    if(is_zero(x)) return null_number();
+    x = reduce_trig_range(x);
+    
+    number x_sq = mult(x,x);
+    number sum = x;
+    number term = x;
+
+    for(int i = 1; i < LIMB_SIZE * 8; ++i){
+        term = mult(term,x_sq);
+        uint divisor = uint(2*i) * uint(2*i +1);
+        term = div_uint(term,divisor);
+
+        if(is_zero(term)) break;
+
+        if(i%2==1){
+            sum = sub(sum,term);
+        }
+        else{
+            sum = add(sum,term);
+        }
+    }
+    return sum;
+}
+
+number hp_cos(number x) {
+    if (is_zero(x)) return number_one();
+    
+    x = reduce_trig_range(x);
+    
+    number x_sq = mult(x, x);
+    number sum = number_one();
+    number term = number_one();
+    
+    for (int i = 1; i < 256; ++i) {
+        term = mult(term, x_sq);
+        
+        uint divisor = uint(2 * i - 1) * uint(2 * i);
+        term = div_uint(term, divisor);
+        
+        if (is_zero(term)) break; 
+        
+        if (i % 2 == 1) {
+            sum = sub(sum, term);
+        } else {
+            sum = add(sum, term);
+        }
+    }
+    return sum;
+}
+
+number hp_atan(number z){
+    if(is_zero(z)) return null_number();
+
+    number z_sq = mult(z,z);
+    number one = number_one();
+    number hypotenuse = hp_sqrt(add(one,z_sq));
+    number den = add(one,hypotenuse);
+    z = div(z,den);
+
+    z_sq = mult(z,z);
+    number sum = z;
+    number term = z;
+
+    for(uint i = 1u; i < uint(LIMB_SIZE) * 8u; ++i){
+        term = mult(term, z_sq);
+        uint divisor = (2u*i) + 1u;
+        number iteration_term = div_uint(term,divisor);
+
+        if(is_zero(iteration_term)) break;
+
+        if(i%2u == 1u){
+            sum = sub(sum,iteration_term);
+        }
+        else{
+            sum = add(sum,iteration_term);
+        }
+    }
+    return shift_left(sum, 1);
+}
+
+number hp_atan2(number y, number x) {
+    bool x_zero = is_zero(x);
+    bool y_zero = is_zero(y);
+
+    number pi = get_pi_constant();
+    number pi_over_2 = shift_right(pi, 1);
+
+    if (x_zero && y_zero) return null_number(); 
+    if (x_zero) {
+        number res = pi_over_2;
+        res.sign = y.sign; 
+        return res;
+    }
+    if (y_zero) {
+        if (x.sign == 1) return null_number(); 
+        return pi;                             
+    }
+
+    number abs_y = y; abs_y.sign = 1;
+    number abs_x = x; abs_x.sign = 1;
+    
+    number base_angle;
+
+    if (compare_abs(abs_y, abs_x) == 1) { 
+        number z = div(abs_x, abs_y);
+        base_angle = sub(pi_over_2, hp_atan(z));
+    } else {
+        number z = div(abs_y, abs_x);
+        base_angle = hp_atan(z);
+    }
+
+    number final_angle = base_angle;
+
+    if (x.sign == -1) {
+        final_angle = sub(pi, base_angle);
+    }
+
+    final_angle.sign = y.sign;
+
+    return final_angle;
+}
+
+number hp_length(hp_vec2 z){
+    return hp_sqrt(add(mult(z.x,z.x),mult(z.y,z.y)));
+}
