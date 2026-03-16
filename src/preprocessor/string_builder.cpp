@@ -154,7 +154,7 @@ string declare_constant(const std::string& variable_name, const hp_vec2& value){
     return "const number " + variable_name + " = initialize_hp_vec2(" + convert_number_to_glsl(value.x) + "," + convert_number_to_glsl(value.y) + ");\n"; 
 }
 
-string build_high_precision_shader_string(const std::string& highp_header, const std::string& highp_function_declarations, const std::string& lowp_function_declarations){
+string build_high_precision_shader_string(const std::string& highp_header, const std::string& highp_footer, const std::string& highp_function_declarations, const std::string& lowp_function_declarations){
     string out = highp_header;
     const number pi = compute_pi();
     const number e = compute_e();
@@ -164,24 +164,26 @@ string build_high_precision_shader_string(const std::string& highp_header, const
     const number three = number_integer(3);
     const number zero = null_number();
 
-    declare_constant("PI",pi);
-    declare_constant("E", e);
-    declare_constant("LN2", ln_2);
-    declare_constant("REAL_ZERO", zero);
-    declare_constant("REAL_ONE", number_one());
-    declare_constant("REAL_TWO", two);
-    declare_constant("INFINITY", infinite_number());
+    out += declare_constant("PI",pi);
+    out += declare_constant("E", e);
+    out += declare_constant("LN2", ln_2);
+    out += declare_constant("REAL_ZERO", zero);
+    out += declare_constant("REAL_ONE", number_one());
+    out += declare_constant("REAL_TWO", two);
+    out += declare_constant("INFINITY", infinite_number());
 
-    declare_constant("TWO_PI_OVER_3", hp_div(hp_mult(two,pi),three));
-    declare_constant("TWO_OVER_PI", hp_div(two,pi));
+    out += declare_constant("TWO_PI_OVER_3", hp_div(hp_mult(two,pi),three));
+    out += declare_constant("TWO_OVER_PI", hp_div(two,pi));
 
-    declare_constant("ZERO", hp_vec2(zero,zero));
-    declare_constant("CPI", hp_vec2(pi,zero));
-    declare_constant("ONE", hp_vec2(one,zero));
-    declare_constant("MINUS_ONE", hp_vec2(hp_neg(one),zero));
-    declare_constant("I", hp_vec2(zero,one));
+    out += declare_constant("ZERO", hp_vec2(zero,zero));
+    out += declare_constant("CPI", hp_vec2(pi,zero));
+    out += declare_constant("ONE", hp_vec2(one,zero));
+    out += declare_constant("MINUS_ONE", hp_vec2(hp_neg(one),zero));
+    out += declare_constant("I", hp_vec2(zero,one));
 
     out += transpile_to_highp_glsl(lowp_function_declarations,highp_function_declarations);
 
-    
+    out += highp_footer;
+
+    return out;
 }
