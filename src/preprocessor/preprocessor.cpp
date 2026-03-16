@@ -41,7 +41,7 @@ void preprocess_string(const string& filename, const vector<TokenOperator>& oper
     if (filename == "shaders/plotter.vert") SRC_PLOTTER_VERT = raw_source;
     if (filename == "shaders/plotter3d.vert") SRC_PLOTTER3D_VERT = raw_source;
     if (filename == "shaders/plotter3d.frag") SRC_PLOTTER3D_FRAG = raw_source;
-    std::cout << raw_source;
+    //std::cout << raw_source;
     return;
 }
 

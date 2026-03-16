@@ -39,10 +39,10 @@ uniform bool warp_grid;
 #define FUNCTION_DEFINITIONS HERE
 
 vec2 cadd(vec2 a, vec2 b){
-    return a + b;
+    return vec2(a.x+b.x,a.y + b.y);
 }
 vec2 csub(vec2 a, vec2 b){
-    return a - b;
+    return vec2(a.x-b.x,a.y - b.y);;
 }
 
 vec2 cmult(vec2 a, vec2 b){
@@ -108,8 +108,8 @@ vec2 ccot(vec2 a) {
 
 
 vec2 ctan(vec2 a) {
-    float div = cos(2.0f * a.x) + cosh(2.0f * a.y);
-    return vec2(sin(2.0f * a.x) / div, sinh(2.0f * a.y) / div);
+    float division = cos(2.0f * a.x) + cosh(2.0f * a.y);
+    return vec2(sin(2.0f * a.x) / division, sinh(2.0f * a.y) / division);
 }
 
 
@@ -121,8 +121,8 @@ vec2 ccosh(vec2 a) {
 }
 
 vec2 ctanh(vec2 a) {
-    float div = cosh(2.0f * a.x) + cos(2.0f * a.y);
-    return vec2(sinh(2.0f * a.x) / div, sin(2.0f * a.y) / div);
+    float division = cosh(2.0f * a.x) + cos(2.0f * a.y);
+    return vec2(sinh(2.0f * a.x) / division, sin(2.0f * a.y) / division);
 }
 
 vec2 csqrt(vec2 a) {
@@ -205,7 +205,7 @@ vec2 cacoth(vec2 z){
 }
 
 vec2 cneg(vec2 a){
-    return -a;
+    return vec2(-a.x,-a.y);
 }
 
 vec2 cmod(vec2 a, vec2 b){
@@ -223,6 +223,8 @@ vec2 re(vec2 z){
 vec2 im(vec2 z){
     return vec2(z.y,0.0f);
 }
+
+
 
 // Non-elementary functions
 

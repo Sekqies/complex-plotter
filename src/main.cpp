@@ -19,6 +19,8 @@
 #include <interactions/export.h>
 #include <stb_image/stb_image_write.h>
 
+#include <preprocessor/transpiler.h>
+
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -277,7 +279,8 @@ int main() {
 	
 	static Shader shader_program;
 	build_shader_path(shader_program, "shaders/plotter.vert", "shaders/plotter.frag");
-
+	std::cout << transpile_to_highp_glsl(get_block(shader_program.fragment_source, "FUNCTION_DEFINITIONS"), SRC_HIGH_PRECISION_FRAG);
+	return 0;
 	static Shader picker;
 	string picker_frag = SRC_PICKER_FRAG;
 	inject_at(picker_frag, "FUNCTION_DEFINITIONS HERE", get_block(shader_program.fragment_source, "FUNCTION_DEFINITIONS"));

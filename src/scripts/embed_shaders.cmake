@@ -13,7 +13,27 @@ foreach(FILE ${SHADER_FILES})
     
     file(READ ${FILE} SHADER_TEXT)
     
-    string(APPEND FILE_CONTENT "inline std::string SRC_${VAR_NAME} = R\"(${SHADER_TEXT})\";\n\n")
+    string(LENGTH "${SHADER_TEXT}" FULL_LENGTH)
+    
+    set(CHUNK_SIZE 8000)
+    set(CURRENT_OFFSET 0)
+    set(CHUNKS "")
+
+    while(CURRENT_OFFSET LESS FULL_LENGTH)
+        math(EXPR REMAINING "${FULL_LENGTH} - ${CURRENT_OFFSET}")
+        if(REMAINING GREATER CHUNK_SIZE)
+            set(STR_LIMIT ${CHUNK_SIZE})
+        else()
+            set(STR_LIMIT ${REMAINING})
+        endif()
+
+        string(SUBSTRING "${SHADER_TEXT}" ${CURRENT_OFFSET} ${STR_LIMIT} CHUNK_DATA)
+        string(APPEND CHUNKS "R\"shdr(${CHUNK_DATA})shdr\" ")
+
+        math(EXPR CURRENT_OFFSET "${CURRENT_OFFSET} + ${STR_LIMIT}")
+    endwhile()
+
+    string(APPEND FILE_CONTENT "inline std::string SRC_${VAR_NAME} = \n    ${CHUNKS};\n\n")
 endforeach()
 
 file(WRITE "${DEST_BUILD}" "${FILE_CONTENT}")

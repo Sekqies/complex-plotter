@@ -1,7 +1,10 @@
 #pragma once
 #include <string>
 
-inline std::string SRC_HIGH_PRECISION_FRAG = R"(#version 300 es
+inline std::string SRC_HIGH_PRECISION_FRAG = 
+    R"shdr(#version 300 es
+
+precision highp float;
 
 const int LIMB_SIZE = 32;
 const int FRACTIONAL_SIZE = LIMB_SIZE/2;
@@ -17,6 +20,13 @@ struct hp_vec2{
 	number y;
 };
 
+hp_vec2 initialize_hp_vec2(number x, number y){
+    hp_vec2 res;
+    res.x = x;
+    res.y = y;
+    return res;
+}
+
 number null_number(){
 	number res;
 	for(int i = 0; i < LIMB_SIZE; ++i){
@@ -29,7 +39,7 @@ number null_number(){
 number infinite_number(){
     number res;
     for(int i = 0; i < LIMB_SIZE; ++i){
-        res.limb[i] = (1u<<32u)-1u;
+        res.limb[i] = (1u<<31u)-1u;
     }
     res.sign = 1;
     res.is_infinite = true;
@@ -42,7 +52,7 @@ number number_one() {
     return res;
 }
 
-number neg(number a){
+number hp_neg(number a){
 	a.sign *= -1;
 	return a;
 }
@@ -72,24 +82,24 @@ bool is_zero(number a){
 	return !notzero;
 }
 
-uvec2 add_with_carry(uint a, uint b){
+uvec2 sum_with_carry(uint a, uint b){
 	uvec2 res = uvec2(0u,0u);
 	res.x = a + b;
 	res.y = uint(a > res.x || b > res.x);
 	return res;
 }
-number abs_add(number a, number b){
+number abs_sum(number a, number b){
 	number c = null_number();
 	uint carry = 0u;
 	for(int i = 0; i < LIMB_SIZE; ++i){
-		uvec2 res = add_with_carry(add_with_carry(a.limb[i],b.limb[i]).x,carry);
+		uvec2 res = sum_with_carry(sum_with_carry(a.limb[i],b.limb[i]).x,carry);
 		uint sum = res.x;
 		carry = res.y;
 		c.limb[i] = sum;
 	}
 	return c;
 }
-number abs_sub(number a, number b) {
+number abs_hp_sub(number a, number b) {
     number c = null_number();
     uint borrow = 0u;
     for(int i = 0; i < LIMB_SIZE; ++i) {
@@ -100,31 +110,31 @@ number abs_sub(number a, number b) {
     return c;
 }
 
-number add(number a, number b){
+number hp_add(number a, number b){
 	number c = null_number();
 	if(a.sign == b.sign){
-		c = abs_add(a,b);
+		c = abs_sum(a,b);
 		c.sign = a.sign;
 		return c;
 	}
 	int cmp = compare_abs(a,b);
 	if(cmp >= 0){
-		c = abs_sub(a,b);
+		c = abs_hp_sub(a,b);
 		c.sign = a.sign;
 		return c;
 	}
-	c = abs_sub(b,a);
+	c = abs_hp_sub(b,a);
 	c.sign = b.sign;
 	return c;
 }
 
 
 
-number sub(number a, number b){
-	return add(a,neg(b));
+number hp_sub(number a, number b){
+	return hp_add(a,hp_neg(b));
 }
 
-uvec2 multiply_with_remainder(uint a, uint b) {
+uvec2 product_with_remainder(uint a, uint b) {
     uint low_part = a * b;
 
     uint al = lo(a);
@@ -137,15 +147,15 @@ uvec2 multiply_with_remainder(uint a, uint b) {
     uint p2 = ah * bl;
     uint p3 = ah * bh;
 
-    uvec2 m_sum = add_with_carry(p1, p2);
-    uvec2 m_combined = add_with_carry(m_sum.x, hi(p0));
+    uvec2 m_sum = sum_with_carry(p1, p2);
+    uvec2 m_combined = sum_with_carry(m_sum.x, hi(p0));
 
     uint high_part = p3 + hi(m_combined.x) + ((m_sum.y + m_combined.y) << 16);
 
     return uvec2(low_part, high_part);
 }
 
-number mult(number a, number b) {
+number hp_mult(number a, number b) {
     number c = null_number();
     c.sign = a.sign * b.sign;
     
@@ -163,15 +173,15 @@ number mult(number a, number b) {
             
             if (target >= LIMB_SIZE) break; 
             
-            uvec2 prod = multiply_with_remainder(a.limb[i], b.limb[j]);
+            uvec2 prod = product_with_remainder(a.limb[i], b.limb[j]);
             if (target < 0) {
-                uvec2 add2 = add_with_carry(prod.x, carry);
-                carry = prod.y + add2.y;
+                uvec2 hp_add2 = sum_with_carry(prod.x, carry);
+                carry = prod.y + hp_add2.y;
             } else {
-                uvec2 add1 = add_with_carry(c.limb[target], prod.x);
-                uvec2 add2 = add_with_carry(add1.x, carry);
-                c.limb[target] = add2.x;
-                carry = prod.y + add1.y + add2.y;
+                uvec2 hp_add1 = sum_with_carry(c.limb[target], prod.x);
+                uvec2 hp_add2 = sum_with_carry(hp_add1.x, carry);
+                c.limb[target] = hp_add2.x;
+                carry = prod.y + hp_add1.y + hp_add2.y;
             }
         }
     }
@@ -269,16 +279,16 @@ number mult_scalar_16(number a, uint b_16) {
     for (int i = 0; i < LIMB_SIZE; ++i) {
         if (a.limb[i] == 0u && carry == 0u) continue;
         
-        uvec2 prod = multiply_with_remainder(a.limb[i], b_16);
-        uvec2 add1 = add_with_carry(prod.x, carry);
+        uvec2 prod = product_with_remainder(a.limb[i], b_16);
+        uvec2 hp_add1 = sum_with_carry(prod.x, carry);
         
-        c.limb[i] = add1.x;
-        carry = prod.y + add1.y;
+        c.limb[i] = hp_add1.x;
+        carry = prod.y + hp_add1.y;
     }
     return c;
 }
 
-number div(number n, number d){
+number hp_div(number n, number d){
     number q = null_number();
     q.sign = n.sign * d.sign;
 
@@ -334,7 +344,7 @@ number div(number n, number d){
             q_hat = 0xFFFFu;
             r_hat = u_jn1 + v_n1;
         } else {
-            q_hat = dividend / v_n1;
+            )shdr" R"shdr(q_hat = dividend / v_n1;
             r_hat = dividend % v_n1;
         }
 
@@ -360,13 +370,13 @@ number div(number n, number d){
         set_half(u, j + n_len, uint(final_diff) & 0xFFFFu);
         if (final_diff < 0) {
             q_hat--;
-            uint carry_add = 0u;
+            uint carry_hp_add = 0u;
             for (int i = 0; i < n_len; ++i) {
-                uint sum = get_half(u, j + i) + get_half(v, i) + carry_add;
+                uint sum = get_half(u, j + i) + get_half(v, i) + carry_hp_add;
                 set_half(u, j + i, sum & 0xFFFFu);
-                carry_add = sum >> 16;
+                carry_hp_add = sum >> 16;
             }
-            uint sum_last = get_half(u, j + n_len) + carry_add;
+            uint sum_last = get_half(u, j + n_len) + carry_hp_add;
             set_half(u, j + n_len, sum_last & 0xFFFFu);
         }
         set_half(q, j, q_hat);
@@ -374,10 +384,434 @@ number div(number n, number d){
     return q;
 }
 
+number div_uint(number n, uint d) {
+    number q = null_number();
+    q.sign = n.sign;
+    uint rem = 0u;
+    for (int i = LIMB_SIZE * 2 - 1; i >= 0; --i) {
+        uint dividend = (rem << 16) | get_half(n, i);
+        uint q_i = dividend / d;
+        rem = dividend % d;
+        set_half(q, i, q_i);
+    }
+    return q;
+}
 
-)";
+number hp_exp(number x){
+    if (is_zero(x)) return number_one();
+    bool is_neg = (x.sign == -1);
+    if (is_neg) x.sign = 1;
+    const int K_SHIFT_LIMBS = 4;
+    number x_small = shift_right(x, K_SHIFT_LIMBS * 32);
 
-inline std::string SRC_PICKER_FRAG = R"(#version 300 es
+    number sum = number_one();
+    number term = number_one();
+
+    for (uint i = 1u; i < uint(LIMB_SIZE * 8); ++i) { 
+        term = hp_mult(term, x_small);
+        term = div_uint(term, i);
+        
+        if (is_zero(term)) break; 
+        
+        sum = hp_add(sum, term);
+    }
+    for (int i = 0; i < (K_SHIFT_LIMBS * 32); ++i) {
+        sum = hp_mult(sum, sum);
+    }
+
+    if (is_neg) {
+        sum = hp_div(number_one(), sum);
+    }
+    return sum;
+}
+
+number uint_to_number(uint v) {
+    number res = null_number();
+    res.limb[FRACTIONAL_SIZE] = v; 
+    return res;
+}
+number float_to_number(float f) {
+    if (f == 0.0) return null_number();
+    
+    uint f_bits = floatBitsToUint(f);
+    uint sign_bit = f_bits >> 31;
+    uint exp_bits = (f_bits >> 23) & 0xFFu;
+    uint mantissa_bits = f_bits & 0x7FFFFFu;
+    
+    if (exp_bits == 255u) {
+        number inf = infinite_number();
+        inf.sign = (sign_bit == 1u) ? -1 : 1;
+        return inf;
+    }
+    
+    if (exp_bits == 0u) return null_number(); 
+
+    number res = null_number();
+    res.sign = (sign_bit == 1u) ? -1 : 1;
+    
+    uint mantissa = mantissa_bits | 0x800000u;
+    
+    res.limb[FRACTIONAL_SIZE] = mantissa;
+    
+    int shift = int(exp_bits) - 127 - 23;
+    
+    if (shift > 0) {
+        res = shift_left(res, shift);
+    } else if (shift < 0) {
+        res = shift_right(res, -shift);
+    }
+    
+    return res;
+}
+
+float number_to_float(number n) {
+    if (is_zero(n)) return 0.0;    
+    if (n.is_infinite) {
+        return (n.sign == 1) ? uintBitsToFloat(0x7F800000u) : uintBitsToFloat(0xFF800000u);
+    }
+    int msb = find_msb(n);
+    int true_exp = msb - (FRACTIONAL_SIZE * 32);
+    if (true_exp > 127) {
+        return (n.sign == 1) ? uintBitsToFloat(0x7F800000u) : uintBitsToFloat(0xFF800000u);
+    }
+    if (true_exp < -126) {
+        return 0.0; 
+    }
+
+    uint exp_bits = uint(true_exp + 127);
+    uint mantissa = 0u;
+
+    int limb_idx = msb / 32;
+    int bit_idx = msb % 32;
+
+    if (bit_idx >= 23) {
+        mantissa = (n.limb[limb_idx] >> (bit_idx - 23)) & 0x7FFFFFu;
+    } else {
+        uint top = n.limb[limb_idx] << (23 - bit_idx);
+        uint bottom = 0u;
+        if (limb_idx > 0) {
+            bottom = n.limb[limb_idx - 1] >> (32 - (23 - bit_idx));
+        }
+        mantissa = (top | bottom) & 0x7FFFFFu;
+    }
+    uint sign_bit = (n.sign == -1) ? 1u : 0u;    
+    uint float_bits = (sign_bit << 31) | (exp_bits << 23) | mantissa;
+
+    return uintBitsToFloat(float_bits);
+}
+
+number get_ln2_constant(){
+    return float_to_number(log(2.0));
+}
+
+number hp_log(number x){
+    if(x.sign == -1 || is_zero(x)) return infinite_number();
+
+    int msb = find_msb(x);
+    int k = msb - (FRACTIONAL_SIZE * 32);
+
+    number m;
+    if (k > 0) m = shift_left(x,-k);
+    else m = x;
+
+    number one = number_one();
+    number z = hp_div(hp_sub(m,one),hp_add(m,one));
+    number z_squared = hp_mult(z,z);
+
+    number sum = z;
+    number term = z;
+
+    for (uint i = 3u; i < 512u; i += 2u) {
+        term = hp_mult(term, z_squared);
+        number iteration_term = div_uint(term, i);
+       
+        if (is_zero(iteration_term)) break;
+        
+        sum = hp_add(sum, iteration_term);
+    }
+    sum = shift_left(sum, 1);
+    number k_num = uint_to_number(uint(abs(k)));
+    k_num.sign = (k >=0)? 1 : -1;
+    number k_ln2 = hp_mult(k_num, get_ln2_constant());
+    return hp_add(k_ln2, sum);
+}
+
+number hp_pow(number a, number b){
+    return hp_exp(hp_mult(hp_log(a),b));
+}
+
+number hp_sqrt(number x){
+    if(is_zero(x) || x.sign == -1) return null_number();
+    
+    float x_float = number_to_float(x);
+    float guess_float = sqrt(x_float);
+    number n_k = float_to_number(guess_float);
+
+    number n_k_next = null_number();
+
+    for(int i = 0; i < (LIMB_SIZE / 23 + 2); ++i){
+        number div_term = hp_div(x,n_k);
+        n_k_next = hp_add(n_k,div_term);
+        n_k_next = shift_right(n_k_next,1);
+        if(compare_abs(n_k,n_k_next) == 0){
+            break;
+        }
+        n_k = n_k_next;
+    }
+    return n_k;
+}
+
+number hp_floor(number a) {
+    if (a.is_infinite || is_zero(a)) return a;
+
+    number c = a;
+    bool has_fraction = false;
+
+    for (int i = 0; i < FRACTIONAL_SIZE; ++i) {
+        if (c.limb[i] != 0u) {
+            has_fraction = true;
+            c.limb[i] = 0u;
+        }
+    }
+
+    if (c.sign == -1 && has_fraction) {
+        c = hp_sub(c, number_one());
+    }
+    return c;
+}
+
+number hp_mod(number a, number b){
+    if (is_zero(b)) return null_number();
+    
+    number div_ab = hp_div(a,b);
+    number floor_div = hp_floor(div_ab);
+    number mult_b_floor = hp_mult(b, floor_div);
+    
+    return hp_sub(a, mult_b_floor);
+}
+
+number get_two_pi_constant(){
+    return float_to_number(2.0f * 3.141592);
+}
+
+number get_pi_constant(){
+    return float_to_number(3.141592);
+}
+
+number reduce_trig_range(number x) {
+    number two_pi = get_two_pi_constant();
+    number pi = get_pi_constant();
+    
+    number x_mod = hp_mod(x, two_pi);
+    
+    if (x_mod.sign == -1 && !is_zero(x_mod)) {
+        x_mod = hp_add(x_mod, two_pi);
+    }
+    
+    if (compare_abs(x_mod, pi) == 1) { 
+        x_mod = hp_sub(x_mod, two_pi);
+    }
+    
+    return x_mod;
+}
+
+number hp_sin(number x){
+    if(is_zero(x)) return null_number();
+    x = reduce_trig_range(x);
+    
+    number x_sq = hp_mult(x,x);
+    number sum = x;
+    number term = x;
+
+    for(int i = 1; i < LIMB_SIZE * 8; ++i){
+        term = hp_mult(term,x_sq);
+        uint divisor = uint(2*i) * uint(2*i +1);
+        term = div_uint(term,divisor);
+
+        if(is_zero(term)) break;
+
+        if(i%2==1){
+            sum = hp_sub(sum,term);
+        }
+        else{
+            sum = hp_add(sum,term);
+        }
+    }
+    return sum;
+}
+
+number hp_cos(number x) {
+    if (is_zero(x)) return number_one();
+    
+    x = reduce_trig_range(x);
+    
+    number x_sq = hp_mult(x, x);
+    number sum = number_one();
+    number term = number_one();
+    
+    for (int i = 1; i < 256; ++i) {
+        term = hp_mult(term, x_sq);
+        
+        uint divisor = uint(2 * i - 1) * uint(2 * i);
+        term = div_uint(term, divisor);
+        
+        if (is_zero(term)) break; 
+        
+        if (i % 2 == 1) {
+            sum = hp_su)shdr" R"shdr(b(sum, term);
+        } else {
+            sum = hp_add(sum, term);
+        }
+    }
+    return sum;
+}
+
+number hp_atan(number z){
+    if(is_zero(z)) return null_number();
+
+    number z_sq = hp_mult(z,z);
+    number one = number_one();
+    number hypotenuse = hp_sqrt(hp_add(one,z_sq));
+    number den = hp_add(one,hypotenuse);
+    z = hp_div(z,den);
+
+    z_sq = hp_mult(z,z);
+    number sum = z;
+    number term = z;
+
+    for(uint i = 1u; i < uint(LIMB_SIZE) * 8u; ++i){
+        term = hp_mult(term, z_sq);
+        uint divisor = (2u*i) + 1u;
+        number iteration_term = div_uint(term,divisor);
+
+        if(is_zero(iteration_term)) break;
+
+        if(i%2u == 1u){
+            sum = hp_sub(sum,iteration_term);
+        }
+        else{
+            sum = hp_add(sum,iteration_term);
+        }
+    }
+    return shift_left(sum, 1);
+}
+
+number hp_atan2(number y, number x) {
+    bool x_zero = is_zero(x);
+    bool y_zero = is_zero(y);
+
+    number pi = get_pi_constant();
+    number pi_over_2 = shift_right(pi, 1);
+
+    if (x_zero && y_zero) return null_number(); 
+    if (x_zero) {
+        number res = pi_over_2;
+        res.sign = y.sign; 
+        return res;
+    }
+    if (y_zero) {
+        if (x.sign == 1) return null_number(); 
+        return pi;                             
+    }
+
+    number abs_y = y; abs_y.sign = 1;
+    number abs_x = x; abs_x.sign = 1;
+    
+    number base_angle;
+
+    if (compare_abs(abs_y, abs_x) == 1) { 
+        number z = hp_div(abs_x, abs_y);
+        base_angle = hp_sub(pi_over_2, hp_atan(z));
+    } else {
+        number z = hp_div(abs_y, abs_x);
+        base_angle = hp_atan(z);
+    }
+
+    number final_angle = base_angle;
+
+    if (x.sign == -1) {
+        final_angle = hp_sub(pi, base_angle);
+    }
+
+    final_angle.sign = y.sign;
+
+    return final_angle;
+}
+
+number hp_length(hp_vec2 z){
+    return hp_sqrt(hp_add(hp_mult(z.x,z.x),hp_mult(z.y,z.y)));
+}
+
+number hp_sinh(number x){
+    return shift_right(hp_sub(hp_exp(x),hp_exp(hp_neg(x))),1);
+}
+
+number hp_cosh(number x){
+     return shift_right(hp_add(hp_exp(x),hp_exp(hp_neg(x))),1);
+}
+int hp_compare(number a, number b) {
+    bool a_zero = is_zero(a);
+    bool b_zero = is_zero(b);
+    if (a_zero && b_zero) return 0;
+    
+    if (a.sign != b.sign) {
+        return (a.sign == 1) ? 1 : -1;
+    }
+    
+    int abs_cmp = compare_abs(a, b);
+    
+    return abs_cmp * a.sign;
+}
+number hp_step(number edge, number x) {
+    if (hp_compare(x, edge) >= 0) {
+        return number_one();
+    }
+    return null_number();
+}
+
+number hp_mix(number x, number y, number a) {
+    number diff = hp_sub(y, x);
+    number scaled_diff = hp_mult(a, diff);    
+    return hp_add(x, scaled_diff);
+}
+
+number hp_smoothstep(number edge0, number edge1, number x) {
+    number t = hp_div(hp_sub(x, edge0), hp_sub(edge1, edge0));
+    
+    number zero = null_number();
+    number one = number_one();
+    if (hp_compare(t, zero) < 0) t = zero;
+    if (hp_compare(t, one) > 0) t = one;
+    
+    number t_sq = hp_mult(t, t);
+    
+    number two = hp_add(one, one);
+    number three = hp_add(two, one);
+    
+    number two_t = hp_mult(two, t);
+    number three_minus_two_t = hp_sub(three, two_t);
+    
+    return hp_mult(t_sq, three_minus_two_t);
+}
+
+hp_vec2 hp_floor(hp_vec2 a) {
+    return initialize_hp_vec2(hp_floor(a.x), hp_floor(a.y));
+}
+
+hp_vec2 hp_hp_div(hp_vec2 a, number b) {
+    return initialize_hp_vec2(hp_div(a.x, b), hp_div(a.y, b));
+}
+
+hp_vec2 hp_mult(hp_vec2 a, number b) {
+    return initialize_hp_vec2(hp_mult(a.x, b), hp_mult(a.y, b));
+}
+
+hp_vec2 hp_mult(number a, hp_vec2 b) {
+    return initialize_hp_vec2(hp_mult(a, b.x), hp_mult(a, b.y));
+})shdr" ;
+
+inline std::string SRC_PICKER_FRAG = 
+    R"shdr(#version 300 es
 precision highp float;
 precision highp int;
 precision highp sampler2D;
@@ -410,9 +844,10 @@ void main(){
 	vec2 val = run_stack(operator_stack,constant_stack,z);
 
 	FragData = vec4(val.x,val.y,z.x,z.y);	
-})";
+})shdr" ;
 
-inline std::string SRC_PLOTTER_FRAG = R"(#version 300 es
+inline std::string SRC_PLOTTER_FRAG = 
+    R"shdr(#version 300 es
 precision highp float;
 precision highp int;
 precision highp sampler2D;
@@ -453,10 +888,10 @@ uniform bool warp_grid;
 #define FUNCTION_DEFINITIONS HERE
 
 vec2 cadd(vec2 a, vec2 b){
-    return a + b;
+    return vec2(a.x+b.x,a.y + b.y);
 }
 vec2 csub(vec2 a, vec2 b){
-    return a - b;
+    return vec2(a.x-b.x,a.y - b.y);;
 }
 
 vec2 cmult(vec2 a, vec2 b){
@@ -522,8 +957,8 @@ vec2 ccot(vec2 a) {
 
 
 vec2 ctan(vec2 a) {
-    float div = cos(2.0f * a.x) + cosh(2.0f * a.y);
-    return vec2(sin(2.0f * a.x) / div, sinh(2.0f * a.y) / div);
+    float division = cos(2.0f * a.x) + cosh(2.0f * a.y);
+    return vec2(sin(2.0f * a.x) / div, sinh(2.0f * a.y) / division);
 }
 
 
@@ -535,8 +970,8 @@ vec2 ccosh(vec2 a) {
 }
 
 vec2 ctanh(vec2 a) {
-    float div = cosh(2.0f * a.x) + cos(2.0f * a.y);
-    return vec2(sinh(2.0f * a.x) / div, sin(2.0f * a.y) / div);
+    float division = cosh(2.0f * a.x) + cos(2.0f * a.y);
+    return vec2(sinh(2.0f * a.x) / division, sin(2.0f * a.y) / division);
 }
 
 vec2 csqrt(vec2 a) {
@@ -619,7 +1054,7 @@ vec2 cacoth(vec2 z){
 }
 
 vec2 cneg(vec2 a){
-    return -a;
+    return vec2(-a.x,-a.y);
 }
 
 vec2 cmod(vec2 a, vec2 b){
@@ -637,6 +1072,8 @@ vec2 re(vec2 z){
 vec2 im(vec2 z){
     return vec2(z.y,0.0f);
 }
+
+
 
 // Non-elementary functions
 
@@ -776,7 +1213,7 @@ void main(){
     
     vec3 hsl = domain_color(func_value);
 
-    if(show_grid){
+)shdr" R"shdr(    if(show_grid){
         vec2 target = z;
         if(warp_grid) target = func_value;
         const float axis_width = 1.5f;
@@ -802,9 +1239,10 @@ void main(){
 
     FragColor = vec4(hsl2rgb(hsl),1.0f);
 }
-)";
+)shdr" ;
 
-inline std::string SRC_PLOTTER_VERT = R"(#version 300 es
+inline std::string SRC_PLOTTER_VERT = 
+    R"shdr(#version 300 es
 precision highp float;
 precision highp int;
 precision highp sampler2D;
@@ -817,9 +1255,10 @@ void main(){
     float y = -1.0 + float((gl_VertexID & 2) << 1);
     pos = vec2(x,y);
     gl_Position = vec4(x,y,0.0f,1.0f);
-})";
+})shdr" ;
 
-inline std::string SRC_PLOTTER3D_FRAG = R"(#version 300 es
+inline std::string SRC_PLOTTER3D_FRAG = 
+    R"shdr(#version 300 es
 precision highp float;
 precision highp int;
 precision highp sampler2D;
@@ -872,9 +1311,10 @@ void main(){
         hsl = mix(hsl, grid_color, axis_alpha * 0.9);
     }
     FragColor = vec4(hsl2rgb(hsl),1.0f);
-})";
+})shdr" ;
 
-inline std::string SRC_PLOTTER3D_VERT = R"(#version 300 es
+inline std::string SRC_PLOTTER3D_VERT = 
+    R"shdr(#version 300 es
 precision highp float;
 precision highp int;
 precision highp sampler2D;
@@ -931,5 +1371,5 @@ void main(){
 }
 
 
-)";
+)shdr" ;
 
