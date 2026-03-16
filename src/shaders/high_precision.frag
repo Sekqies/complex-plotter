@@ -738,3 +738,47 @@ number hp_sinh(number x){
 number hp_cosh(number x){
      return shift_right(add(hp_exp(x),hp_exp(neg(x))),1);
 }
+int hp_compare(number a, number b) {
+    bool a_zero = is_zero(a);
+    bool b_zero = is_zero(b);
+    if (a_zero && b_zero) return 0;
+    
+    if (a.sign != b.sign) {
+        return (a.sign == 1) ? 1 : -1;
+    }
+    
+    int abs_cmp = compare_abs(a, b);
+    
+    return abs_cmp * a.sign;
+}
+number hp_step(number edge, number x) {
+    if (hp_compare(x, edge) >= 0) {
+        return number_one();
+    }
+    return null_number();
+}
+
+number hp_mix(number x, number y, number a) {
+    number diff = sub(y, x);
+    number scaled_diff = mult(a, diff);    
+    return add(x, scaled_diff);
+}
+
+number hp_smoothstep(number edge0, number edge1, number x) {
+    number t = div(sub(x, edge0), sub(edge1, edge0));
+    
+    number zero = null_number();
+    number one = number_one();
+    if (hp_compare(t, zero) < 0) t = zero;
+    if (hp_compare(t, one) > 0) t = one;
+    
+    number t_sq = mult(t, t);
+    
+    number two = add(one, one);
+    number three = add(two, one);
+    
+    number two_t = mult(two, t);
+    number three_minus_two_t = sub(three, two_t);
+    
+    return mult(t_sq, three_minus_two_t);
+}
