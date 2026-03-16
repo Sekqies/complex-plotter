@@ -1,6 +1,69 @@
 #pragma once
 #include <string>
 
+inline std::string SRC_HIGH_PRECISION_FOOTER_FRAG = 
+    R"shdr(uniform uint u_center_x_limb[LIMB_SIZE];
+uniform int u_center_x_sign;
+
+uniform uint u_center_y_limb[LIMB_SIZE];
+uniform int u_center_y_sign;
+
+uniform uint u_zoom_limb[LIMB_SIZE];
+uniform int u_zoom_sign;
+
+uniform vec2 u_resolution;
+
+hp_vec2 get_high_precision_coordinates(vec2 fragCoord){
+    number center_x;
+    center_x.limb = u_center_x_limb;
+    center_x.sign = u_center_x_sign;
+    center_x.is_infinite = false;
+
+    number center_y;
+    center_y.limb = u_center_y_limb;
+    center_y.sign = u_center_y_sign;
+    center_y.is_infinite = false;
+
+    number zoom;
+    zoom.limb = u_zoom_limb;
+    zoom.sign = u_zoom_sign;
+    zoom.is_infinite = false;
+
+    vec2 offset = (fragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
+    number offset_x_hp = float_to_number(offset.x);
+    number offset_y_hp = float_to_number(offset.y);
+
+    number final_x = hp_add(center_x, hp_mult(offset_x_hp, zoom));
+    number final_y = hp_add(center_y, hp_mult(offset_y_hp, zoom));
+
+    return initialize_hp_vec2(final_x, final_y);
+}
+
+vec3 hsl2rgb(vec3 hsl) {
+    vec3 rgb = clamp(abs(mod(hsl.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+    return hsl.z + hsl.y * (rgb - 0.5) * (1.0 - abs(2.0 * hsl.z - 1.0));
+}
+
+vec3 domain_color(in hp_vec2 z) {
+    number angle = hp_atan2(z.y, z.x);
+    number hue_hp = hp_div(angle, hp_mult(REAL_TWO, PI));
+    number light_hp = hp_mult(TWO_OVER_PI, hp_atan(hp_length(z)));
+
+    float hue = number_to_float(hue_hp);
+    float light = number_to_float(light_hp);
+
+    return vec3(hue, 1.0, light);
+}
+
+void main(){
+    hp_vec2 z = get_high_precision_coordinates(gl_FragCoord.xy);
+    hp_vec2 func_value;
+    #define INJECTION_POINT HERE
+
+    vec3 hsl = domain_color(func_value);
+    
+})shdr" ;
+
 inline std::string SRC_HIGH_PRECISION_FUNCTIONS_FRAG = 
     R"shdr(number hp_neg(number a){
 	a.sign *= -1;
@@ -39,7 +102,7 @@ uvec2 sum_with_carry(uint a, uint b){
 	return res;
 }
 number abs_sum(number a, number b){
-	number c = null_number();
+	number c = REAL_ZERO;
 	uint carry = 0u;
 	for(int i = 0; i < LIMB_SIZE; ++i){
 		uvec2 res = sum_with_carry(sum_with_carry(a.limb[i],b.limb[i]).x,carry);
@@ -50,7 +113,7 @@ number abs_sum(number a, number b){
 	return c;
 }
 number abs_hp_sub(number a, number b) {
-    number c = null_number();
+    number c = REAL_ZERO;
     uint borrow = 0u;
     for(int i = 0; i < LIMB_SIZE; ++i) {
         uint sub = a.limb[i] - b.limb[i] - borrow;
@@ -61,7 +124,7 @@ number abs_hp_sub(number a, number b) {
 }
 
 number hp_add(number a, number b){
-	number c = null_number();
+	number c = REAL_ZERO;
 	if(a.sign == b.sign){
 		c = abs_sum(a,b);
 		c.sign = a.sign;
@@ -106,12 +169,12 @@ uvec2 product_with_remainder(uint a, uint b) {
 }
 
 number hp_mult(number a, number b) {
-    number c = null_number();
+    number c = REAL_ZERO;
     c.sign = a.sign * b.sign;
     
     if (is_zero(a) || is_zero(b)) return c;
     if (a.is_infinite || b.is_infinite) {
-        c.limb = infinite_number().limb;
+        c.limb = INFINITY.limb;
         return c;
     }
     for (int i = 0; i < LIMB_SIZE; ++i) {
@@ -145,10 +208,10 @@ number shift_left(number a, int shift) {
     int limb_shift = shift / 32;
     int bit_shift = shift % 32;
     
-    number c = null_number();
+    number c = REAL_ZERO;
     c.sign = a.sign;
 
-    if (limb_shift >= LIMB_SIZE) return null_number();
+    if (limb_shift >= LIMB_SIZE) return REAL_ZERO;
 
     for (int i = LIMB_SIZE - 1; i >= limb_shift; --i) {
         int target = i;
@@ -172,10 +235,10 @@ number shift_right(number a, int shift) {
     int limb_shift = shift >> 5;
     int bit_shift = shift % 32;
     
-    number c = null_number();
+    number c = REAL_ZERO;
     c.sign = a.sign;
 
-    if (limb_shift >= LIMB_SIZE) return null_number();
+    if (limb_shift >= LIMB_SIZE) return REAL_ZERO;
     for (int i = 0; i < LIMB_SIZE - limb_shift; ++i) {
         int target = i;
         int source = i + limb_shift;
@@ -222,7 +285,7 @@ void set_half(inout number a, int index, uint val) {
 }
 
 number mult_scalar_16(number a, uint b_16) {
-    number c = null_number();
+    number c = REAL_ZERO;
     c.sign = a.sign;
     uint carry = 0u;
     
@@ -239,13 +302,13 @@ number mult_scalar_16(number a, uint b_16) {
 }
 
 number hp_div(number n, number d){
-    number q = null_number();
+    number q = REAL_ZERO;
     q.sign = n.sign * d.sign;
 
     n = shift_left(n, FRACTIONAL_SIZE * 32);
 
     if(is_zero(d)){
-        q = infinite_number();
+        q = INFINITY;
         return q;
     };
     if(d.is_infinite) return q;
@@ -317,9 +380,9 @@ number hp_div(number n, number d){
             borrow = (diff < 0) ? 1u : 0u;
         }
         int final_diff = int(get_half(u, j + n_len)) - int(k) - int(borrow);
-        set_half(u, j + n_len, uint(final_diff) & 0x)shdr" R"shdr(FFFFu);
+        set_half(u, j + n_len, uint(final_diff) & 0xFFFFu);
         if (final_diff < 0) {
-            q_hat--;
+            q_hat--;)shdr" R"shdr(
             uint carry_hp_add = 0u;
             for (int i = 0; i < n_len; ++i) {
                 uint sum = get_half(u, j + i) + get_half(v, i) + carry_hp_add;
@@ -335,7 +398,7 @@ number hp_div(number n, number d){
 }
 
 number div_uint(number n, uint d) {
-    number q = null_number();
+    number q = REAL_ZERO;
     q.sign = n.sign;
     uint rem = 0u;
     for (int i = LIMB_SIZE * 2 - 1; i >= 0; --i) {
@@ -348,14 +411,14 @@ number div_uint(number n, uint d) {
 }
 
 number hp_exp(number x){
-    if (is_zero(x)) return number_one();
+    if (is_zero(x)) return REAL_ONE;
     bool is_neg = (x.sign == -1);
     if (is_neg) x.sign = 1;
     const int K_SHIFT_LIMBS = 4;
     number x_small = shift_right(x, K_SHIFT_LIMBS * 32);
 
-    number sum = number_one();
-    number term = number_one();
+    number sum = REAL_ONE;
+    number term = REAL_ONE;
 
     for (uint i = 1u; i < uint(LIMB_SIZE * 8); ++i) { 
         term = hp_mult(term, x_small);
@@ -370,18 +433,18 @@ number hp_exp(number x){
     }
 
     if (is_neg) {
-        sum = hp_div(number_one(), sum);
+        sum = hp_div(REAL_ONE, sum);
     }
     return sum;
 }
 
 number uint_to_number(uint v) {
-    number res = null_number();
+    number res = REAL_ZERO;
     res.limb[FRACTIONAL_SIZE] = v; 
     return res;
 }
 number float_to_number(float f) {
-    if (f == 0.0) return null_number();
+    if (f == 0.0) return REAL_ZERO;
     
     uint f_bits = floatBitsToUint(f);
     uint sign_bit = f_bits >> 31;
@@ -389,14 +452,14 @@ number float_to_number(float f) {
     uint mantissa_bits = f_bits & 0x7FFFFFu;
     
     if (exp_bits == 255u) {
-        number inf = infinite_number();
+        number inf = INFINITY;
         inf.sign = (sign_bit == 1u) ? -1 : 1;
         return inf;
     }
     
-    if (exp_bits == 0u) return null_number(); 
+    if (exp_bits == 0u) return REAL_ZERO; 
 
-    number res = null_number();
+    number res = REAL_ZERO;
     res.sign = (sign_bit == 1u) ? -1 : 1;
     
     uint mantissa = mantissa_bits | 0x800000u;
@@ -455,7 +518,7 @@ number get_ln2_constant(){
 }
 
 number hp_log(number x){
-    if(x.sign == -1 || is_zero(x)) return infinite_number();
+    if(x.sign == -1 || is_zero(x)) return INFINITY;
 
     int msb = find_msb(x);
     int k = msb - (FRACTIONAL_SIZE * 32);
@@ -464,8 +527,8 @@ number hp_log(number x){
     if (k > 0) m = shift_left(x,-k);
     else m = x;
 
-    number one = number_one();
-    number z = hp_div(hp_sub(m,one),hp_add(m,one));
+    number REAL_ONE = REAL_ONE;
+    number z = hp_div(hp_sub(m,REAL_ONE),hp_add(m,REAL_ONE));
     number z_squared = hp_mult(z,z);
 
     number sum = z;
@@ -482,7 +545,7 @@ number hp_log(number x){
     sum = shift_left(sum, 1);
     number k_num = uint_to_number(uint(abs(k)));
     k_num.sign = (k >=0)? 1 : -1;
-    number k_ln2 = hp_mult(k_num, get_ln2_constant());
+    number k_ln2 = hp_mult(k_num, LN2);
     return hp_add(k_ln2, sum);
 }
 
@@ -491,13 +554,13 @@ number hp_pow(number a, number b){
 }
 
 number hp_sqrt(number x){
-    if(is_zero(x) || x.sign == -1) return null_number();
+    if(is_zero(x) || x.sign == -1) return REAL_ZERO;
     
     float x_float = number_to_float(x);
     float guess_float = sqrt(x_float);
     number n_k = float_to_number(guess_float);
 
-    number n_k_next = null_number();
+    number n_k_next = REAL_ZERO;
 
     for(int i = 0; i < (LIMB_SIZE / 23 + 2); ++i){
         number div_term = hp_div(x,n_k);
@@ -525,13 +588,13 @@ number hp_floor(number a) {
     }
 
     if (c.sign == -1 && has_fraction) {
-        c = hp_sub(c, number_one());
+        c = hp_sub(c, REAL_ONE);
     }
     return c;
 }
 
 number hp_mod(number a, number b){
-    if (is_zero(b)) return null_number();
+    if (is_zero(b)) return REAL_ZERO;
     
     number div_ab = hp_div(a,b);
     number floor_div = hp_floor(div_ab);
@@ -550,7 +613,7 @@ number get_pi_constant(){
 
 number reduce_trig_range(number x) {
     number two_pi = get_two_pi_constant();
-    number pi = get_pi_constant();
+    number pi = PI;
     
     number x_mod = hp_mod(x, two_pi);
     
@@ -566,7 +629,7 @@ number reduce_trig_range(number x) {
 }
 
 number hp_sin(number x){
-    if(is_zero(x)) return null_number();
+    if(is_zero(x)) return REAL_ZERO;
     x = reduce_trig_range(x);
     
     number x_sq = hp_mult(x,x);
@@ -591,13 +654,13 @@ number hp_sin(number x){
 }
 
 number hp_cos(number x) {
-    if (is_zero(x)) return number_one();
+    if (is_zero(x)) return REAL_ONE;
     
     x = reduce_trig_range(x);
     
     number x_sq = hp_mult(x, x);
-    number sum = number_one();
-    number term = number_one();
+    number sum = REAL_ONE;
+    number term = REAL_ONE;
     
     for (int i = 1; i < 256; ++i) {
         term = hp_mult(term, x_sq);
@@ -617,12 +680,12 @@ number hp_cos(number x) {
 }
 
 number hp_atan(number z){
-    if(is_zero(z)) return null_number();
+    if(is_zero(z)) return REAL_ZERO;
 
     number z_sq = hp_mult(z,z);
-    number one = number_one();
-    number hypotenuse = hp_sqrt(hp_add(one,z_sq));
-    number den = hp_add(one,hypotenuse);
+    number REAL_ONE = REAL_ONE;
+    number hypotenuse = hp_sqrt(hp_add(REAL_ONE,z_sq));
+    number den = hp_add(REAL_ONE,hypotenuse);
     z = hp_div(z,den);
 
     z_sq = hp_mult(z,z);
@@ -640,7 +703,7 @@ number hp_atan(number z){
             sum = hp_sub(sum,iteration_term);
         }
         else{
-            sum = hp_add(sum)shdr" R"shdr(,iteration_term);
+            sum = hp_add(sum,iteration_term);
         }
     }
     return shift_left(sum, 1);
@@ -648,19 +711,19 @@ number hp_atan(number z){
 
 number hp_atan2(number y, number x) {
     bool x_zero = is_zero(x);
-    bool y_zero = is_zero(y);
+    bool y_zero = is)shdr" R"shdr(_zero(y);
 
-    number pi = get_pi_constant();
+    number pi = PI;
     number pi_over_2 = shift_right(pi, 1);
 
-    if (x_zero && y_zero) return null_number(); 
+    if (x_zero && y_zero) return REAL_ZERO; 
     if (x_zero) {
         number res = pi_over_2;
         res.sign = y.sign; 
         return res;
     }
     if (y_zero) {
-        if (x.sign == 1) return null_number(); 
+        if (x.sign == 1) return REAL_ZERO; 
         return pi;                             
     }
 
@@ -714,9 +777,9 @@ int hp_compare(number a, number b) {
 }
 number hp_step(number edge, number x) {
     if (hp_compare(x, edge) >= 0) {
-        return number_one();
+        return REAL_ONE;
     }
-    return null_number();
+    return REAL_ZERO;
 }
 
 number hp_mix(number x, number y, number a) {
@@ -728,15 +791,15 @@ number hp_mix(number x, number y, number a) {
 number hp_smoothstep(number edge0, number edge1, number x) {
     number t = hp_div(hp_sub(x, edge0), hp_sub(edge1, edge0));
     
-    number zero = null_number();
-    number one = number_one();
+    number zero = REAL_ZERO;
+    number REAL_ONE = REAL_ONE;
     if (hp_compare(t, zero) < 0) t = zero;
-    if (hp_compare(t, one) > 0) t = one;
+    if (hp_compare(t, REAL_ONE) > 0) t = REAL_ONE;
     
     number t_sq = hp_mult(t, t);
     
-    number two = hp_add(one, one);
-    number three = hp_add(two, one);
+    number two = hp_add(REAL_ONE, REAL_ONE);
+    number three = hp_add(two, REAL_ONE);
     
     number two_t = hp_mult(two, t);
     number three_minus_two_t = hp_sub(three, two_t);

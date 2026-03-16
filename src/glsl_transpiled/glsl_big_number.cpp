@@ -4,10 +4,7 @@
 
 
 hp_vec2 initialize_hp_vec2(number x, number y) {
-    hp_vec2 res;
-    res.x = x;
-    res.y = y;
-    return res;
+    return hp_vec2(x, y);
 }
 
 number null_number() {
