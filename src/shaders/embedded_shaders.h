@@ -798,7 +798,7 @@ hp_vec2 hp_floor(hp_vec2 a) {
     return initialize_hp_vec2(hp_floor(a.x), hp_floor(a.y));
 }
 
-hp_vec2 hp_hp_div(hp_vec2 a, number b) {
+hp_vec2 hp_div(hp_vec2 a, number b) {
     return initialize_hp_vec2(hp_div(a.x, b), hp_div(a.y, b));
 }
 
@@ -887,6 +887,9 @@ uniform bool warp_grid;
 
 #define FUNCTION_DEFINITIONS HERE
 
+#define ELEMENTARY_FUNCTION_DEFINITIONS HERE
+
+
 vec2 cadd(vec2 a, vec2 b){
     return vec2(a.x+b.x,a.y + b.y);
 }
@@ -958,7 +961,7 @@ vec2 ccot(vec2 a) {
 
 vec2 ctan(vec2 a) {
     float division = cos(2.0f * a.x) + cosh(2.0f * a.y);
-    return vec2(sin(2.0f * a.x) / div, sinh(2.0f * a.y) / division);
+    return vec2(sin(2.0f * a.x) / division, sinh(2.0f * a.y) / division);
 }
 
 
@@ -1073,6 +1076,7 @@ vec2 im(vec2 z){
     return vec2(z.y,0.0f);
 }
 
+#define END_ELEMENTARY_FUNCTION_DEFINITIONS HERE
 
 
 // Non-elementary functions
@@ -1207,13 +1211,13 @@ void main(){
     #define INTERPRETER_ASSIGNEMENT HERE
     vec2 func_value = run_stack(operator_stack,constant_stack,z);
     func_value = clamp(func_value, -1e38, 1e38);
-    #define END_INTERPRETER_ASSIGNEMENT HERE
+    #define END_INTERPRETER_A)shdr" R"shdr(SSIGNEMENT HERE
     
     #define INJECTION_POINT HERE
     
     vec3 hsl = domain_color(func_value);
 
-)shdr" R"shdr(    if(show_grid){
+    if(show_grid){
         vec2 target = z;
         if(warp_grid) target = func_value;
         const float axis_width = 1.5f;

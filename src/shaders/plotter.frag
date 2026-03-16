@@ -38,6 +38,9 @@ uniform bool warp_grid;
 
 #define FUNCTION_DEFINITIONS HERE
 
+#define ELEMENTARY_FUNCTION_DEFINITIONS HERE
+
+
 vec2 cadd(vec2 a, vec2 b){
     return vec2(a.x+b.x,a.y + b.y);
 }
@@ -224,6 +227,7 @@ vec2 im(vec2 z){
     return vec2(z.y,0.0f);
 }
 
+#define END_ELEMENTARY_FUNCTION_DEFINITIONS HERE
 
 
 // Non-elementary functions
