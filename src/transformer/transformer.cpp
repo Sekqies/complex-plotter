@@ -42,3 +42,16 @@ string stack_to_glsl_string(const vector<TokenOperator>& stack) {
 	if (str_stack.empty()) return "";
 	return str_stack.top();
 }
+
+string vector_to_glsl_array(const vector<unsigned int>& limbs){
+	string out = "uint[](";
+	for(const unsigned int& limb : limbs){
+		out += std::to_string(limb) + "u,";
+	}
+	out.pop_back();
+	out += ");";
+}
+
+string big_number_to_glsl_string(const vector<unsigned int>& limbs, const int sign, const bool is_infinite = false){
+	return "initialize_number(" + vector_to_glsl_array(limbs) + "," + std::to_string(sign) + "," + std::to_string(is_infinite) + ")";
+}
