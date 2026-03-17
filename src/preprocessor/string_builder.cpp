@@ -151,18 +151,19 @@ string declare_constant_with_expression(const std::string& variable_name, const 
 }
 
 string declare_constant(const std::string& variable_name, const hp_vec2& value){
-    return "const number " + variable_name + " = initialize_hp_vec2(" + convert_number_to_glsl(value.x) + "," + convert_number_to_glsl(value.y) + ");\n"; 
+    return "const hp_vec2 " + variable_name + " = hp_vec2(" + convert_number_to_glsl(value.x) + "," + convert_number_to_glsl(value.y) + ");\n"; 
 }
 
 string build_high_precision_shader_string(const std::string& highp_header, const std::string& highp_footer, const std::string& highp_function_declarations, const std::string& lowp_function_declarations){
     string out = highp_header;
-    const number pi = compute_pi();
-    const number e = compute_e();
-    const number ln_2 = compute_ln2();
-    const number one = number_one();
-    const number two = number_integer(2);
-    const number three = number_integer(3);
-    const number zero = null_number();
+    static const number pi = compute_pi();
+    std:: cout << big_number_to_glsl_string(pi.limb,1,0);
+    static const number e = compute_e();
+    static const number ln_2 = compute_ln2();
+    static const number one = number_one();
+    static const number two = number_integer(2);
+    static const number three = number_integer(3);
+    static const number zero = null_number();
 
     out += declare_constant("PI",pi);
     out += declare_constant("E", e);
@@ -180,6 +181,8 @@ string build_high_precision_shader_string(const std::string& highp_header, const
     out += declare_constant("ONE", hp_vec2(one,zero));
     out += declare_constant("MINUS_ONE", hp_vec2(hp_neg(one),zero));
     out += declare_constant("I", hp_vec2(zero,one));
+
+    std::cout << out << "\n\n\n";
 
     out += transpile_to_highp_glsl(lowp_function_declarations,highp_function_declarations);
 

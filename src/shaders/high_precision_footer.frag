@@ -1,10 +1,10 @@
-uniform uint u_center_x_limb[LIMB_SIZE];
+uniform uint u_center_x_limb[NUMBER_OF_LIMBS];
 uniform int u_center_x_sign;
 
-uniform uint u_center_y_limb[LIMB_SIZE];
+uniform uint u_center_y_limb[NUMBER_OF_LIMBS];
 uniform int u_center_y_sign;
 
-uniform uint u_zoom_limb[LIMB_SIZE];
+uniform uint u_zoom_limb[NUMBER_OF_LIMBS];
 uniform int u_zoom_sign;
 
 uniform vec2 u_resolution;
@@ -43,7 +43,7 @@ vec3 hsl2rgb(vec3 hsl) {
 vec3 domain_color(in hp_vec2 z) {
     number angle = hp_atan2(z.y, z.x);
     number hue_hp = hp_div(angle, hp_mult(REAL_TWO, PI));
-    number light_hp = hp_mult(TWO_OVER_PI, hp_atan(hp_length(z)));
+    number light_hp = hp_mult(TWO_OVER_PI, internal_hp_atan(hp_length(z)));
 
     float hue = number_to_float(hue_hp);
     float light = number_to_float(light_hp);
@@ -51,11 +51,15 @@ vec3 domain_color(in hp_vec2 z) {
     return vec3(hue, 1.0, light);
 }
 
+out vec4 FragColor;
+
 void main(){
     hp_vec2 z = get_high_precision_coordinates(gl_FragCoord.xy);
     hp_vec2 func_value;
     #define INJECTION_POINT HERE
 
     vec3 hsl = domain_color(func_value);
-    
+    vec3 rgb = hsl2rgb(hsl);
+    FragColor = vec4(rgb, 1.0);
+
 }

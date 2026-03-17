@@ -26,6 +26,9 @@ string stack_to_glsl_string(const vector<TokenOperator>& stack) {
 		vector<string> args;
 
 		while (arity_val--) {
+			if (str_stack.empty()) {
+				throw std::runtime_error("RPN Underflow Error: Operator '" + str_repr + "' missing operands.");
+			}
 			args.push_back(str_stack.top());
 			str_stack.pop();
 		}
@@ -44,7 +47,7 @@ string stack_to_glsl_string(const vector<TokenOperator>& stack) {
 }
 
 string vector_to_glsl_array(const vector<unsigned int>& limbs){
-	string out = "uint[](";
+	string out = "uint[" + std::to_string(limbs.size()) + "](";
 	for(const unsigned int& limb : limbs){
 		out += std::to_string(limb) + "u,";
 	}
@@ -54,5 +57,5 @@ string vector_to_glsl_array(const vector<unsigned int>& limbs){
 }
 
 string big_number_to_glsl_string(const vector<unsigned int>& limbs, const int sign, const bool is_infinite = false){
-	return "initialize_number(" + vector_to_glsl_array(limbs) + "," + std::to_string(sign) + "," + std::to_string(is_infinite) + ")";
+	return "number(" + vector_to_glsl_array(limbs) + "," + std::to_string(sign) + "," + (is_infinite? "true" : "false") + ")";
 }

@@ -2,11 +2,11 @@
 
 precision highp float;
 
-const int LIMB_SIZE = 32;
-const int FRACTIONAL_SIZE = LIMB_SIZE/2;
+const int NUMBER_OF_LIMBS = 8;
+const int FRACTIONAL_SIZE = NUMBER_OF_LIMBS/2;
 
 struct number{
-	uint limb[LIMB_SIZE];
+	uint limb[NUMBER_OF_LIMBS];
 	int sign;
     bool is_infinite;
 };
@@ -23,16 +23,17 @@ hp_vec2 initialize_hp_vec2(number x, number y){
     return res;
 }
 
-number initialize_number(uint limb[LIMB_SIZE], int sign, bool is_infinite){
+number initialize_number(uint limb[NUMBER_OF_LIMBS], int sign, bool is_infinite){
     number res;
     res.limb = limb;
     res.sign = sign;
     res.is_infinite = is_infinite;
+    return res;
 }
 
 number null_number(){
 	number res;
-	for(int i = 0; i < LIMB_SIZE; ++i){
+	for(int i = 0; i < NUMBER_OF_LIMBS; ++i){
 		res.limb[i] = 0u;
 	}
 	res.sign = 1;
@@ -41,7 +42,7 @@ number null_number(){
 
 number infinite_number(){
     number res;
-    for(int i = 0; i < LIMB_SIZE; ++i){
+    for(int i = 0; i < NUMBER_OF_LIMBS; ++i){
         res.limb[i] = (1u<<31u)-1u;
     }
     res.sign = 1;

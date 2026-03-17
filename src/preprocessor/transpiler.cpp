@@ -12,7 +12,7 @@ std::set<string> get_function_names(const std::string& source) {
         };
         std::string pattern = R"(\b(?:)";
         for (size_t i = 0; i < types.size(); ++i) {
-            pattern += types[i] + (i == types.size() - 1 ? "" : "|");
+            pattern += types.at(i) + (i == types.size() - 1 ? "" : "|");
         }
         pattern += R"()\s+([\w]+)\s*\()";
         return std::regex(pattern);
@@ -48,14 +48,14 @@ std::vector<std::string> tokenize(const std::string& source) {
     std::string current;
 
     for (size_t i = 0; i < source.size(); ++i) {
-        char c = source[i];
+        char c = source.at(i);
         if (std::isspace(c)) {
             if (!current.empty()) {
                 tokens.push_back(current);
                 current.clear();
             }
             std::string ws;
-            while (i < source.size() && std::isspace(source[i])) {
+            while (i < source.size() && std::isspace(source.at(i))) {
                 ws += source[i++];
             }
             tokens.push_back(ws);
@@ -119,16 +119,16 @@ bool is_sig(const std::string& t) {
 
 void handle_ambiguous_types(std::vector<std::string>& tokens) {
     for (size_t i = 0; i < tokens.size(); ++i) {
-        if (tokens[i] == "number" || tokens[i] == "hp_vec2") {
+        if (tokens.at(i) == "number" || tokens.at(i) == "hp_vec2") {
             size_t j = i + 1;
-            while (j < tokens.size() && !is_sig(tokens[j])) j++;
-            if (j < tokens.size() && tokens[j] == "(") {
-                tokens[i] = (tokens[i] == "number") ? "float_to_number" : "initialize_hp_vec2";
+            while (j < tokens.size() && !is_sig(tokens.at(j))) j++;
+            if (j < tokens.size() && tokens.at(j) == "(") {
+                tokens[i] = (tokens.at(i) == "number") ? "float_to_number" : "hp_vec2";
             }
         }
-        else if (is_sig(tokens[i]) && (std::isdigit(tokens[i][0]) || (tokens[i].size() > 1 && tokens[i][0] == '.' && std::isdigit(tokens[i][1])))) {
-            if (tokens[i].find('.') != std::string::npos) {
-                std::string num = tokens[i];
+        else if (is_sig(tokens.at(i)) && (std::isdigit(tokens.at(i)[0]) || (tokens.at(i).size() > 1 && tokens.at(i)[0] == '.' && std::isdigit(tokens.at(i)[1])))) {
+            if (tokens.at(i).find('.') != std::string::npos) {
+                std::string num = tokens.at(i);
                 if (num.back() == 'f' || num.back() == 'F') num.pop_back();
                 tokens[i] = "float_to_number(" + num + ")";
             }
@@ -138,18 +138,18 @@ void handle_ambiguous_types(std::vector<std::string>& tokens) {
 
 int get_left_operand(const std::vector<std::string>& tokens, int op_idx) {
     int i = op_idx - 1;
-    while (i >= 0 && !is_sig(tokens[i])) i--;
+    while (i >= 0 && !is_sig(tokens.at(i))) i--;
     if (i < 0) return 0;
-    if (tokens[i] == ")") {
+    if (tokens.at(i) == ")") {
         int depth = 0;
         while (i >= 0) {
-            if (tokens[i] == ")") depth++;
-            else if (tokens[i] == "(") depth--;
+            if (tokens.at(i) == ")") depth++;
+            else if (tokens.at(i) == "(") depth--;
             i--;
             if (depth == 0) break;
         }
-        while (i >= 0 && !is_sig(tokens[i])) i--;
-        if (i >= 0 && (std::isalpha(tokens[i][0]) || tokens[i][0] == '_')) return i;
+        while (i >= 0 && !is_sig(tokens.at(i))) i--;
+        if (i >= 0 && (std::isalpha(tokens.at(i)[0]) || tokens.at(i)[0] == '_')) return i;
         return i + 1;
     }
     return i;
@@ -157,22 +157,25 @@ int get_left_operand(const std::vector<std::string>& tokens, int op_idx) {
 
 int get_right_operand(const std::vector<std::string>& tokens, int op_idx) {
     int i = op_idx + 1;
-    while (i < tokens.size() && !is_sig(tokens[i])) i++;
+    while (i < tokens.size() && !is_sig(tokens.at(i))) i++;
     if (i >= tokens.size()) return tokens.size() - 1;
-    if (tokens[i] == "-" || tokens[i] == "+") {
+    if (tokens.at(i) == "-" || tokens.at(i) == "+") {
         i++;
-        while (i < tokens.size() && !is_sig(tokens[i])) i++;
+        while (i < tokens.size() && !is_sig(tokens.at(i))) i++;
     }
-    if (std::isalpha(tokens[i][0]) || tokens[i][0] == '_') {
+
+    if (i >= tokens.size()) return tokens.size() - 1;
+
+    if (std::isalpha(tokens.at(i)[0]) || tokens.at(i)[0] == '_') {
         int func_idx = i;
         int next_sig = i + 1;
-        while (next_sig < tokens.size() && !is_sig(tokens[next_sig])) next_sig++;
-        if (next_sig < tokens.size() && tokens[next_sig] == "(") {
+        while (next_sig < tokens.size() && !is_sig(tokens.at(next_sig))) next_sig++;
+        if (next_sig < tokens.size() && tokens.at(next_sig) == "(") {
             i = next_sig;
             int depth = 0;
             while (i < tokens.size()) {
-                if (tokens[i] == "(") depth++;
-                else if (tokens[i] == ")") depth--;
+                if (tokens.at(i) == "(") depth++;
+                else if (tokens.at(i) == ")") depth--;
                 if (depth == 0) break;
                 i++;
             }
@@ -180,14 +183,15 @@ int get_right_operand(const std::vector<std::string>& tokens, int op_idx) {
         }
         return func_idx;
     }
-    if (tokens[i] == "(") {
+    if (tokens.at(i) == "(") {
         int depth = 0;
         while (i < tokens.size()) {
-            if (tokens[i] == "(") depth++;
-            else if (tokens[i] == ")") depth--;
+            if (tokens.at(i) == "(") depth++;
+            else if (tokens.at(i) == ")") depth--;
             if (depth == 0) break;
             i++;
         }
+        if (i >= tokens.size()) return tokens.size() - 1;
         return i;
     }
     return i;
@@ -197,24 +201,27 @@ void process_operator_pass(std::vector<std::string>& tokens, const std::vector<s
     for (size_t i = 0; i < tokens.size(); ++i) {
         bool match = false;
         for (const auto& op : ops) {
-            if (tokens[i] == op) { match = true; break; }
+            if (tokens.at(i) == op) { match = true; break; }
         }
         if (!match) continue;
 
         int left_idx = get_left_operand(tokens, i);
         int right_idx = get_right_operand(tokens, i);
 
-        std::string func_name = func_map.at(tokens[i]);
+        if (left_idx < 0) left_idx = 0;
+        if (right_idx >= tokens.size()) right_idx = tokens.size() - 1;
+
+        std::string func_name = func_map.at(tokens.at(i));
         std::vector<std::string> new_tokens;
 
-        for (int j = 0; j < left_idx; ++j) new_tokens.push_back(tokens[j]);
+        for (int j = 0; j < left_idx; ++j) new_tokens.push_back(tokens.at(j));
         new_tokens.push_back(func_name);
         new_tokens.push_back("(");
-        for (int j = left_idx; j < i; ++j) new_tokens.push_back(tokens[j]);
+        for (int j = left_idx; j < i; ++j) new_tokens.push_back(tokens.at(j));
         new_tokens.push_back(",");
-        for (int j = i + 1; j <= right_idx; ++j) new_tokens.push_back(tokens[j]);
+        for (int j = i + 1; j <= right_idx; ++j) new_tokens.push_back(tokens.at(j));
         new_tokens.push_back(")");
-        for (size_t j = right_idx + 1; j < tokens.size(); ++j) new_tokens.push_back(tokens[j]);
+        for (size_t j = right_idx + 1; j < tokens.size(); ++j) new_tokens.push_back(tokens.at(j));
 
         tokens = new_tokens;
         i = left_idx;
@@ -223,19 +230,19 @@ void process_operator_pass(std::vector<std::string>& tokens, const std::vector<s
 
 void handle_operators(std::vector<std::string>& tokens) {
     for (size_t i = 0; i < tokens.size(); ++i) {
-        if (tokens[i] == "-") {
+        if (tokens.at(i) == "-") {
             int prev = i - 1;
             while (prev >= 0 && !is_sig(tokens[prev])) prev--;
             if (prev < 0 || tokens[prev] == "=" || tokens[prev] == "return" || tokens[prev] == "(" || tokens[prev] == "," ||
                 tokens[prev] == "+" || tokens[prev] == "-" || tokens[prev] == "*" || tokens[prev] == "/") {
                 int right_idx = get_right_operand(tokens, i);
                 std::vector<std::string> new_tokens;
-                for (int j = 0; j < i; ++j) new_tokens.push_back(tokens[j]);
+                for (int j = 0; j < i; ++j) new_tokens.push_back(tokens.at(j));
                 new_tokens.push_back("hp_neg");
                 new_tokens.push_back("(");
-                for (int j = i + 1; j <= right_idx; ++j) new_tokens.push_back(tokens[j]);
+                for (int j = i + 1; j <= right_idx; ++j) new_tokens.push_back(tokens.at(j));
                 new_tokens.push_back(")");
-                for (size_t j = right_idx + 1; j < tokens.size(); ++j) new_tokens.push_back(tokens[j]);
+                for (size_t j = right_idx + 1; j < tokens.size(); ++j) new_tokens.push_back(tokens.at(j));
                 tokens = new_tokens;
                 i = right_idx;
             }

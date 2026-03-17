@@ -2,13 +2,13 @@
 #include <string>
 
 inline std::string SRC_HIGH_PRECISION_FOOTER_FRAG = 
-    R"shdr(uniform uint u_center_x_limb[LIMB_SIZE];
+    R"shdr(uniform uint u_center_x_limb[NUMBER_OF_LIMBS];
 uniform int u_center_x_sign;
 
-uniform uint u_center_y_limb[LIMB_SIZE];
+uniform uint u_center_y_limb[NUMBER_OF_LIMBS];
 uniform int u_center_y_sign;
 
-uniform uint u_zoom_limb[LIMB_SIZE];
+uniform uint u_zoom_limb[NUMBER_OF_LIMBS];
 uniform int u_zoom_sign;
 
 uniform vec2 u_resolution;
@@ -47,7 +47,7 @@ vec3 hsl2rgb(vec3 hsl) {
 vec3 domain_color(in hp_vec2 z) {
     number angle = hp_atan2(z.y, z.x);
     number hue_hp = hp_div(angle, hp_mult(REAL_TWO, PI));
-    number light_hp = hp_mult(TWO_OVER_PI, hp_atan(hp_length(z)));
+    number light_hp = hp_mult(TWO_OVER_PI, internal_hp_atan(hp_length(z)));
 
     float hue = number_to_float(hue_hp);
     float light = number_to_float(light_hp);
@@ -55,13 +55,17 @@ vec3 domain_color(in hp_vec2 z) {
     return vec3(hue, 1.0, light);
 }
 
+out vec4 FragColor;
+
 void main(){
     hp_vec2 z = get_high_precision_coordinates(gl_FragCoord.xy);
     hp_vec2 func_value;
     #define INJECTION_POINT HERE
 
     vec3 hsl = domain_color(func_value);
-    
+    vec3 rgb = hsl2rgb(hsl);
+    FragColor = vec4(rgb, 1.0);
+
 })shdr" ;
 
 inline std::string SRC_HIGH_PRECISION_FUNCTIONS_FRAG = 
@@ -80,7 +84,7 @@ uint lo(uint a){
 
 
 int compare_abs(number a, number b) {
-    for(int i = LIMB_SIZE - 1; i >= 0; --i) {
+    for(int i = NUMBER_OF_LIMBS - 1; i >= 0; --i) {
         if(a.limb[i] > b.limb[i]) return 1;
         if(a.limb[i] < b.limb[i]) return -1;
     }
@@ -89,7 +93,7 @@ int compare_abs(number a, number b) {
 
 bool is_zero(number a){
 	bool notzero = false;
-	for(int i = 0; i < LIMB_SIZE; ++i){
+	for(int i = 0; i < NUMBER_OF_LIMBS; ++i){
 		notzero = a.limb[i] != 0u || notzero;
 	}
 	return !notzero;
@@ -104,7 +108,7 @@ uvec2 sum_with_carry(uint a, uint b){
 number abs_sum(number a, number b){
 	number c = REAL_ZERO;
 	uint carry = 0u;
-	for(int i = 0; i < LIMB_SIZE; ++i){
+	for(int i = 0; i < NUMBER_OF_LIMBS; ++i){
 		uvec2 res = sum_with_carry(sum_with_carry(a.limb[i],b.limb[i]).x,carry);
 		uint sum = res.x;
 		carry = res.y;
@@ -115,7 +119,7 @@ number abs_sum(number a, number b){
 number abs_hp_sub(number a, number b) {
     number c = REAL_ZERO;
     uint borrow = 0u;
-    for(int i = 0; i < LIMB_SIZE; ++i) {
+    for(int i = 0; i < NUMBER_OF_LIMBS; ++i) {
         uint sub = a.limb[i] - b.limb[i] - borrow;
         borrow = uint((a.limb[i] < b.limb[i] || (a.limb[i] == b.limb[i] && borrow > 0u)));
         c.limb[i] = sub;
@@ -177,14 +181,14 @@ number hp_mult(number a, number b) {
         c.limb = INFINITY.limb;
         return c;
     }
-    for (int i = 0; i < LIMB_SIZE; ++i) {
+    for (int i = 0; i < NUMBER_OF_LIMBS; ++i) {
         if (a.limb[i] == 0u) continue;
         uint carry = 0u;
         
-        for (int j = 0; j < LIMB_SIZE; ++j) {
+        for (int j = 0; j < NUMBER_OF_LIMBS; ++j) {
             int target = i + j - FRACTIONAL_SIZE;
             
-            if (target >= LIMB_SIZE) break; 
+            if (target >= NUMBER_OF_LIMBS) break; 
             
             uvec2 prod = product_with_remainder(a.limb[i], b.limb[j]);
             if (target < 0) {
@@ -211,9 +215,9 @@ number shift_left(number a, int shift) {
     number c = REAL_ZERO;
     c.sign = a.sign;
 
-    if (limb_shift >= LIMB_SIZE) return REAL_ZERO;
+    if (limb_shift >= NUMBER_OF_LIMBS) return REAL_ZERO;
 
-    for (int i = LIMB_SIZE - 1; i >= limb_shift; --i) {
+    for (int i = NUMBER_OF_LIMBS - 1; i >= limb_shift; --i) {
         int target = i;
         int source = i - limb_shift;
 
@@ -238,14 +242,14 @@ number shift_right(number a, int shift) {
     number c = REAL_ZERO;
     c.sign = a.sign;
 
-    if (limb_shift >= LIMB_SIZE) return REAL_ZERO;
-    for (int i = 0; i < LIMB_SIZE - limb_shift; ++i) {
+    if (limb_shift >= NUMBER_OF_LIMBS) return REAL_ZERO;
+    for (int i = 0; i < NUMBER_OF_LIMBS - limb_shift; ++i) {
         int target = i;
         int source = i + limb_shift;
 
         uint val = a.limb[source] >> bit_shift;
 
-        if (source < LIMB_SIZE - 1 && bit_shift > 0) {
+        if (source < NUMBER_OF_LIMBS - 1 && bit_shift > 0) {
             val |= a.limb[source + 1] << (32 - bit_shift);
         }
         c.limb[target] = val;
@@ -254,7 +258,7 @@ number shift_right(number a, int shift) {
 }
 
 int find_msb(number a) {
-    for (int i = LIMB_SIZE - 1; i >= 0; --i) {
+    for (int i = NUMBER_OF_LIMBS - 1; i >= 0; --i) {
         uint x = a.limb[i];
         if (x != 0u) {
             int bit_pos = 0;
@@ -270,12 +274,15 @@ int find_msb(number a) {
 }
 
 uint get_half(number a, int index){
+    if (index >= NUMBER_OF_LIMBS * 2 || index < 0) {
+            return 0u;
+        }
     uint l = a.limb[index / 2];
     return uint(index % 2 == 0) * hi(l) + uint(index%2==1) * lo(l);
 }
 
 void set_half(inout number a, int index, uint val) {
-    if (index >= LIMB_SIZE * 2 || index < 0) return;
+    if (index >= NUMBER_OF_LIMBS * 2 || index < 0) return;
     int limb_idx = index / 2;
     if (index % 2 == 1) {
         a.limb[limb_idx] = (a.limb[limb_idx] & 0x0000FFFFu) | (val << 16);
@@ -289,7 +296,7 @@ number mult_scalar_16(number a, uint b_16) {
     c.sign = a.sign;
     uint carry = 0u;
     
-    for (int i = 0; i < LIMB_SIZE; ++i) {
+    for (int i = 0; i < NUMBER_OF_LIMBS; ++i) {
         if (a.limb[i] == 0u && carry == 0u) continue;
         
         uvec2 prod = product_with_remainder(a.limb[i], b_16);
@@ -301,61 +308,82 @@ number mult_scalar_16(number a, uint b_16) {
     return c;
 }
 
-number hp_div(number n, number d){
+number hp_div(number n, number d) {
     number q = REAL_ZERO;
     q.sign = n.sign * d.sign;
 
-    n = shift_left(n, FRACTIONAL_SIZE * 32);
+    uint u_halves[NUMBER_OF_LIMBS*2 + FRACTIONAL_SIZE * 2 + 1];
 
-    if(is_zero(d)){
+    if (is_zero(d)) {
         q = INFINITY;
         return q;
-    };
-    if(d.is_infinite) return q;
+    }
+    if (d.is_infinite) return q;
 
     int msb_d = find_msb(d);
-    if(msb_d == -1) return q;
+    if (msb_d == -1) return q;
 
     int msb_n = find_msb(n);
-    if(msb_n == -1) return q;
+    if (msb_n == -1) return q;
+
+    for (int i = 0; i < NUMBER_OF_LIMBS*2 + FRACTIONAL_SIZE * 2 + 1; ++i) {
+        u_halves[i] = 0u;
+    }
+
+    for (int i = 0; i < NUMBER_OF_LIMBS * 2; ++i) {
+        u_halves[i + FRACTIONAL_SIZE * 2] = get_half(n, i);
+    }
 
     int len_v = (msb_d >> 4) + 1;
-    int len_u = (msb_n >> 4) + 1;
+    int len_u_unshifted = ((msb_n + FRACTIONAL_SIZE * 32) >> 4) + 1;
 
-    if (len_u < len_v) return q;
+    if (len_u_unshifted < len_v) return q;
 
     if (len_v == 1) {
         uint v0 = get_half(d, 0);
         uint rem = 0u;
-        for (int i = len_u - 1; i >= 0; --i) {
-            uint dividend = (rem << 16) | get_half(n, i);
+        for (int i = len_u_unshifted - 1; i >= 0; --i) {
+            uint dividend = (rem << 16) | u_halves[i];
             uint q_i = dividend / v0;
             rem = dividend % v0;
-            set_half(q, i, q_i);
+            
+            if (i < NUMBER_OF_LIMBS * 2) {
+                set_half(q, i, q_i);
+            }
         }
         return q;
     }
+
     int shift = 15 - (msb_d % 16);
-    number u = shift_left(n, shift);
     number v = shift_left(d, shift);
 
+    if (shift > 0) {
+        uint carry_shift = 0u;
+        for (int i = 0; i < 25; ++i) {
+            uint val = (u_halves[i] << shift) | carry_shift;
+            carry_shift = u_halves[i] >> (16 - shift);
+            u_halves[i] = val & 0xFFFFu;
+        }
+    }
+
+    int len_u = ((msb_n + FRACTIONAL_SIZE * 32 + shift) >> 4) + 1;
     int m = len_u - len_v;
     int n_len = len_v;
 
     uint v_n1 = get_half(v, n_len - 1);
     uint v_n2 = get_half(v, n_len - 2);
-    
+
     for (int j = m; j >= 0; --j) {
-        uint u_jn = get_half(u, j + n_len);
-        uint u_jn1 = get_half(u, j + n_len - 1);
-        uint u_jn2 = get_half(u, j + n_len - 2);
+        uint u_jn = u_halves[j + n_len];
+        uint u_jn1 = u_halves[j + n_len - 1];
+        uint u_jn2 = (j + n_len >= 2) ? u_halves[j + n_len - 2] : 0u;
 
         uint dividend = (u_jn << 16) | u_jn1;
         uint q_hat, r_hat;
 
         if (u_jn == v_n1) {
             q_hat = 0xFFFFu;
-            r_hat = u_jn1 + v_n1;
+            r_hat = u_jn1)shdr" R"shdr( + v_n1;
         } else {
             q_hat = dividend / v_n1;
             r_hat = dividend % v_n1;
@@ -373,26 +401,31 @@ number hp_div(number n, number d){
             k = p >> 16;
             uint p_lo = p & 0xFFFFu;
 
-            uint u_ji = get_half(u, j + i);
+            uint u_ji = u_halves[j + i];
             int diff = int(u_ji) - int(p_lo) - int(borrow);
-            
-            set_half(u, j + i, uint(diff) & 0xFFFFu);
+
+            u_halves[j + i] = uint(diff) & 0xFFFFu;
             borrow = (diff < 0) ? 1u : 0u;
         }
-        int final_diff = int(get_half(u, j + n_len)) - int(k) - int(borrow);
-        set_half(u, j + n_len, uint(final_diff) & 0xFFFFu);
+        
+        int final_diff = int(u_halves[j + n_len]) - int(k) - int(borrow);
+        u_halves[j + n_len] = uint(final_diff) & 0xFFFFu;
+
         if (final_diff < 0) {
-            q_hat--;)shdr" R"shdr(
-            uint carry_hp_add = 0u;
+            q_hat--;
+            uint carry_add = 0u;
             for (int i = 0; i < n_len; ++i) {
-                uint sum = get_half(u, j + i) + get_half(v, i) + carry_hp_add;
-                set_half(u, j + i, sum & 0xFFFFu);
-                carry_hp_add = sum >> 16;
+                uint sum = u_halves[j + i] + get_half(v, i) + carry_add;
+                u_halves[j + i] = sum & 0xFFFFu;
+                carry_add = sum >> 16;
             }
-            uint sum_last = get_half(u, j + n_len) + carry_hp_add;
-            set_half(u, j + n_len, sum_last & 0xFFFFu);
+            uint sum_last = u_halves[j + n_len] + carry_add;
+            u_halves[j + n_len] = sum_last & 0xFFFFu;
         }
-        set_half(q, j, q_hat);
+
+        if (j < NUMBER_OF_LIMBS * 2) {
+            set_half(q, j, q_hat);
+        }
     }
     return q;
 }
@@ -401,7 +434,7 @@ number div_uint(number n, uint d) {
     number q = REAL_ZERO;
     q.sign = n.sign;
     uint rem = 0u;
-    for (int i = LIMB_SIZE * 2 - 1; i >= 0; --i) {
+    for (int i = NUMBER_OF_LIMBS * 2 - 1; i >= 0; --i) {
         uint dividend = (rem << 16) | get_half(n, i);
         uint q_i = dividend / d;
         rem = dividend % d;
@@ -420,7 +453,7 @@ number hp_exp(number x){
     number sum = REAL_ONE;
     number term = REAL_ONE;
 
-    for (uint i = 1u; i < uint(LIMB_SIZE * 8); ++i) { 
+    for (uint i = 1u; i < uint(NUMBER_OF_LIMBS * 8); ++i) { 
         term = hp_mult(term, x_small);
         term = div_uint(term, i);
         
@@ -562,7 +595,7 @@ number hp_sqrt(number x){
 
     number n_k_next = REAL_ZERO;
 
-    for(int i = 0; i < (LIMB_SIZE / 23 + 2); ++i){
+    for(int i = 0; i < (NUMBER_OF_LIMBS / 23 + 2); ++i){
         number div_term = hp_div(x,n_k);
         n_k_next = hp_add(n_k,div_term);
         n_k_next = shift_right(n_k_next,1);
@@ -636,7 +669,7 @@ number hp_sin(number x){
     number sum = x;
     number term = x;
 
-    for(int i = 1; i < LIMB_SIZE * 8; ++i){
+    for(int i = 1; i < NUMBER_OF_LIMBS * 8; ++i){
         term = hp_mult(term,x_sq);
         uint divisor = uint(2*i) * uint(2*i +1);
         term = div_uint(term,divisor);
@@ -672,14 +705,14 @@ number hp_cos(number x) {
         
         if (i % 2 == 1) {
             sum = hp_sub(sum, term);
-        } else {
+        })shdr" R"shdr( else {
             sum = hp_add(sum, term);
         }
     }
     return sum;
 }
 
-number hp_atan(number z){
+number internal_hp_atan(number z){
     if(is_zero(z)) return REAL_ZERO;
 
     number z_sq = hp_mult(z,z);
@@ -692,7 +725,7 @@ number hp_atan(number z){
     number sum = z;
     number term = z;
 
-    for(uint i = 1u; i < uint(LIMB_SIZE) * 8u; ++i){
+    for(uint i = 1u; i < uint(NUMBER_OF_LIMBS) * 8u; ++i){
         term = hp_mult(term, z_sq);
         uint divisor = (2u*i) + 1u;
         number iteration_term = div_uint(term,divisor);
@@ -711,7 +744,7 @@ number hp_atan(number z){
 
 number hp_atan2(number y, number x) {
     bool x_zero = is_zero(x);
-    bool y_zero = is)shdr" R"shdr(_zero(y);
+    bool y_zero = is_zero(y);
 
     number pi = PI;
     number pi_over_2 = shift_right(pi, 1);
@@ -734,10 +767,10 @@ number hp_atan2(number y, number x) {
 
     if (compare_abs(abs_y, abs_x) == 1) { 
         number z = hp_div(abs_x, abs_y);
-        base_angle = hp_sub(pi_over_2, hp_atan(z));
+        base_angle = hp_sub(pi_over_2, internal_hp_atan(z));
     } else {
         number z = hp_div(abs_y, abs_x);
-        base_angle = hp_atan(z);
+        base_angle = internal_hp_atan(z);
     }
 
     number final_angle = base_angle;
@@ -750,6 +783,11 @@ number hp_atan2(number y, number x) {
 
     return final_angle;
 }
+
+number hp_atan(number y, number x){
+    return hp_atan2(y,x);
+}
+
 
 number hp_length(hp_vec2 z){
     return hp_sqrt(hp_add(hp_mult(z.x,z.x),hp_mult(z.y,z.y)));
@@ -828,11 +866,11 @@ inline std::string SRC_HIGH_PRECISION_HEADER_FRAG =
 
 precision highp float;
 
-const int LIMB_SIZE = 32;
-const int FRACTIONAL_SIZE = LIMB_SIZE/2;
+const int NUMBER_OF_LIMBS = 8;
+const int FRACTIONAL_SIZE = NUMBER_OF_LIMBS/2;
 
 struct number{
-	uint limb[LIMB_SIZE];
+	uint limb[NUMBER_OF_LIMBS];
 	int sign;
     bool is_infinite;
 };
@@ -849,16 +887,17 @@ hp_vec2 initialize_hp_vec2(number x, number y){
     return res;
 }
 
-number initialize_number(uint limb[LIMB_SIZE], int sign, bool is_infinite){
+number initialize_number(uint limb[NUMBER_OF_LIMBS], int sign, bool is_infinite){
     number res;
     res.limb = limb;
     res.sign = sign;
     res.is_infinite = is_infinite;
+    return res;
 }
 
 number null_number(){
 	number res;
-	for(int i = 0; i < LIMB_SIZE; ++i){
+	for(int i = 0; i < NUMBER_OF_LIMBS; ++i){
 		res.limb[i] = 0u;
 	}
 	res.sign = 1;
@@ -867,7 +906,7 @@ number null_number(){
 
 number infinite_number(){
     number res;
-    for(int i = 0; i < LIMB_SIZE; ++i){
+    for(int i = 0; i < NUMBER_OF_LIMBS; ++i){
         res.limb[i] = (1u<<31u)-1u;
     }
     res.sign = 1;

@@ -24,8 +24,10 @@ typedef struct ViewState {
 	int export_height = 1080;
 	int export_width = 1920;
 	bool show_export_success = false;
-	bool is_high_precision_mode = false;
-	bool needs_hp_bake = false;
+	bool wants_high_precision = false;
+	bool is_high_precision = false;
+	unsigned int hp_texture = 0;
+	unsigned int hp_fbo = 0;
 } ViewState;
 
 

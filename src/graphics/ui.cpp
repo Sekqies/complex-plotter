@@ -27,8 +27,6 @@ const float DEBOUNCE_DELAY = 0.05f;
 
 
 
-
-
 static int FunctionInputCallback(ImGuiInputTextCallbackData* data) {
     FunctionState* state = (FunctionState*)data->UserData;
     if (data->HasSelection()) {
@@ -350,6 +348,9 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
         }
     }
     if (UI::CollapsingHeader("Export")) {
+        if (UI::Button("Render High Precision Popup")) {
+            view_state.wants_high_precision = true;
+        }
         static int export_w = 1920;
         static int export_h = 1080;
 
@@ -403,6 +404,27 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
 
         ImGui::EndPopup();
     }
+    if (view_state.is_high_precision) {
+    ImGui::Begin("High Precision Render", &view_state.is_high_precision, ImGuiWindowFlags_AlwaysAutoResize);
+    
+    if (view_state.hp_texture != 0) {
+        ImGui::Text("Resolution: %dx%d", view_state.width, view_state.height);
+        
+        ImGui::Image(
+            (void*)(intptr_t)view_state.hp_texture, 
+            ImVec2((float)view_state.height, (float)view_state.height), 
+            ImVec2(0, 1), 
+            ImVec2(1, 0)
+        );
+        
+        if (ImGui::Button("Save to PNG")) {
+        }
+    } else {
+        ImGui::Text("Generating high precision render... please wait.");
+    }
+    
+    ImGui::End();
+}
 
     ImGui::End();
 }

@@ -18,8 +18,10 @@
 #include <shaders/embedded_shaders.h>
 #include <interactions/export.h>
 #include <stb_image/stb_image_write.h>
+#include <glsl_transpiled/glsl_big_number.h>
 
-#include <preprocessor/transpiler.h>
+
+#include <preprocessor/string_builder.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -62,6 +64,9 @@ struct AppContext {
 	unsigned int picker_fbo;
 	bool pressing_t;
 };
+
+
+
 
 
 
@@ -187,6 +192,60 @@ void main_loop_step(AppContext* ctx) {
 
 	ctx->function_state->is_3d = ctx->view_state->is_3d;
 	init_imgui_loop();
+
+	if(ctx->view_state->wants_high_precision){
+		//NUMBER_OF_LIMBS = 8;
+		if (ctx->view_state->hp_fbo == 0) {
+            glGenFramebuffers(1, &ctx->view_state->hp_fbo);
+            glGenTextures(1, &ctx->view_state->hp_texture);
+			
+            glBindTexture(GL_TEXTURE_2D, ctx->view_state->hp_texture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ctx->view_state->width/2, ctx->view_state->height/2, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			
+            glBindFramebuffer(GL_FRAMEBUFFER, ctx->view_state->hp_fbo);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ctx->view_state->hp_texture, 0);
+        }
+		glBindFramebuffer(GL_FRAMEBUFFER, ctx->view_state->hp_fbo);
+        glViewport(0, 0, ctx->view_state->width/2, ctx->view_state->height/2);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
+		const std::string function_declarations = get_block(SRC_PLOTTER_FRAG, "ELEMENTARY_FUNCTION_DEFINITIONS");
+		std::string hp_shader_string = build_high_precision_shader_string(SRC_HIGH_PRECISION_HEADER_FRAG, SRC_HIGH_PRECISION_FOOTER_FRAG, SRC_HIGH_PRECISION_FUNCTIONS_FRAG, function_declarations);
+		inject_at(hp_shader_string,"INJECTION_POINT","func_value = " + stack_to_glsl_string(parser::parse(ctx->function_state->expression)) + ";");
+		std::cout << "here:";
+		std::cout << NUMBER_OF_LIMBS << '\n';
+		Shader render_shader;
+		std::cout << hp_shader_string;
+		build_shader_source(render_shader, SRC_PLOTTER_VERT, hp_shader_string);
+        
+        render_shader.use();
+        render_shader.setVec2("u_resolution", glm::vec2(ctx->view_state->width, ctx->view_state->height));
+        number cx = float_to_number(ctx->view_state->shift.x);
+		number cy = float_to_number(ctx->view_state->shift.y);
+		number z  = float_to_number(ctx->view_state->range);
+		unsigned int pid = render_shader.ID;
+
+		glUniform1uiv(glGetUniformLocation(pid, "u_center_x_limb"), NUMBER_OF_LIMBS, cx.limb.data());
+        glUniform1i(glGetUniformLocation(pid, "u_center_x_sign"), cx.sign);
+
+		glUniform1uiv(glGetUniformLocation(pid, "u_center_y_limb"), NUMBER_OF_LIMBS, cy.limb.data());
+        glUniform1i(glGetUniformLocation(pid, "u_center_y_sign"), cy.sign);
+		std::cout << "here\n";
+		glUniform1uiv(glGetUniformLocation(pid, "u_zoom_limb"), NUMBER_OF_LIMBS, z.limb.data());
+        glUniform1i(glGetUniformLocation(pid, "u_zoom_sign"), z.sign);
+
+        glBindVertexArray(ctx->VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		std::cout << "here\n";
+        ctx->view_state->wants_high_precision = false;
+		ctx->view_state->is_high_precision = true;
+	}
+	glViewport(0, 0, (int)ctx->view_state->width, (int)ctx->view_state->height);
 
 	if (ctx->function_state->is_3d) {
 		if (!ImGui::GetIO().WantCaptureKeyboard)

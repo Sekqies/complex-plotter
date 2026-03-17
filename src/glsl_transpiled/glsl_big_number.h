@@ -2,12 +2,15 @@
 #include <glsl_transpiled/glsl_types.h>
 #include <glsl_transpiled/glsl_constants.h>
 #include <vector>
+#include <iostream>
+
+constexpr inline uint NUMBER_OF_LIMBS = 8;
+constexpr inline uint FRACTIONAL_SIZE = NUMBER_OF_LIMBS / 2;
 
 struct number {
-    std::vector<uint> limb;
-    int sign;
-    bool is_infinite;
-    number();
+    std::vector<uint> limb = std::vector<unsigned int>(NUMBER_OF_LIMBS, 0);
+    int sign = 1;
+    bool is_infinite = false;
 };
 
 struct hp_vec2 {
@@ -68,3 +71,6 @@ number div_uint(number n, uint d);
 number hp_sqrt(number x);
 
 number number_integer(const uint n);
+
+number float_to_number(float f);
+
