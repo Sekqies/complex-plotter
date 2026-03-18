@@ -13,6 +13,7 @@ number null_number() {
         res.limb[i] = 0u;
     }
     res.sign = 1;
+    res.is_infinite = false;
     return res;
 }
 
@@ -100,19 +101,29 @@ number abs_hp_sub(number a, number b) {
 
 number hp_add(number a, number b) {
     number c = null_number();
+
     if (a.sign == b.sign) {
-        c = abs_sum(a, b);
+        uint64_t carry = 0;
+        for (int i = 0; i < NUMBER_OF_LIMBS; ++i) {
+            uint64_t sum = (uint64_t)a.limb[i] + b.limb[i] + carry;
+            c.limb[i] = (uint32_t)sum;
+            carry = sum >> 32;
+        }
         c.sign = a.sign;
         return c;
     }
+
     int cmp = compare_abs(a, b);
-    if (cmp >= 0) {
-        c = abs_hp_sub(a, b);
-        c.sign = a.sign;
-        return c;
+    number max_val = (cmp >= 0) ? a : b;
+    number min_val = (cmp >= 0) ? b : a;
+
+    uint64_t borrow = 0;
+    for (int i = 0; i < NUMBER_OF_LIMBS; ++i) {
+        uint64_t diff = (uint64_t)max_val.limb[i] - min_val.limb[i] - borrow;
+        c.limb[i] = (uint32_t)diff;
+        borrow = (diff >> 32) & 1;
     }
-    c = abs_hp_sub(b, a);
-    c.sign = b.sign;
+    c.sign = max_val.sign;
     return c;
 }
 
@@ -145,88 +156,82 @@ number hp_mult(number a, number b) {
     number c = null_number();
     c.sign = a.sign * b.sign;
 
-    if (is_zero(a) || is_zero(b)) return c;
-    if (a.is_infinite || b.is_infinite) {
-        c.limb = infinite_number().limb;
+    if (is_zero(a) || is_zero(b)) {
+        c.sign = 1;
         return c;
     }
+    if (a.is_infinite || b.is_infinite) return infinite_number();
+
+    uint32_t ext_c[NUMBER_OF_LIMBS + FRACTIONAL_SIZE] = { 0 };
+
     for (int i = 0; i < NUMBER_OF_LIMBS; ++i) {
         if (a.limb[i] == 0u) continue;
-        uint carry = 0u;
+        uint64_t carry = 0;
 
         for (int j = 0; j < NUMBER_OF_LIMBS; ++j) {
-            int target = i + j - FRACTIONAL_SIZE;
+            int ext_target = i + j;
+            if (ext_target >= NUMBER_OF_LIMBS + FRACTIONAL_SIZE) break;
 
-            if (target >= NUMBER_OF_LIMBS) break;
+            uint64_t prod = (uint64_t)a.limb[i] * b.limb[j] + carry;
+            prod += ext_c[ext_target];
+            ext_c[ext_target] = (uint32_t)prod;
+            carry = prod >> 32;
+        }
 
-            uvec2 prod = product_with_remainder(a.limb[i], b.limb[j]);
-            if (target < 0) {
-                uvec2 hp_add2 = sum_with_carry(prod.x, carry);
-                carry = prod.y + hp_add2.y;
-            }
-            else {
-                uvec2 hp_add1 = sum_with_carry(c.limb[target], prod.x);
-                uvec2 hp_add2 = sum_with_carry(hp_add1.x, carry);
-                c.limb[target] = hp_add2.x;
-                carry = prod.y + hp_add1.y + hp_add2.y;
-            }
+        int leftover_target = i + NUMBER_OF_LIMBS;
+        while (carry > 0 && leftover_target < NUMBER_OF_LIMBS + FRACTIONAL_SIZE) {
+            uint64_t sum = (uint64_t)ext_c[leftover_target] + carry;
+            ext_c[leftover_target] = (uint32_t)sum;
+            carry = sum >> 32;
+            leftover_target++;
         }
     }
-    c.sign = c.sign * int(!is_zero(c));
+
+    for (int i = 0; i < NUMBER_OF_LIMBS; ++i) {
+        c.limb[i] = ext_c[i + FRACTIONAL_SIZE];
+    }
+
+    if (is_zero(c)) c.sign = 1;
     return c;
 }
 
 number shift_left(number a, int shift) {
     if (shift <= 0) return a;
-
     int limb_shift = shift / 32;
     int bit_shift = shift % 32;
-
     number c = null_number();
     c.sign = a.sign;
-
-    if (limb_shift >= NUMBER_OF_LIMBS) return null_number();
+    if (limb_shift >= NUMBER_OF_LIMBS) return c;
 
     for (int i = NUMBER_OF_LIMBS - 1; i >= limb_shift; --i) {
-        int target = i;
-        int source = i - limb_shift;
-
-        uint val = a.limb[source] << bit_shift;
-
-        if (source > 0 && bit_shift > 0) {
-            val |= a.limb[source - 1] >> (32 - bit_shift);
+        uint32_t val = a.limb[i - limb_shift] << bit_shift;
+        if (i - limb_shift > 0 && bit_shift > 0) {
+            uint64_t prev_limb = a.limb[i - limb_shift - 1];
+            val |= static_cast<uint32_t>(prev_limb >> (32 - bit_shift));
         }
-
-        c.limb[target] = val;
+        c.limb[i] = val;
     }
-
     return c;
 }
 
 number shift_right(number a, int shift) {
     if (shift <= 0) return a;
-
     int limb_shift = shift >> 5;
     int bit_shift = shift % 32;
-
     number c = null_number();
     c.sign = a.sign;
+    if (limb_shift >= NUMBER_OF_LIMBS) return c;
 
-    if (limb_shift >= NUMBER_OF_LIMBS) return null_number();
     for (int i = 0; i < NUMBER_OF_LIMBS - limb_shift; ++i) {
-        int target = i;
-        int source = i + limb_shift;
-
-        uint val = a.limb[source] >> bit_shift;
-
-        if (source < NUMBER_OF_LIMBS - 1 && bit_shift > 0) {
-            val |= a.limb[source + 1] << (32 - bit_shift);
+        uint32_t val = a.limb[i + limb_shift] >> bit_shift;
+        if (i + limb_shift < NUMBER_OF_LIMBS - 1 && bit_shift > 0) {
+            uint64_t next_limb = a.limb[i + limb_shift + 1];
+            val |= static_cast<uint32_t>(next_limb << (32 - bit_shift));
         }
-        c.limb[target] = val;
+        c.limb[i] = val;
     }
     return c;
 }
-
 int find_msb(number a) {
     for (int i = NUMBER_OF_LIMBS - 1; i >= 0; --i) {
         uint x = a.limb[i];
@@ -283,8 +288,6 @@ number hp_div(number n, number d) {
     number q = null_number();
     q.sign = n.sign * d.sign;
 
-    uint u_halves[NUMBER_OF_LIMBS * 2 + FRACTIONAL_SIZE * 2 + 1];
-
     if (is_zero(d)) {
         q = infinite_number();
         return q;
@@ -297,7 +300,10 @@ number hp_div(number n, number d) {
     int msb_n = find_msb(n);
     if (msb_n == -1) return q;
 
-    for (int i = 0; i < NUMBER_OF_LIMBS*2 + FRACTIONAL_SIZE * 2 + 1; ++i) {
+    const int MAX_HALVES = NUMBER_OF_LIMBS * 2 + FRACTIONAL_SIZE * 2 + 2;
+    uint u_halves[MAX_HALVES];
+
+    for (int i = 0; i < MAX_HALVES; ++i) {
         u_halves[i] = 0u;
     }
 
@@ -317,7 +323,7 @@ number hp_div(number n, number d) {
             uint dividend = (rem << 16) | u_halves[i];
             uint q_i = dividend / v0;
             rem = dividend % v0;
-            
+
             if (i < NUMBER_OF_LIMBS * 2) {
                 set_half(q, i, q_i);
             }
@@ -330,7 +336,6 @@ number hp_div(number n, number d) {
 
     if (shift > 0) {
         uint carry_shift = 0u;
-        const int MAX_HALVES = NUMBER_OF_LIMBS * 2 + FRACTIONAL_SIZE * 2 + 1;
         for (int i = 0; i < MAX_HALVES; ++i) {
             uint val = (u_halves[i] << shift) | carry_shift;
             carry_shift = u_halves[i] >> (16 - shift);
@@ -356,12 +361,13 @@ number hp_div(number n, number d) {
         if (u_jn == v_n1) {
             q_hat = 0xFFFFu;
             r_hat = u_jn1 + v_n1;
-        } else {
+        }
+        else {
             q_hat = dividend / v_n1;
             r_hat = dividend % v_n1;
         }
 
-        while (r_hat < 0x10000u && (q_hat * v_n2) > ((r_hat << 16) | u_jn2)) {
+        while (r_hat < 0x10000u && (q_hat * v_n2) >((r_hat << 16) | u_jn2)) {
             q_hat--;
             r_hat += v_n1;
         }
@@ -379,7 +385,7 @@ number hp_div(number n, number d) {
             u_halves[j + i] = uint(diff) & 0xFFFFu;
             borrow = (diff < 0) ? 1u : 0u;
         }
-        
+
         int final_diff = int(u_halves[j + n_len]) - int(k) - int(borrow);
         u_halves[j + n_len] = uint(final_diff) & 0xFFFFu;
 
@@ -405,12 +411,12 @@ number hp_div(number n, number d) {
 number div_uint(number n, uint d) {
     number q = null_number();
     q.sign = n.sign;
-    uint rem = 0u;
-    for (int i = NUMBER_OF_LIMBS * 2 - 1; i >= 0; --i) {
-        uint dividend = (rem << 16) | get_half(n, i);
-        uint q_i = dividend / d;
+    uint64_t rem = 0;
+
+    for (int i = NUMBER_OF_LIMBS - 1; i >= 0; --i) {
+        uint64_t dividend = (rem << 32) | n.limb[i];
+        q.limb[i] = (uint32_t)(dividend / d);
         rem = dividend % d;
-        set_half(q, i, q_i);
     }
     return q;
 }

@@ -775,7 +775,7 @@ number hp_smoothstep(number edge0, number edge1, number x) {
     return hp_mult(t_sq, three_minus_two_t);
 }
 
-hp_vec2 hp_floor(hp_vec2 a) {
+hp_vec2 hp_vector_floor(hp_vec2 a) {
     return initialize_hp_vec2(hp_floor(a.x), hp_floor(a.y));
 }
 

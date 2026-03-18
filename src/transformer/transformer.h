@@ -12,3 +12,4 @@ string vector_to_glsl_array(const vector<unsigned int>& limbs);
 
 string big_number_to_glsl_string(const vector<unsigned int>& limbs, const int sign, const bool is_infinite);
 
+string stack_to_highp_glsl(const vector<TokenOperator>& stack, const string& out_var_name);

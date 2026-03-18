@@ -19,6 +19,7 @@
 #include <interactions/export.h>
 #include <stb_image/stb_image_write.h>
 #include <glsl_transpiled/glsl_big_number.h>
+#include <preprocessor/transpiler.h>
 
 
 #include <preprocessor/string_builder.h>
@@ -194,8 +195,8 @@ void main_loop_step(AppContext* ctx) {
 	init_imgui_loop();
 
 	if(ctx->view_state->wants_high_precision){
-		const float hp_width = 800;//ctx->view_state->width;
-		const float hp_height = 600;//ctx->view_state->height;
+		const float hp_width = ctx->view_state->width;
+		const float hp_height = ctx->view_state->height;
 		//NUMBER_OF_LIMBS = 8;
 		if (ctx->view_state->hp_fbo == 0) {
             glGenFramebuffers(1, &ctx->view_state->hp_fbo);
@@ -215,8 +216,8 @@ void main_loop_step(AppContext* ctx) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
 		const std::string function_declarations = get_block(SRC_PLOTTER_FRAG, "ELEMENTARY_FUNCTION_DEFINITIONS");
-		std::string hp_shader_string = build_high_precision_shader_string(SRC_HIGH_PRECISION_HEADER_FRAG, SRC_HIGH_PRECISION_FOOTER_FRAG, SRC_HIGH_PRECISION_FUNCTIONS_FRAG, function_declarations);
-		inject_at(hp_shader_string,"INJECTION_POINT","func_value = " + stack_to_glsl_string(parser::parse(ctx->function_state->expression)) + ";");
+		std::string hp_shader_string = build_high_precision_shader_string(SRC_HIGH_PRECISION_HEADER_FRAG, SRC_HIGH_PRECISION_FOOTER_OPTIMIZED_FRAG, SRC_HIGH_PRECISION_FUNCTIONS_OPTIMIZED_FRAG, function_declarations);
+		inject_at(hp_shader_string,"INJECTION_POINT",stack_to_highp_glsl(parser::parse(ctx->function_state->expression),"func_value"));
 		std::cout << "here:";
 		std::cout << NUMBER_OF_LIMBS << '\n';
 		Shader render_shader;
@@ -225,9 +226,9 @@ void main_loop_step(AppContext* ctx) {
         
         render_shader.use();
         render_shader.setVec2("u_resolution", glm::vec2(ctx->view_state->width, ctx->view_state->height));
-        number cx = float_to_number(ctx->view_state->shift.x);
-		number cy = float_to_number(ctx->view_state->shift.y);
-		number z  = float_to_number(ctx->view_state->range);
+		number cx = ctx->view_state->hp_shift.x;
+		number cy = ctx->view_state->hp_shift.y;
+		number z  = ctx->view_state->hp_range;
 		unsigned int pid = render_shader.ID;
 
 		glUniform1uiv(glGetUniformLocation(pid, "u_center_x_limb"), NUMBER_OF_LIMBS, cx.limb.data());

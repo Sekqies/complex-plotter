@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 
+
 constexpr inline uint NUMBER_OF_LIMBS = 8;
 constexpr inline uint FRACTIONAL_SIZE = NUMBER_OF_LIMBS / 2;
 
@@ -13,10 +14,13 @@ struct number {
     bool is_infinite = false;
 };
 
+number float_to_number(float f);
+
 struct hp_vec2 {
     number x;
     number y;
     hp_vec2(number x,number y) : x(x), y(y){};
+    hp_vec2(float x, float y) : x(float_to_number(x)), y(float_to_number(y)){};
 };
 
 hp_vec2 initialize_hp_vec2(number x, number y);
@@ -72,5 +76,6 @@ number hp_sqrt(number x);
 
 number number_integer(const uint n);
 
-number float_to_number(float f);
+float number_to_float(number n);
+
 

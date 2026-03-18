@@ -4,10 +4,16 @@ precision highp int;
 precision highp sampler2D;
 precision highp usampler2D;
 
+
+
 // Other useful constants
 
 
 #define CONSTANT_DEFINITIONS HERE
+
+vec2 vector_floor(vec2 z){
+    return floor(z);
+}
 
 const float PI = 3.141591f;
 const float TWO_PI_OVER_3 = 2.0f*PI*0.66666f;
@@ -65,7 +71,7 @@ vec2 cexp(vec2 z){
 }
 
 vec2 clog(vec2 z){
-    return vec2(log(length(z)), carg(z).x);
+    return vec2(log(length(z)), atan(z.y,z.x));
 }
 
 vec2 cpow(vec2 a, vec2 b){
@@ -212,7 +218,7 @@ vec2 cneg(vec2 a){
 }
 
 vec2 cmod(vec2 a, vec2 b){
-    return csub(a,cmult(b,floor(cdiv(a,b))));
+    return csub(a,cmult(b,vector_floor(cdiv(a,b))));
 }
 
 vec2 conj(vec2 z){

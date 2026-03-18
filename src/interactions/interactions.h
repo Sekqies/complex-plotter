@@ -2,6 +2,7 @@
 #include <glad_include_guard.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glsl_transpiled/glsl_big_number.h>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -10,8 +11,11 @@
 
 typedef struct ViewState {
 	glm::vec2 shift = glm::vec2(0.0f);
+	hp_vec2 hp_shift = hp_vec2(0.0f,0.0f);
+	hp_vec2 hp_last_mouse_pos = hp_vec2(0.0f,0.0f);
 	glm::vec2 last_mouse_pos = glm::vec2(0.0f);
 	float range = 2.0f;
+	number hp_range = number_integer(2);
 	float width = 800.0f;
 	float height = 600.0f;
 	bool is_dragging = false;
