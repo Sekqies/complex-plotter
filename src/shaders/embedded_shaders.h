@@ -105,16 +105,17 @@ uvec2 sum_with_carry(uint a, uint b){
 	res.y = uint(a > res.x || b > res.x);
 	return res;
 }
-number abs_sum(number a, number b){
-	number c = REAL_ZERO;
-	uint carry = 0u;
-	for(int i = 0; i < NUMBER_OF_LIMBS; ++i){
-		uvec2 res = sum_with_carry(sum_with_carry(a.limb[i],b.limb[i]).x,carry);
-		uint sum = res.x;
-		carry = res.y;
-		c.limb[i] = sum;
-	}
-	return c;
+number abs_sum(number a, number b) {
+    number c = null_number();
+    uint carry = 0u;
+    for (int i = 0; i < NUMBER_OF_LIMBS; ++i) {
+        uvec2 step1 = sum_with_carry(a.limb[i], b.limb[i]);
+        uvec2 step2 = sum_with_carry(step1.x, carry);
+
+        c.limb[i] = step2.x;
+        carry = step1.y + step2.y;
+    }
+    return c;
 }
 number abs_hp_sub(number a, number b) {
     number c = REAL_ZERO;
@@ -278,7 +279,7 @@ uint get_half(number a, int index){
             return 0u;
         }
     uint l = a.limb[index / 2];
-    return uint(index % 2 == 0) * hi(l) + uint(index%2==1) * lo(l);
+    return uint(index % 2 == 0) * lo(l) + uint(index%2==1) * hi(l);
 }
 
 void set_half(inout number a, int index, uint val) {
@@ -359,7 +360,8 @@ number hp_div(number n, number d) {
 
     if (shift > 0) {
         uint carry_shift = 0u;
-        for (int i = 0; i < 25; ++i) {
+        const int MAX_HALVES = int(NUMBER_OF_LIMBS*2 + FRACTIONAL_SIZE * 2 + 1);
+        for (int i = 0; i < MAX_HALVES; ++i) {
             uint val = (u_halves[i] << shift) | carry_shift;
             carry_shift = u_halves[i] >> (16 - shift);
             u_halves[i] = val & 0xFFFFu;
@@ -376,14 +378,14 @@ number hp_div(number n, number d) {
     for (int j = m; j >= 0; --j) {
         uint u_jn = u_halves[j + n_len];
         uint u_jn1 = u_halves[j + n_len - 1];
-        uint u_jn2 = (j + n_len >= 2) ? u_halves[j + n_len - 2] : 0u;
+        uint u_jn2 = (j + n_len >= 2) ? u_halves[j + n_len - 2] : 0u)shdr" R"shdr(;
 
         uint dividend = (u_jn << 16) | u_jn1;
         uint q_hat, r_hat;
 
         if (u_jn == v_n1) {
             q_hat = 0xFFFFu;
-            r_hat = u_jn1)shdr" R"shdr( + v_n1;
+            r_hat = u_jn1 + v_n1;
         } else {
             q_hat = dividend / v_n1;
             r_hat = dividend % v_n1;
@@ -560,7 +562,6 @@ number hp_log(number x){
     if (k > 0) m = shift_left(x,-k);
     else m = x;
 
-    number REAL_ONE = REAL_ONE;
     number z = hp_div(hp_sub(m,REAL_ONE),hp_add(m,REAL_ONE));
     number z_squared = hp_mult(z,z);
 
@@ -595,7 +596,7 @@ number hp_sqrt(number x){
 
     number n_k_next = REAL_ZERO;
 
-    for(int i = 0; i < (NUMBER_OF_LIMBS / 23 + 2); ++i){
+    for(int i = 0; i < ((NUMBER_OF_LIMBS *32)/ 23 + 2); ++i){
         number div_term = hp_div(x,n_k);
         n_k_next = hp_add(n_k,div_term);
         n_k_next = shift_right(n_k_next,1);
@@ -699,13 +700,13 @@ number hp_cos(number x) {
         term = hp_mult(term, x_sq);
         
         uint divisor = uint(2 * i - 1) * uint(2 * i);
-        term = div_uint(term, divisor);
+        term = div_uint(term, div)shdr" R"shdr(isor);
         
         if (is_zero(term)) break; 
         
         if (i % 2 == 1) {
             sum = hp_sub(sum, term);
-        })shdr" R"shdr( else {
+        } else {
             sum = hp_add(sum, term);
         }
     }

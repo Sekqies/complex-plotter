@@ -194,13 +194,15 @@ void main_loop_step(AppContext* ctx) {
 	init_imgui_loop();
 
 	if(ctx->view_state->wants_high_precision){
+		const float hp_width = 800;//ctx->view_state->width;
+		const float hp_height = 600;//ctx->view_state->height;
 		//NUMBER_OF_LIMBS = 8;
 		if (ctx->view_state->hp_fbo == 0) {
             glGenFramebuffers(1, &ctx->view_state->hp_fbo);
             glGenTextures(1, &ctx->view_state->hp_texture);
 			
             glBindTexture(GL_TEXTURE_2D, ctx->view_state->hp_texture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ctx->view_state->width/2, ctx->view_state->height/2, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, hp_width, hp_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			
@@ -208,7 +210,7 @@ void main_loop_step(AppContext* ctx) {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ctx->view_state->hp_texture, 0);
         }
 		glBindFramebuffer(GL_FRAMEBUFFER, ctx->view_state->hp_fbo);
-        glViewport(0, 0, ctx->view_state->width/2, ctx->view_state->height/2);
+        glViewport(0, 0, hp_width, hp_height);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
