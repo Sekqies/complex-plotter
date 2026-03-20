@@ -304,13 +304,6 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
             ImGui::Unindent();
         }
     }
-    if (ImGui::Button("Test Clipboard Callbacks")) {
-        ImGui::SetClipboardText("Testing 123");
-
-        const char* text = ImGui::GetClipboardText();
-        std::cout << "Manual check: " << (text ? text : "NULL") << std::endl;
-    }
-
     if (UI::CollapsingHeader("3D Keybinds")) {
         ImGui::BulletText("WASD: Move");
         ImGui::BulletText("Right click + Drag: Move camera");
@@ -347,6 +340,7 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
             state.needs_reparse = true;
         }
     }
+
     if (UI::CollapsingHeader("Export")) {
         if (UI::Button("Render High Precision Popup")) {
             view_state.wants_high_precision = true;
@@ -404,24 +398,82 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
 
         ImGui::EndPopup();
     }
-    if (view_state.is_high_precision) {
-        ImGui::Begin("High Precision Render", &view_state.is_high_precision, ImGuiWindowFlags_AlwaysAutoResize);
-        if (view_state.hp_texture != 0) {
-            glBindTexture(GL_TEXTURE_2D, view_state.hp_texture);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, view_state.hp_width, view_state.hp_height, GL_RGBA, GL_UNSIGNED_BYTE, view_state.hp_cpu_buffer.data());
-            ImGui::Text("Resolution: %dx%d", view_state.width, view_state.height);
-            ImGui::Image(
-                (void*)(intptr_t)view_state.hp_texture, 
-                ImVec2((float)view_state.hp_height, (float)view_state.hp_width), 
-                ImVec2(0, 0), 
-                ImVec2(1, 1)
-            );
-            if (ImGui::Button("Save to PNG")) {
-            }
-        } else {
-            ImGui::Text("Generating high precision render... please wait.");
+    if (UI::CollapsingHeader("Arbitrary Precision Mode")) {
+        ImGui::TextWrapped("Renders the current view using CPU-based arbitrary precision math. Required for extreme zoom levels.");
+        ImGui::Spacing();
+        
+        static std::string ui_shift_x = "0.0";
+        static std::string ui_shift_y = "0.0";
+        static std::string ui_range = "4.0";
+        
+        if (UI::Button("Configure Deep Render")) {
+            view_state.hp_width = 700;
+            view_state.hp_height = 700;
+            ui_range = std::to_string(view_state.range);
+            ui_shift_x = std::to_string(view_state.shift.x);
+            ui_shift_y = std::to_string(view_state.shift.y);
+            ImGui::OpenPopup("Arbitrary Precision Setup");
         }
-        ImGui::End();
+
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        
+        if (ImGui::BeginPopupModal("Arbitrary Precision Setup", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+            
+            ImGui::InputInt("Width", &view_state.hp_width);
+            ImGui::InputInt("Height", &view_state.hp_height);
+            ImGui::Separator();
+            
+            ImGui::TextDisabled("Supports up to 50 decimal places.");
+            ImGui::InputText("Real (X) Center", &ui_shift_x);
+            ImGui::InputText("Imaginary (Y) Center", &ui_shift_y);
+            ImGui::InputText("Range (Zoom Level)", &ui_range);
+            
+            ImGui::Spacing();
+            if (ImGui::Button("Start Deep Render", ImVec2(140, 0))) {
+                view_state.hp_range = big_float(ui_range);
+                view_state.hp_shift = big_vec2(big_float(ui_shift_x), big_float(ui_shift_y));
+                
+                view_state.wants_high_precision = true;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
     }
+    if (view_state.is_high_precision) {
+                ImGui::Begin("High Precision Render", &view_state.is_high_precision, ImGuiWindowFlags_AlwaysAutoResize);
+                if (view_state.hp_texture != 0) {
+                    ImGui::Text("Resolution: %dx%d", view_state.hp_width, view_state.hp_height);
+                    if (view_state.is_rendering_hp) {
+                        glBindTexture(GL_TEXTURE_2D, view_state.hp_texture);
+                        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, view_state.hp_width, view_state.hp_height, GL_RGBA, GL_UNSIGNED_BYTE, view_state.hp_cpu_buffer.data());
+
+                        float progress = (float)view_state.hp_rows_completed / (float)view_state.hp_height;
+                        ImGui::ProgressBar(progress, ImVec2(-1.0f, 0.0f), "Loading...");
+                    }
+                    else {
+                        if (ImGui::Button("Save to PNG")) {
+                            std::string filename = "high_precision_" + std::to_string(view_state.hp_width) + "x" + std::to_string(view_state.hp_height) + ".png";
+                            export_plot_to_png(view_state.hp_width,view_state.hp_height,"complex-plot-high-precision");
+                            view_state.show_export_success = true; 
+                        }
+                    }
+                    ImGui::Image(
+                        (void*)(intptr_t)view_state.hp_texture,
+                        ImVec2((float)view_state.hp_width, (float)view_state.hp_height),
+                        ImVec2(0, 0),
+                        ImVec2(1, 1)
+                    );
+                }
+                else {
+                    ImGui::Text("Initializing...");
+                }
+                ImGui::End(); 
+            }
     ImGui::End();
 }
