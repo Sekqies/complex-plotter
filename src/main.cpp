@@ -20,6 +20,8 @@
 #include <stb_image/stb_image_write.h>
 #include <glsl_transpiled/glsl_big_number.h>
 #include <preprocessor/transpiler.h>
+#include <cpu_drawing/cpu_render.h>
+#include <glsl_generated/generated_math_mapper.h>
 
 
 #include <preprocessor/string_builder.h>
@@ -59,12 +61,14 @@ struct AppContext {
 	Shader* shader_3d;
 	CompilerShader* compiled_shader;
 	CompilerShader* compiled_shader_3d;
+	CPU_Interpreter interpreter;
 	Shader* picker;
 	Mesh* grid_mesh;
 	unsigned int VAO;
 	unsigned int picker_fbo;
 	bool pressing_t;
 };
+
 
 
 
@@ -195,58 +199,28 @@ void main_loop_step(AppContext* ctx) {
 	init_imgui_loop();
 
 	if(ctx->view_state->wants_high_precision){
-		const float hp_width = 800;//ctx->view_state->width;
-			const float hp_height = 600;// ctx->view_state->height;
-		//NUMBER_OF_LIMBS = 8;
-		if (ctx->view_state->hp_fbo == 0) {
-            glGenFramebuffers(1, &ctx->view_state->hp_fbo);
-            glGenTextures(1, &ctx->view_state->hp_texture);
-			
-            glBindTexture(GL_TEXTURE_2D, ctx->view_state->hp_texture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, hp_width, hp_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			
-            glBindFramebuffer(GL_FRAMEBUFFER, ctx->view_state->hp_fbo);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ctx->view_state->hp_texture, 0);
-        }
-		glBindFramebuffer(GL_FRAMEBUFFER, ctx->view_state->hp_fbo);
-        glViewport(0, 0, hp_width, hp_height);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glDisable(GL_DEPTH_TEST);
-		const std::string function_declarations = get_block(SRC_PLOTTER_FRAG, "ELEMENTARY_FUNCTION_DEFINITIONS");
-		std::string hp_shader_string = build_high_precision_shader_string(SRC_HIGH_PRECISION_HEADER_FRAG, SRC_HIGH_PRECISION_FOOTER_OPTIMIZED_FRAG, SRC_HIGH_PRECISION_FUNCTIONS_OPTIMIZED_FRAG, function_declarations);
-		inject_at(hp_shader_string,"INJECTION_POINT",stack_to_highp_glsl(parser::parse(ctx->function_state->expression),"func_value"));
-		std::cout << "here:";
-		std::cout << NUMBER_OF_LIMBS << '\n';
-		Shader render_shader;
-		std::cout << hp_shader_string;
-		build_shader_source(render_shader, SRC_PLOTTER_VERT, hp_shader_string);
-        
-        render_shader.use();
-        render_shader.setVec2("u_resolution", glm::vec2(ctx->view_state->width, ctx->view_state->height));
-		number cx = ctx->view_state->hp_shift.x;
-		number cy = ctx->view_state->hp_shift.y;
-		number z  = ctx->view_state->hp_range;
-		unsigned int pid = render_shader.ID;
+		const int hp_width = 500;//ctx->view_state->width;
+		const int hp_height = 500;// ctx->view_state->height;
+		ctx->view_state->hp_width = hp_width;
+		ctx->view_state->hp_height = hp_height;
+		ctx->view_state->hp_cpu_buffer.resize(hp_width * hp_height * 4);
+		if(ctx->view_state->hp_texture == 0){
+			glGenTextures(1, &ctx->view_state->hp_texture);
+			glBindTexture(GL_TEXTURE_2D,ctx->view_state->hp_texture);
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
+		int user_thread_limit = 8;
 
-		glUniform1uiv(glGetUniformLocation(pid, "u_center_x_limb"), NUMBER_OF_LIMBS, cx.limb.data());
-        glUniform1i(glGetUniformLocation(pid, "u_center_x_sign"), cx.sign);
+		vector<TokenOperator> stack = parser::parse(ctx->function_state->expression);
 
-		glUniform1uiv(glGetUniformLocation(pid, "u_center_y_limb"), NUMBER_OF_LIMBS, cy.limb.data());
-        glUniform1i(glGetUniformLocation(pid, "u_center_y_sign"), cy.sign);
-		std::cout << "here\n";
-		glUniform1uiv(glGetUniformLocation(pid, "u_zoom_limb"), NUMBER_OF_LIMBS, z.limb.data());
-        glUniform1i(glGetUniformLocation(pid, "u_zoom_sign"), z.sign);
-
-        glBindVertexArray(ctx->VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		std::cout << "here\n";
-        ctx->view_state->wants_high_precision = false;
+		dispatch_render(hp_width, hp_height,ctx->view_state->hp_cpu_buffer.data(),(ctx->interpreter),user_thread_limit,stack,ctx->view_state);		
+		glBindTexture(GL_TEXTURE_2D, ctx->view_state->hp_texture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, hp_width, hp_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, ctx->view_state->hp_cpu_buffer.data());
+		
+		ctx->view_state->wants_high_precision = false;
 		ctx->view_state->is_high_precision = true;
+		
 	}
 	glViewport(0, 0, (int)ctx->view_state->width, (int)ctx->view_state->height);
 
@@ -284,6 +258,7 @@ void main_loop_step(AppContext* ctx) {
 				ctx->function_state->current_shader = &(ctx->compiled_shader->shader);
 			}
 		}
+
 		std::cout << "Switched to " << (ctx->view_state->is_3d ? "3D" : "2D") << std::endl;
 	}
 
@@ -388,7 +363,7 @@ int main() {
 	unsigned int picker_tex, picker_fbo;
 
 	init_picker(picker_tex,picker_fbo);
-
+	CPU_Interpreter interpreter;
 	static AppContext ctx;
 	ctx.window = window;
 	ctx.view_state = &view_state;
@@ -402,6 +377,7 @@ int main() {
 	ctx.VAO = VAO;
 	ctx.picker_fbo = picker_fbo;
 	ctx.pressing_t = false;
+	ctx.interpreter = interpreter;
 
 	glfwSetWindowUserPointer(window, &view_state);
 	glfwSetScrollCallback(window, scroll_callback);

@@ -10,3 +10,4 @@ docs/manim/build.bat
 build-web
 *emsdk
 ./emsdk
+boost_1_84_0/

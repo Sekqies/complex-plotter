@@ -1,51 +1,3 @@
-#version 300 es
-precision highp float;
-precision highp int;
-precision highp sampler2D;
-precision highp usampler2D;
-
-
-
-// Other useful constants
-
-
-#define CONSTANT_DEFINITIONS HERE
-
-vec2 vector_floor(vec2 z){
-    return floor(z);
-}
-
-const float PI = 3.141591f;
-const float TWO_PI_OVER_3 = 2.0f*PI*0.66666f;
-const float TWO_OVER_PI = 2.0f / PI;
-
-const vec2 ZERO = vec2(0.0,0.0);
-const vec2 CPI = vec2(PI,0.0f);
-const vec2 ONE = vec2(1.0f,0.0f);
-const vec2 MINUS_ONE = vec2(-1.0f,0.0f);
-const vec2 I = vec2(0.0f,1.0f);
-
-#define END_CONSTANT_DEFINITIONS HERE
-
-in vec2 pos;
-out vec4 FragColor;
-
-
-#define UNIFORM_DECLARATIONS HERE
-
-uniform vec2 u_resolution;
-uniform float u_range;
-uniform vec2 shift;
-uniform float time;
-uniform bool show_grid;
-uniform bool warp_grid;
-
-#define END_UNIFORM_DECLARATIONS HERE
-
-#define FUNCTION_DEFINITIONS HERE
-
-#define ELEMENTARY_FUNCTION_DEFINITIONS HERE
-
 
 vec2 cadd(vec2 a, vec2 b){
     return vec2(a.x+b.x,a.y + b.y);
@@ -240,6 +192,7 @@ vec2 im(vec2 z){
 
 const int GAMMA_PRECISION = 7;
 
+const float INF = 1.0/0.0;
 
 const float GAMMA_COEFFICIENTS[7] = float[](
     1.000000000190015, 76.18009172947146, -86.50532032941677,
@@ -317,85 +270,4 @@ vec2 czeta(vec2 s){
     else {
         return czeta_negative_branch(s);
     }
-}
-
-
-
-#define END_FUNCTION_DEFINITIONS HERE
-
-
-#define INTERPRETER_SPECIFIC_FUNCTIONS HERE
-
-#define START_WRITING_HERE HERE
-
-uniform usampler2D operator_stack;
-uniform sampler2D constant_stack;
-
-vec2 run_stack(in usampler2D operator_stack, in sampler2D constant_stack, in vec2 z);
-
-#define INTERPRETER_DEFINITION HERE
-
-#define END_INTERPRETER_SPECIFIC_FUNCTIONS HERE
-
-#define COLOR_FUNCTIONS HERE
-
-vec3 hsl2rgb(vec3 hsl) {
-    vec3 rgb = clamp(abs(mod(hsl.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
-    return hsl.z + hsl.y * (rgb - 0.5) * (1.0 - abs(2.0 * hsl.z - 1.0));
-}
-
-vec3 domain_color(in vec2 z){
-    float angle = atan(z.y,z.x);
-    float hue = (angle/(2.0 * PI));
-    float light = (TWO_OVER_PI) * atan(length(z));
-    return vec3(hue,1.0f,light);
-}
-
-#define END_COLOR_FUNCTIONS HERE
-
-vec2 convert_coordinates(in vec2 pos, in vec2 resolution, in float range){
-    return range * (pos - 0.5f * resolution)/resolution.y;
-}
-
-
-
-
-void main(){
-    //vec2 func_value = run_stack(operator_stack,constant_stack,pos);
-    vec2 z = convert_coordinates(gl_FragCoord.xy,u_resolution,u_range) + shift;
-    
-    #define INTERPRETER_ASSIGNEMENT HERE
-    vec2 func_value = run_stack(operator_stack,constant_stack,z);
-    func_value = clamp(func_value, -1e38, 1e38);
-    #define END_INTERPRETER_ASSIGNEMENT HERE
-    
-    #define INJECTION_POINT HERE
-    
-    vec3 hsl = domain_color(func_value);
-
-    if(show_grid){
-        vec2 target = z;
-        if(warp_grid) target = func_value;
-        const float axis_width = 1.5f;
-        const float grid_width = 1.0f;
-        
-        vec2 df = fwidth(target);
-
-        vec2 grid_dist = abs(fract(target+0.5f)-0.5f);
-        vec2 grid_px = grid_dist/df;
-        float grid_val = min(grid_px.x,grid_px.y);
-
-        vec2 axis_px = abs(target) / df;
-        float axis_val = min(axis_px.x, axis_px.y);
-
-        float grid_alpha = 1.0 - smoothstep(0.0, grid_width, grid_val);
-        float axis_alpha = 1.0 - smoothstep(0.0, axis_width, axis_val);
-
-        vec3 grid_color = vec3(0.0);
-
-        hsl = mix(hsl, grid_color, grid_alpha * 0.3);
-        hsl = mix(hsl, grid_color, axis_alpha * 0.9);
-    }
-
-    FragColor = vec4(hsl2rgb(hsl),1.0f);
 }

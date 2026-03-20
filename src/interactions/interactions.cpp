@@ -17,30 +17,28 @@ void scroll_callback(GLFWwindow* window, const double xoffset, const double yoff
     float u = (static_cast<float>(x) - state->width * 0.5f) / state->height;
     float v = (state->height * 0.5f - static_cast<float>(y)) / state->height;
 
-    number hp_u = float_to_number(u);
-    number hp_v = float_to_number(v);
-    number hp_zoom_factor = float_to_number(0.9f);
+    big_float hp_u = big_float(u);
+    big_float hp_v = big_float(v);
+    big_float hp_zoom_factor = big_float(0.9f);
 
-    number prev_hp_range = state->hp_range;
+    big_float prev_hp_range = state->hp_range;
 
     if (yoffset > 0) {
-        state->hp_range = hp_mult(state->hp_range, hp_zoom_factor);
+        state->hp_range = state->hp_range * hp_zoom_factor;;
     }
     else {
-        state->hp_range = hp_div(state->hp_range, hp_zoom_factor);
+        state->hp_range = state->hp_range / hp_zoom_factor;
     }
 
     if (state->is_3d) return;
 
-    number hp_range_diff = hp_sub(prev_hp_range, state->hp_range);
-    state->hp_shift.x = hp_add(state->hp_shift.x, hp_mult(hp_range_diff, hp_u));
-    state->hp_shift.y = hp_add(state->hp_shift.y, hp_mult(hp_range_diff, hp_v));
+    big_float hp_range_diff = prev_hp_range -  state->hp_range;
+    state->hp_shift.x = state->hp_shift.x + hp_range_diff * hp_u;
+    state->hp_shift.y = state->hp_shift.y + hp_range_diff * hp_v;
 
-    state->range = number_to_float(state->hp_range);
-    state->shift.x = number_to_float(state->hp_shift.x);
-    state->shift.y = number_to_float(state->hp_shift.y);
-    std::cout << "Range,shift.x,shift.y: " << state->range << " " << state->shift.x << " " << state->shift.y << '\n';
-    std::cout << "mouse coordinates: " << u << " " << v << '\n';
+    state->range = static_cast<float>(state->hp_range);
+    state->shift.x = static_cast<float>(state->hp_shift.x);
+    state->shift.y = static_cast<float>(state->hp_shift.y);
 }
 
 void mouse_button_callback(GLFWwindow* window, const int button, int action, int mods) {
@@ -73,22 +71,18 @@ void cursor_position_callback(GLFWwindow* window, const double xpos, const doubl
         return;
     }
 
-    // 1. Calculate HP scale (range / height)
-    // Optimization: Use multiplication by inverse height instead of full Knuth division
     float inv_height = 1.0f / state->height;
-    number hp_inv_height = float_to_number(inv_height);
-    number hp_scale = hp_mult(state->hp_range, hp_inv_height);
+    big_float hp_inv_height = big_float(inv_height);
+    big_float hp_scale = state->hp_range - hp_inv_height;
 
-    number hp_delta_x = float_to_number(delta.x);
-    number hp_delta_y = float_to_number(delta.y);
+    big_float hp_delta_x = big_float(delta.x);
+    big_float hp_delta_y = big_float(delta.y);
 
-    // 2. Update HP Shift: shift.x -= delta.x * scale, shift.y += delta.y * scale
-    state->hp_shift.x = hp_sub(state->hp_shift.x, hp_mult(hp_delta_x, hp_scale));
-    state->hp_shift.y = hp_add(state->hp_shift.y, hp_mult(hp_delta_y, hp_scale));
+    state->hp_shift.x = state->hp_shift.x - hp_delta_x * hp_scale;
+    state->hp_shift.y = state->hp_shift.y - hp_delta_y * hp_scale;
 
-    // 3. Downconvert for standard shaders and UI
-    state->shift.x = number_to_float(state->hp_shift.x);
-    state->shift.y = number_to_float(state->hp_shift.y);
+    state->shift.x = static_cast<double>(state->hp_shift.x);
+    state->shift.y = static_cast<double>(state->hp_shift.y);
 }
 
 void window_size_callback(GLFWwindow* window, const int width, const int height) {

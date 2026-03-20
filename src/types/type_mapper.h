@@ -13,3 +13,5 @@ TokenOperator get_token_operator(const Operator op);
 
 TokenOperator get_token_operator(const std::string& rep);
 
+TokenOperator get_token_operator_from_glsl(const std::string& glsl_rep);
+

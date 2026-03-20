@@ -54,3 +54,16 @@ TokenOperator get_token_operator(const std::string& rep) {
 	return get_full_operator(rep).token_operator;
 }
 
+
+std::map<std::string,TokenOperator> init_glsl_map(){
+	std::map<std::string,TokenOperator> m;
+	for(const FullOperator& fp : full_operators){
+		m[fp.gl_name] = fp.token_operator;
+	}
+	return m;
+}
+
+TokenOperator get_token_operator_from_glsl(const std::string& rep){
+	static const std::map<std::string, TokenOperator> m = init_glsl_map();
+	return m.at(rep);
+}

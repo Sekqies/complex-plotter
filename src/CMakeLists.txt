@@ -1,7 +1,21 @@
+add_executable(math-transpiler "generate_cpp_complex_functions.cpp")
+
+set(TRANSPILED_MATH_H "${CMAKE_CURRENT_SOURCE_DIR}/glsl_generated/generated_big_math.h")
+set(TRANSPILED_MAPPER_CPP "${CMAKE_CURRENT_SOURCE_DIR}/glsl_generated/generated_math_mapper.cpp")
+set(MATH_GLSL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/shaders/complex_functions.frag")
+
+add_custom_command(
+    OUTPUT ${TRANSPILED_MATH_H} ${TRANSPILED_MAPPER_CPP}
+    COMMAND math-transpiler ${MATH_GLSL_SRC} "${CMAKE_CURRENT_SOURCE_DIR}/glsl_generated"
+    DEPENDS math-transpiler ${MATH_GLSL_SRC}
+    COMMENT "[Custom] Transpiling high-precision GLSL to C++"
+)
+
 set(SOURCE_FILES 
     "graphics/graphics.cpp"
     "graphics/graphics.h"
- "types/types.h" "parser/tokenizer.h" "parser/checker.h" "parser/rpn.h" "parser/parser.h" "parser/checker.cpp" "parser/parser.cpp" "parser/rpn.cpp" "parser/tokenizer.cpp" "parser/simplifier.h" "parser/simplifier.cpp" "transformer/constant.h" "transformer/constant.cpp" "preprocessor/preprocessor.h" "preprocessor/string_builder.h"  "transformer/operator.h" "transformer/operator.cpp" "transformer/transformer.h" "transformer/transformer.cpp" "preprocessor/string_builder.cpp" "preprocessor/preprocessor.cpp" "interactions/interactions.h" "interactions/interactions.cpp" "parser/validator.cpp" "parser/validator.h" "graphics/ui_init.h" "graphics/ui_init.cpp" "graphics/ui.h" "graphics/ui.cpp"  "types/type_mapper.h"  "types/type_mapper.cpp" "compiler/compiler_shader.h" "compiler/compiler_shader.cpp" "transformer/tree.h" "transformer/tree.cpp" "higher_order/derivative.h" "higher_order/higher_order.h" "higher_order/derivative.cpp" "higher_order/higher_order.cpp" "graphics/3d/mesh.h" "graphics/3d/mesh.cpp" "graphics/3d/camera_state.h" "graphics/3d/camera_state.cpp" "graphics/picker.cpp" "glad_include_guard.h" "interactions/export.h" "preprocessor/transpiler.cpp" "preprocessor/transpiler.h" "glsl_transpiled/glsl_big_number.h" "glsl_transpiled/glsl_types.h" "glsl_transpiled/glsl_constants.h" "glsl_transpiled/glsl_big_number.cpp" "high_precision/high_precision_constant.h" "high_precision/high_precision_constant.cpp")
+ "types/types.h" "parser/tokenizer.h" "parser/checker.h" "parser/rpn.h" "parser/parser.h" "parser/checker.cpp" "parser/parser.cpp" "parser/rpn.cpp" "parser/tokenizer.cpp" "parser/simplifier.h" "parser/simplifier.cpp" "transformer/constant.h" "transformer/constant.cpp" "preprocessor/preprocessor.h" "preprocessor/string_builder.h"  "transformer/operator.h" "transformer/operator.cpp" "transformer/transformer.h" "transformer/transformer.cpp" "preprocessor/string_builder.cpp" "preprocessor/preprocessor.cpp" "interactions/interactions.h" "interactions/interactions.cpp" "parser/validator.cpp" "parser/validator.h" "graphics/ui_init.h" "graphics/ui_init.cpp" "graphics/ui.h" "graphics/ui.cpp"  "types/type_mapper.h"  "types/type_mapper.cpp" "compiler/compiler_shader.h" "compiler/compiler_shader.cpp" "transformer/tree.h" "transformer/tree.cpp" "higher_order/derivative.h" "higher_order/higher_order.h" "higher_order/derivative.cpp" "higher_order/higher_order.cpp" "graphics/3d/mesh.h" "graphics/3d/mesh.cpp" "graphics/3d/camera_state.h" "graphics/3d/camera_state.cpp" "graphics/picker.cpp" "glad_include_guard.h" "interactions/export.h" "preprocessor/transpiler.cpp" "preprocessor/transpiler.h" "glsl_generated/types.h"
+ "glsl_transpiled/glsl_big_number.h" "glsl_transpiled/glsl_types.h" "glsl_transpiled/glsl_constants.h" "glsl_transpiled/glsl_big_number.cpp" "high_precision/high_precision_constant.h" "high_precision/high_precision_constant.cpp" "cpu_drawing/cpu_render.h" "cpu_drawing/cpu_render.cpp")
 set(SHADERS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 set(HEADER_BUILD "${CMAKE_CURRENT_BINARY_DIR}/shaders/embedded_shaders.h")
 set(HEADER_SRC   "${CMAKE_CURRENT_SOURCE_DIR}/shaders/embedded_shaders.h")
@@ -31,7 +45,7 @@ add_custom_command(
 )
 
 
-add_executable(complex-plotter ${SOURCE_FILES} ${HEADER_SRC} "main.cpp" "interactions/export.cpp")
+add_executable(complex-plotter ${SOURCE_FILES} ${HEADER_SRC} "main.cpp" ${TRANSPILED_MAPPER_CPP})
 
 if(NOT EMSCRIPTEN)
     find_package(OpenGL REQUIRED)
@@ -43,6 +57,7 @@ if(EMSCRIPTEN)
         glm::glm    
         learnopengl
         imgui
+        boost_headers
     )
 else()
     target_link_libraries(complex-plotter PRIVATE 
@@ -52,6 +67,7 @@ else()
         OpenGL::GL
         learnopengl
         imgui
+        boost_headers
     )
 endif()
 
@@ -74,6 +90,7 @@ target_include_directories(complex-plotter PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR} 
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/../dependencies/learnopengl/include" 
+    "${CMAKE_CURRENT_SOURCE_DIR}/../dependencies/boost"
     "."
 )
 

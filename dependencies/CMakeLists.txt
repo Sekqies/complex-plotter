@@ -8,6 +8,10 @@ FetchContent_Declare(
     GIT_TAG        docking  
 )
 
+
+add_library(boost_headers INTERFACE)
+target_include_directories(boost_headers INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/boost_1_84_0")
+
 if(NOT EMSCRIPTEN)
     FetchContent_Declare(
         glfw
@@ -43,7 +47,7 @@ add_library(learnopengl
     "learnopengl/src/shader.cpp"
     "learnopengl/include/shader/shader.h"
     "learnopengl/include/stb_image/stb_image.h" 
-    "learnopengl/src/stb_image.cpp" "learnopengl/include/camera/camera.h" "learnopengl/src/camera.cpp" "learnopengl/include/VAO/VAO.h" "learnopengl/include/VBO/VBO.h" "learnopengl/src/VAO.cpp" "learnopengl/src/VBO.cpp" "learnopengl/include/texture/texture.h" "learnopengl/src/texture.cpp" "learnopengl/include/stb_image/stb_image_write.h" "learnopengl/src/stb_image_write.cpp" "learnopengl/include/emscripten_browser_clipboard.h")
+    "learnopengl/src/stb_image.cpp" "learnopengl/include/camera/camera.h" "learnopengl/src/camera.cpp" "learnopengl/include/VAO/VAO.h" "learnopengl/include/VBO/VBO.h" "learnopengl/src/VAO.cpp" "learnopengl/src/VBO.cpp" "learnopengl/include/texture/texture.h" "learnopengl/src/texture.cpp" "learnopengl/include/stb_image/stb_image_write.h" "learnopengl/src/stb_image_write.cpp" "learnopengl/include/emscripten_browser_clipboard.h" )
 
 target_include_directories(learnopengl PUBLIC learnopengl/include)
 if(EMSCRIPTEN)
