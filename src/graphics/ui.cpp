@@ -405,26 +405,23 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
         ImGui::EndPopup();
     }
     if (view_state.is_high_precision) {
-    ImGui::Begin("High Precision Render", &view_state.is_high_precision, ImGuiWindowFlags_AlwaysAutoResize);
-    
-    if (view_state.hp_texture != 0) {
-        ImGui::Text("Resolution: %dx%d", view_state.width, view_state.height);
-        
-        ImGui::Image(
-            (void*)(intptr_t)view_state.hp_texture, 
-            ImVec2((float)view_state.hp_height, (float)view_state.hp_width), 
-            ImVec2(0, 0), 
-            ImVec2(1, 1)
-        );
-        
-        if (ImGui::Button("Save to PNG")) {
+        ImGui::Begin("High Precision Render", &view_state.is_high_precision, ImGuiWindowFlags_AlwaysAutoResize);
+        if (view_state.hp_texture != 0) {
+            glBindTexture(GL_TEXTURE_2D, view_state.hp_texture);
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, view_state.hp_width, view_state.hp_height, GL_RGBA, GL_UNSIGNED_BYTE, view_state.hp_cpu_buffer.data());
+            ImGui::Text("Resolution: %dx%d", view_state.width, view_state.height);
+            ImGui::Image(
+                (void*)(intptr_t)view_state.hp_texture, 
+                ImVec2((float)view_state.hp_height, (float)view_state.hp_width), 
+                ImVec2(0, 0), 
+                ImVec2(1, 1)
+            );
+            if (ImGui::Button("Save to PNG")) {
+            }
+        } else {
+            ImGui::Text("Generating high precision render... please wait.");
         }
-    } else {
-        ImGui::Text("Generating high precision render... please wait.");
+        ImGui::End();
     }
-    
-    ImGui::End();
-}
-
     ImGui::End();
 }

@@ -1,14 +1,27 @@
-Problem!
+ARBITRARY PRECISION IS UPON US!
 
-Currently, our Ultra High Precision Mode math library is written in a functional manner. This means that all functions are pure, beautiful and return things. This allows us to transform operations like `x * (y + z)` nicely into `hp_mult(x,hp_add(y,z))`
+Keeping things short, I tried, and failed, to implement my own GPU, GLSL arbitrary precision math library. Why? Because nobody else has! And for good reason.
+- First, I built the math library in a functional way `(add(x,y) -> z)`. This causes the GPU to run out of registers, because returning arrays means allocating temporary memory
+- Then, I rewrote the entire library to use 16 global registers, and by mutating a third input `(add(x,y,z) -> void)`. This worked at first, but for minimally nested functions (like `cos(sin(z))`), the GPU tries, and fails, to unroll the loops. So the shader doesn't compile
+- To fix that, I once again optimized the library and added flags for the GPU not to unroll. _then_ we run into a problem where the _assembly_ becomes too large. To my knowledge there is no practical solution for this.
 
-The problem is that GLSL really doesn't like when we return arrays, and nesting functions _also_ introduce multiple temporary variables, which occupate registers. It would much rather have this expression turned into `number expr; hp_add(y,z,expr); hp_mult(expr,x);`. It _also, also_ dislikes temporary variables being allocated in functions.
+At this point, I realized that true arbitrary precision is impossible in the GPU. Thankfully, GLSL translates pretty neatly to C++, so I could just, at build step, transform my complex functions into C++, and do all my arbitrary precision in the CPU!
 
-To fix this, we have to write our code like assembly! This means that we'll have to keep a list of global registers that are used whenever needed by a function, and we do composition on these registers!
+It is very slow, but it's meant for very high detail images. So, completely fine! Attached, some plots!
 
-This means lots of work ahead:
+**Commits**
+[2895bc0](https://url.jam06452.uk/2cwiyv): UHPM renders, but not properly
+[6d39bca](https://url.jam06452.uk/px4ufa): UHPM works, but not for big expressions
+[5d96733](https://url.jam06452.uk/154kn6z): High precision zooming
+[43e4423](https://url.jam06452.uk/s0xmt3): GPU to CPU transpiling
+[f262c96](https://url.jam06452.uk/137or8f): CPU rendering!
 
-1. Change math library to use `inout` rather than `return`
-2. Change transpiler to expand nested expressions
-3. Change `generate_glsl_string` to expand nested expressions
-4. Rewrite transpiler to automatically use registers
+**Issues**
+[#Issue #40](.): Arbitrary precision in the CPU
+[Issue #41](.): GLSL to C++ Transpiler
+    -[#48](.): Synchronizing GLSL and C++ functions
+    -[#49](.): Running shaders in the CPU
+[Issue #50](.): Reoptimize UHPM 
+    -[#51](.): Rewrite math library to use inout
+    -[#52](.): Expanding nested expressions in transpiler #52
+    -[#53](.): Using registers in transpiler #53

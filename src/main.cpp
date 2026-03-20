@@ -64,6 +64,7 @@ struct AppContext {
 	CPU_Interpreter interpreter;
 	Shader* picker;
 	Mesh* grid_mesh;
+	std::vector<TokenOperator> stack;
 	unsigned int VAO;
 	unsigned int picker_fbo;
 	bool pressing_t;
@@ -199,8 +200,8 @@ void main_loop_step(AppContext* ctx) {
 	init_imgui_loop();
 
 	if(ctx->view_state->wants_high_precision){
-		const int hp_width = 100;//ctx->view_state->width;
-		const int hp_height = 100;// ctx->view_state->height;
+		const int hp_width = 700;//ctx->view_state->width;
+		const int hp_height = 700;// ctx->view_state->height;
 		ctx->view_state->hp_width = hp_width;
 		ctx->view_state->hp_height = hp_height;
 		ctx->view_state->hp_cpu_buffer.resize(hp_width * hp_height * 4);
@@ -212,11 +213,14 @@ void main_loop_step(AppContext* ctx) {
 		}
 		int user_thread_limit = 8;
 
-		vector<TokenOperator> stack = parser::parse(ctx->function_state->expression);
+		std::fill(ctx->view_state->hp_cpu_buffer.begin(), ctx->view_state->hp_cpu_buffer.end(), 30);
 
-		dispatch_render(hp_width, hp_height,ctx->view_state->hp_cpu_buffer.data(),(ctx->interpreter),user_thread_limit,stack,ctx->view_state);		
+		ctx->stack = parser::parse(ctx->function_state->expression);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, hp_width, hp_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+		dispatch_render(hp_width, hp_height,ctx->view_state->hp_cpu_buffer.data(),(ctx->interpreter),user_thread_limit,ctx->stack,ctx->view_state, ctx->view_state->is_rendering_hp, ctx->view_state->hp_rows_completed);		
 		glBindTexture(GL_TEXTURE_2D, ctx->view_state->hp_texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, hp_width, hp_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, ctx->view_state->hp_cpu_buffer.data());
 		
 		ctx->view_state->wants_high_precision = false;
 		ctx->view_state->is_high_precision = true;

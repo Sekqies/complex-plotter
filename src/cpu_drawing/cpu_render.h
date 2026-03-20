@@ -100,7 +100,7 @@ std::array<uint8_t, 3> domain_color(const big_vec2& z) {
     return std::array<uint8_t, 3>{static_cast<uint8_t>(r * 255.0), static_cast<uint8_t>(g * 255.0), static_cast<uint8_t>(b * 255.0)};
 }
 
-void render_band(int start_y, int end_y, int width, int height, unsigned char* pixel_buffer, const CPU_Interpreter& interpreter, const std::vector<TokenOperator>& stack, const ViewState* view_state) {
+void render_band(int start_y, int end_y, int width, int height, unsigned char* pixel_buffer, const CPU_Interpreter& interpreter, const std::vector<TokenOperator>& stack, const ViewState* view_state, std::atomic<int>& rows_completed) {
     for (int y = start_y; y < end_y; ++y) {
         for (int x = 0; x < width; ++x) {
             
@@ -119,31 +119,41 @@ void render_band(int start_y, int end_y, int width, int height, unsigned char* p
             pixel_buffer[index + 2] = color_val[2];
             pixel_buffer[index + 3] = 255;
         }
+        rows_completed++;
     }
 }
 
-void dispatch_render(int width, int height, unsigned char* pixel_buffer, CPU_Interpreter& interpreter, int user_thread_limit, const std::vector<TokenOperator>& stack, const ViewState* view_state) {
-    int hardware_threads = std::thread::hardware_concurrency();
-    if (hardware_threads == 0) hardware_threads = 4;
+void dispatch_render(int width, int height, unsigned char* pixel_buffer, CPU_Interpreter& interpreter, int user_thread_limit, std::vector<TokenOperator> stack, const ViewState* view_state, std::atomic<bool>& is_rendering, std::atomic<int>& rows_completed) {
+    if (is_rendering) return;
 
-    int num_threads = std::min(hardware_threads, user_thread_limit);
-    if (num_threads < 1) num_threads = 1;
+    is_rendering = true;
+    rows_completed = 0;
 
-    std::vector<std::thread> threads;
-    int rows_per_thread = height / num_threads;
+    std::thread([=, &interpreter, &is_rendering, &rows_completed]() {
+        int hardware_threads = std::thread::hardware_concurrency();
+        if (hardware_threads == 0) hardware_threads = 4;
 
-    for (int i = 0; i < num_threads; ++i) {
-        int start_y = i * rows_per_thread;
-        int end_y = (i == num_threads - 1) ? height : start_y + rows_per_thread;
-        threads.emplace_back(
-            render_band,
-            start_y, end_y, width, height,
-            pixel_buffer, std::ref(interpreter), std::ref(stack), view_state
-        );
-    }
-    for (auto& t : threads) {
-        if (t.joinable()) {
-            t.join();
+        int num_threads = std::min(hardware_threads, user_thread_limit);
+        if (num_threads < 1) num_threads = 1;
+
+        std::vector<std::thread> threads;
+        int rows_per_thread = height / num_threads;
+
+        for (int i = 0; i < num_threads; ++i) {
+            int start_y = i * rows_per_thread;
+            int end_y = (i == num_threads - 1) ? height : start_y + rows_per_thread;
+            threads.emplace_back(
+                render_band,
+                start_y, end_y, width, height,
+                pixel_buffer, std::ref(interpreter), std::ref(stack), view_state, std::ref(rows_completed)
+            );
         }
-    }
+
+        for (auto& t : threads) {
+            if (t.joinable()) t.join();
+        }
+
+        is_rendering = false;
+
+        }).detach();
 }
