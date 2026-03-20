@@ -195,8 +195,8 @@ void main_loop_step(AppContext* ctx) {
 	init_imgui_loop();
 
 	if(ctx->view_state->wants_high_precision){
-		const float hp_width = ctx->view_state->width;
-		const float hp_height = ctx->view_state->height;
+		const float hp_width = 800;//ctx->view_state->width;
+			const float hp_height = 600;// ctx->view_state->height;
 		//NUMBER_OF_LIMBS = 8;
 		if (ctx->view_state->hp_fbo == 0) {
             glGenFramebuffers(1, &ctx->view_state->hp_fbo);

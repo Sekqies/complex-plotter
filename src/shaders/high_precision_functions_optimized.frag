@@ -5,10 +5,10 @@ hp_vec2 E_V[4];
 uint EXT_MULT_REG[NUMBER_OF_LIMBS + FRACTIONAL_SIZE];
 uint U_HALVES_REG[NUMBER_OF_LIMBS * 2 + FRACTIONAL_SIZE * 2 + 1];
 
-
 void hp_neg(in number a, out number res) {
-    res = a;
-    res.sign *= -1;
+    R[0] = a;
+    R[0].sign *= -1;
+    res = R[0];
 }
 
 void hi(in uint a, out uint res) {
@@ -50,43 +50,48 @@ void sum_with_carry(in uint a, in uint b, out uvec2 res) {
 }
 
 void abs_sum(in number a, in number b, out number res) {
-    res = REAL_ZERO;
+    R[0] = REAL_ZERO;
     uint carry = 0u;
     for (int i = 0; i < NUMBER_OF_LIMBS; ++i) {
         uvec2 step1 = uvec2(0u);
         uvec2 step2 = uvec2(0u);
         sum_with_carry(a.limb[i], b.limb[i], step1);
         sum_with_carry(step1.x, carry, step2);
-        res.limb[i] = step2.x;
+        R[0].limb[i] = step2.x;
         carry = step1.y + step2.y;
     }
+    res = R[0];
 }
 
 void abs_hp_sub(in number a, in number b, out number res) {
-    res = REAL_ZERO;
+    R[0] = REAL_ZERO;
     uint borrow = 0u;
     for (int i = 0; i < NUMBER_OF_LIMBS; ++i) {
         uint sub = a.limb[i] - b.limb[i] - borrow;
         borrow = uint((a.limb[i] < b.limb[i] || (a.limb[i] == b.limb[i] && borrow > 0u)));
-        res.limb[i] = sub;
+        R[0].limb[i] = sub;
     }
+    res = R[0];
 }
 
 void hp_add(in number a, in number b, out number res) {
     if (a.sign == b.sign) {
-        abs_sum(a, b, res);
-        res.sign = a.sign;
+        abs_sum(a, b, R[1]);
+        R[1].sign = a.sign;
+        res = R[1];
         return;
     }
     int cmp = 0;
     compare_abs(a, b, cmp);
     if (cmp >= 0) {
-        abs_hp_sub(a, b, res);
-        res.sign = a.sign;
+        abs_hp_sub(a, b, R[1]);
+        R[1].sign = a.sign;
+        res = R[1];
         return;
     }
-    abs_hp_sub(b, a, res);
-    res.sign = b.sign;
+    abs_hp_sub(b, a, R[1]);
+    R[1].sign = b.sign;
+    res = R[1];
 }
 
 void hp_sub(in number a, in number b, out number res) {
@@ -127,8 +132,8 @@ void product_with_remainder(in uint a, in uint b, out uvec2 res) {
 }
 
 void hp_mult(in number a, in number b, out number res) {
-    res = REAL_ZERO;
-    res.sign = a.sign * b.sign;
+    R[0] = REAL_ZERO;
+    R[0].sign = a.sign * b.sign;
     
     bool a_zero = false;
     bool b_zero = false;
@@ -136,10 +141,12 @@ void hp_mult(in number a, in number b, out number res) {
     is_zero(b, b_zero);
     
     if (a_zero || b_zero) {
+        res = R[0];
         return;
     }
     if (a.is_infinite || b.is_infinite) {
-        res.limb = INFINITY.limb;
+        R[0].limb = INFINITY.limb;
+        res = R[0];
         return;
     }
 
@@ -179,12 +186,13 @@ void hp_mult(in number a, in number b, out number res) {
     }
 
     for (int i = 0; i < NUMBER_OF_LIMBS; ++i) {
-        res.limb[i] = EXT_MULT_REG[i + FRACTIONAL_SIZE];
+        R[0].limb[i] = EXT_MULT_REG[i + FRACTIONAL_SIZE];
     }
 
     bool z_c = false;
-    is_zero(res, z_c);
-    res.sign = res.sign * int(!z_c);
+    is_zero(R[0], z_c);
+    R[0].sign = R[0].sign * int(!z_c);
+    res = R[0];
 }
 
 void shift_left(in number a, in int shift, out number res) {
@@ -196,10 +204,11 @@ void shift_left(in number a, in int shift, out number res) {
     int limb_shift = shift / 32;
     int bit_shift = shift % 32;
     
-    res = REAL_ZERO;
-    res.sign = a.sign;
+    R[0] = REAL_ZERO;
+    R[0].sign = a.sign;
 
     if (limb_shift >= NUMBER_OF_LIMBS) {
+        res = R[0];
         return;
     }
 
@@ -210,8 +219,9 @@ void shift_left(in number a, in int shift, out number res) {
         if (source > 0 && bit_shift > 0) {
             val |= a.limb[source - 1] >> (32 - bit_shift);
         }
-        res.limb[i] = val;
+        R[0].limb[i] = val;
     }
+    res = R[0];
 }
 
 void shift_right(in number a, in int shift, out number res) {
@@ -223,10 +233,11 @@ void shift_right(in number a, in int shift, out number res) {
     int limb_shift = shift >> 5;
     int bit_shift = shift % 32;
     
-    res = REAL_ZERO;
-    res.sign = a.sign;
+    R[0] = REAL_ZERO;
+    R[0].sign = a.sign;
 
     if (limb_shift >= NUMBER_OF_LIMBS) {
+        res = R[0];
         return;
     }
     for (int i = 0; i < NUMBER_OF_LIMBS - limb_shift; ++i) {
@@ -236,8 +247,9 @@ void shift_right(in number a, in int shift, out number res) {
         if (source < NUMBER_OF_LIMBS - 1 && bit_shift > 0) {
             val |= a.limb[source + 1] << (32 - bit_shift);
         }
-        res.limb[i] = val;
+        R[0].limb[i] = val;
     }
+    res = R[0];
 }
 
 void find_msb(in number a, out int res) {
@@ -281,8 +293,8 @@ void set_half(inout number a, in int index, in uint val) {
 }
 
 void mult_scalar_16(in number a, in uint b_16, out number res) {
-    res = REAL_ZERO;
-    res.sign = a.sign;
+    R[0] = REAL_ZERO;
+    R[0].sign = a.sign;
     uint carry = 0u;
     
     for (int i = 0; i < NUMBER_OF_LIMBS; ++i) {
@@ -293,30 +305,32 @@ void mult_scalar_16(in number a, in uint b_16, out number res) {
         product_with_remainder(a.limb[i], b_16, prod);
         sum_with_carry(prod.x, carry, hp_add1);
         
-        res.limb[i] = hp_add1.x;
+        R[0].limb[i] = hp_add1.x;
         carry = prod.y + hp_add1.y;
     }
+    res = R[0];
 }
 
 void hp_div(in number n, in number d, out number res) {
-    res = REAL_ZERO;
-    res.sign = n.sign * d.sign;
+    R[2] = REAL_ZERO;
+    R[2].sign = n.sign * d.sign;
 
     bool d_zero = false;
     is_zero(d, d_zero);
     if (d_zero) {
-        res = INFINITY;
+        R[2] = INFINITY;
+        res = R[2];
         return;
     }
-    if (d.is_infinite) { return; }
+    if (d.is_infinite) { res = R[2]; return; }
 
     int msb_d = 0; 
     find_msb(d, msb_d);
-    if (msb_d == -1) { return; }
+    if (msb_d == -1) { res = R[2]; return; }
 
     int msb_n = 0; 
     find_msb(n, msb_n);
-    if (msb_n == -1) { return; }
+    if (msb_n == -1) { res = R[2]; return; }
 
     int MAX_HALVES = int(NUMBER_OF_LIMBS * 2 + FRACTIONAL_SIZE * 2 + 1);
     for (int i = 0; i < MAX_HALVES; ++i) {
@@ -332,7 +346,7 @@ void hp_div(in number n, in number d, out number res) {
     int len_v = (msb_d >> 4) + 1;
     int len_u_unshifted = ((msb_n + FRACTIONAL_SIZE * 32) >> 4) + 1;
 
-    if (len_u_unshifted < len_v) { return; }
+    if (len_u_unshifted < len_v) { res = R[2]; return; }
 
     if (len_v == 1) {
         uint v0 = 0u;
@@ -344,9 +358,10 @@ void hp_div(in number n, in number d, out number res) {
             uint q_i = dividend / v0;
             rem = dividend % v0;
             if (i < NUMBER_OF_LIMBS * 2) {
-                set_half(res, i, q_i);
+                set_half(R[2], i, q_i);
             }
         }
+        res = R[2];
         return;
     }
 
@@ -429,14 +444,15 @@ void hp_div(in number n, in number d, out number res) {
         }
 
         if (j < NUMBER_OF_LIMBS * 2) {
-            set_half(res, j, q_hat);
+            set_half(R[2], j, q_hat);
         }
     }
+    res = R[2];
 }
 
 void div_uint(in number n, in uint d, out number res) {
-    res = REAL_ZERO;
-    res.sign = n.sign;
+    R[0] = REAL_ZERO;
+    R[0].sign = n.sign;
     uint rem = 0u;
     for (int i = NUMBER_OF_LIMBS * 2 - 1; i >= 0; --i) {
         uint half_v = 0u;
@@ -444,13 +460,15 @@ void div_uint(in number n, in uint d, out number res) {
         uint dividend = (rem << 16) | half_v;
         uint q_i = dividend / d;
         rem = dividend % d;
-        set_half(res, i, q_i);
+        set_half(R[0], i, q_i);
     }
+    res = R[0];
 }
 
 void uint_to_number(in uint v, out number res) {
-    res = REAL_ZERO;
-    res.limb[FRACTIONAL_SIZE] = v; 
+    R[0] = REAL_ZERO;
+    R[0].limb[FRACTIONAL_SIZE] = v; 
+    res = R[0];
 }
 
 void float_to_number(in float f, out number res) {
@@ -462,28 +480,30 @@ void float_to_number(in float f, out number res) {
     uint mantissa_bits = f_bits & 0x7FFFFFu;
     
     if (exp_bits == 255u) {
-        res = INFINITY;
-        res.sign = (sign_bit == 1u) ? -1 : 1;
+        R[0] = INFINITY;
+        R[0].sign = (sign_bit == 1u) ? -1 : 1;
+        res = R[0];
         return;
     }
     
     if (exp_bits == 0u) { res = REAL_ZERO; return; } 
 
-    res = REAL_ZERO;
-    res.sign = (sign_bit == 1u) ? -1 : 1;
+    R[0] = REAL_ZERO;
+    R[0].sign = (sign_bit == 1u) ? -1 : 1;
     uint mantissa = mantissa_bits | 0x800000u;
-    res.limb[FRACTIONAL_SIZE] = mantissa;
+    R[0].limb[FRACTIONAL_SIZE] = mantissa;
     
     int shift = int(exp_bits) - 127 - 23;
     
     if (shift > 0) {
-        shift_left(res, shift, R[15]);
-        res = R[15];
+        shift_left(R[0], shift, R[15]);
+        R[0] = R[15];
     } else if (shift < 0) {
         int neg_shift = -shift;
-        shift_right(res, neg_shift, R[15]);
-        res = R[15];
+        shift_right(R[0], neg_shift, R[15]);
+        R[0] = R[15];
     }
+    res = R[0];
 }
 
 void number_to_float(in number n, out float res) {
@@ -524,7 +544,6 @@ void number_to_float(in number n, out float res) {
 
     res = uintBitsToFloat(float_bits);
 }
-
 
 void hp_exp(in number x, out number res) {
     bool is_z = false;
@@ -659,20 +678,21 @@ void hp_floor(in number a, out number res) {
     is_zero(a, is_z);
     if (a.is_infinite || is_z) { res = a; return; }
 
-    res = a;
+    R[0] = a;
     bool has_fraction = false;
 
     for (int i = 0; i < FRACTIONAL_SIZE; ++i) {
-        if (res.limb[i] != 0u) {
+        if (R[0].limb[i] != 0u) {
             has_fraction = true;
-            res.limb[i] = 0u;
+            R[0].limb[i] = 0u;
         }
     }
 
-    if (res.sign == -1 && has_fraction) {
-        hp_sub(res, REAL_ONE, R[15]);
-        res = R[15];
+    if (R[0].sign == -1 && has_fraction) {
+        hp_sub(R[0], REAL_ONE, R[15]);
+        R[0] = R[15];
     }
+    res = R[0];
 }
 
 void hp_mod(in number a, in number b, out number res) {
@@ -700,21 +720,22 @@ void reduce_trig_range(in number x, out number res) {
     get_two_pi_constant(R[4]);
     R[5] = PI;
     
-    hp_mod(x, R[4], res); 
+    hp_mod(x, R[4], R[14]); 
     
     bool is_z = false;
-    is_zero(res, is_z);
-    if (res.sign == -1 && !is_z) {
-        hp_add(res, R[4], R[6]);
-        res = R[6];
+    is_zero(R[14], is_z);
+    if (R[14].sign == -1 && !is_z) {
+        hp_add(R[14], R[4], R[15]);
+        R[14] = R[15];
     }
     
     int cmp = 0;
-    compare_abs(res, R[5], cmp);
+    compare_abs(R[14], R[5], cmp);
     if (cmp == 1) { 
-        hp_sub(res, R[4], R[6]);
-        res = R[6];
+        hp_sub(R[14], R[4], R[15]);
+        R[14] = R[15];
     }
+    res = R[14];
 }
 
 void hp_sin(in number x, out number res) {
@@ -891,21 +912,21 @@ void hp_length(in hp_vec2 z, out number res) {
 }
 
 void hp_sinh(in number x, out number res) {
-    hp_exp(x, R[4]);
-    hp_neg(x, R[5]);
-    hp_exp(R[5], R[6]);
-    hp_sub(R[4], R[6], R[7]);
+    hp_exp(x, R[8]);
+    hp_neg(x, R[9]);
+    hp_exp(R[9], R[10]);
+    hp_sub(R[8], R[10], R[11]);
     int shift = 1;
-    shift_right(R[7], shift, res);
+    shift_right(R[11], shift, res);
 }
 
 void hp_cosh(in number x, out number res) {
-    hp_exp(x, R[4]);
-    hp_neg(x, R[5]);
-    hp_exp(R[5], R[6]);
-    hp_add(R[4], R[6], R[7]);
+    hp_exp(x, R[8]);
+    hp_neg(x, R[9]);
+    hp_exp(R[9], R[10]);
+    hp_add(R[8], R[10], R[11]);
     int shift = 1;
-    shift_right(R[7], shift, res);
+    shift_right(R[11], shift, res);
 }
 
 void hp_compare(in number a, in number b, out int res) {
@@ -968,21 +989,25 @@ void hp_smoothstep(in number edge0, in number edge1, in number x, out number res
 }
 
 void hp_vector_floor(in hp_vec2 a, out hp_vec2 res) {
-    hp_floor(a.x, res.x);
-    hp_floor(a.y, res.y);
+    hp_floor(a.x, V[0].x);
+    hp_floor(a.y, V[0].y);
+    res = V[0];
 }
 
 void hp_div(in hp_vec2 a, in number b, out hp_vec2 res) {
-    hp_div(a.x, b, res.x);
-    hp_div(a.y, b, res.y);
+    hp_div(a.x, b, V[0].x);
+    hp_div(a.y, b, V[0].y);
+    res = V[0];
 }
 
 void hp_mult(in hp_vec2 a, in number b, out hp_vec2 res) {
-    hp_mult(a.x, b, res.x);
-    hp_mult(a.y, b, res.y);
+    hp_mult(a.x, b, V[0].x);
+    hp_mult(a.y, b, V[0].y);
+    res = V[0];
 }
 
 void hp_mult(in number a, in hp_vec2 b, out hp_vec2 res) {
-    hp_mult(a, b.x, res.x);
-    hp_mult(a, b.y, res.y);
+    hp_mult(a, b.x, V[0].x);
+    hp_mult(a, b.y, V[0].y);
+    res = V[0];
 }
