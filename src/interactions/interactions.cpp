@@ -73,13 +73,13 @@ void cursor_position_callback(GLFWwindow* window, const double xpos, const doubl
 
     float inv_height = 1.0f / state->height;
     big_float hp_inv_height = big_float(inv_height);
-    big_float hp_scale = state->hp_range - hp_inv_height;
+    big_float hp_scale = state->hp_range * hp_inv_height;
 
     big_float hp_delta_x = big_float(delta.x);
     big_float hp_delta_y = big_float(delta.y);
 
     state->hp_shift.x = state->hp_shift.x - hp_delta_x * hp_scale;
-    state->hp_shift.y = state->hp_shift.y - hp_delta_y * hp_scale;
+    state->hp_shift.y = state->hp_shift.y + hp_delta_y * hp_scale;
 
     state->shift.x = static_cast<double>(state->hp_shift.x);
     state->shift.y = static_cast<double>(state->hp_shift.y);
