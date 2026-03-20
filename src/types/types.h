@@ -201,8 +201,8 @@ inline const std::vector<TokenOperator> operators = []() {
 
 inline const std::vector<AmbiguousOperator> amb_operators = {
 	{
-		{Arity::UNARY, Associativity::RIGHT, Operator::NEG, "~", 1},
-		{Arity::BINARY, Associativity::LEFT, Operator::SUB, "-", 0},
+		{Arity::UNARY, Associativity::RIGHT, Operator::NEG, "~", 4},
+		{Arity::BINARY, Associativity::LEFT, Operator::SUB, "-", 1},
 		Operator::SUB
 	}
 };

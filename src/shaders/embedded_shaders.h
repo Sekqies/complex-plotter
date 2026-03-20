@@ -660,10 +660,10 @@ vec3 hsl2rgb(vec3 hsl) {
     return hsl.z + hsl.y * (rgb - 0.5) * (1.0 - abs(2.0 * hsl.z - 1.0));
 }
 
-vec3 domain_color(in vec2 z){
+vec3 domain_color(in vec2 z, float k){
     float angle = atan(z.y,z.x);
     float hue = (angle/(2.0 * PI));
-    float light = (TWO_OVER_PI) * atan(length(z));
+    float light = TWO_OVER_PI * atan(pow(length(z),k));
     return vec3(hue,1.0f,light);
 }
 
@@ -682,12 +682,12 @@ void main(){
     
     #define INTERPRETER_ASSIGNEMENT HERE
     vec2 func_value = run_stack(operator_stack,constant_stack,z);
-    func_value = clamp(func_value, -1e38,)shdr" R"shdr( 1e38);
+    func_value = clamp(func)shdr" R"shdr(_value, -1e38, 1e38);
     #define END_INTERPRETER_ASSIGNEMENT HERE
     
     #define INJECTION_POINT HERE
     
-    vec3 hsl = domain_color(func_value);
+    vec3 hsl = domain_color(func_value,0.5);
 
     if(show_grid){
         vec2 target = z;
