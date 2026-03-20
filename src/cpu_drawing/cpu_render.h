@@ -64,12 +64,12 @@ void evaluate_ast_stack(
 
 inline const big_float HALF = big_float("0.5");
 
-void convert_coordinates(big_vec2& z, const ViewState* view_state) {
-    big_float w(view_state->hp_width);
-    big_float h(view_state->hp_height);
+void convert_coordinates(big_vec2& z, const int width, const int height, const big_float range, const big_vec2 shift) {
+    big_float w(width);
+    big_float h(height);
     
-    z = view_state->hp_range * (z - HALF * big_vec2(w, h)) / h;
-    z = z + big_vec2(view_state->hp_shift.x, view_state->hp_shift.y);
+    z = range * (z - HALF * big_vec2(w, h)) / h;
+    z = z + shift;
 }
 
 std::array<uint8_t, 3> domain_color(const big_vec2& z) {
@@ -100,13 +100,13 @@ std::array<uint8_t, 3> domain_color(const big_vec2& z) {
     return std::array<uint8_t, 3>{static_cast<uint8_t>(r * 255.0), static_cast<uint8_t>(g * 255.0), static_cast<uint8_t>(b * 255.0)};
 }
 
-void render_band(int start_y, int end_y, int width, int height, unsigned char* pixel_buffer, const CPU_Interpreter& interpreter, const std::vector<TokenOperator>& stack, const ViewState* view_state, std::atomic<int>& rows_completed) {
+void render_band(int start_y, int end_y, int width, int height, unsigned char* pixel_buffer, const CPU_Interpreter& interpreter, const std::vector<TokenOperator>& stack, const int hp_width, const int hp_height, const big_float range, const big_vec2 shift, std::atomic<int>& rows_completed) {
     for (int y = start_y; y < end_y; ++y) {
         for (int x = 0; x < width; ++x) {
             
             big_vec2 z(big_float(x), big_float(height - y));
             
-            convert_coordinates(z, view_state);
+            convert_coordinates(z, hp_width, hp_height, range, shift);
             
             big_vec2 result;
             evaluate_ast_stack(stack, z, interpreter, result);
@@ -145,7 +145,7 @@ void dispatch_render(int width, int height, unsigned char* pixel_buffer, CPU_Int
             threads.emplace_back(
                 render_band,
                 start_y, end_y, width, height,
-                pixel_buffer, std::ref(interpreter), std::ref(stack), view_state, std::ref(rows_completed)
+                pixel_buffer, std::ref(interpreter), std::ref(stack), view_state->hp_width, view_state->hp_height, view_state->hp_range, view_state->hp_shift, std::ref(rows_completed)
             );
         }
 
