@@ -21,4 +21,3 @@ string handle_multicharacter(const string& s, size_t& index, const std::function
 
 void handle_ambiguous_operator(vector<TokenOperator>& tokens, const vector<AmbiguousOperator>& amb_ops);
 
-vector<TokenOperator> tokenize(const string& s);

@@ -17,7 +17,7 @@ std::string remove_comments(const std::string& code) {
     return std::regex_replace(code, comment_regex, "");
 }
 
-std::vector<std::string> tokenize(const std::string& source) {
+std::vector<std::string> tokenize_transpiler(const std::string& source) {
     std::vector<std::string> tokens;
     std::string current;
     for (size_t i = 0; i < source.size(); ++i) {
@@ -371,7 +371,7 @@ public:
 
 string transpile_to_highp_glsl(const string& lowp_code, const std::string& highp_declarations) {
     string clean = remove_comments(lowp_code);
-    vector<string> tokens = tokenize(clean);
+    vector<string> tokens = tokenize_transpiler(clean);
     Parser parser(tokens);
     RegisterAllocator alloc;
     string output = "";

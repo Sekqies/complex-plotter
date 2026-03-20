@@ -1,14 +1,15 @@
 add_executable(math-transpiler "generate_cpp_complex_functions.cpp")
 
-set(TRANSPILED_MATH_H "${CMAKE_CURRENT_SOURCE_DIR}/glsl_generated/generated_big_math.h")
-set(TRANSPILED_MAPPER_CPP "${CMAKE_CURRENT_SOURCE_DIR}/glsl_generated/generated_math_mapper.cpp")
+set(TRANSPILED_MAPPER_H "${CMAKE_CURRENT_SOURCE_DIR}/glsl_generated/generated_math_mapper.h")
 set(MATH_GLSL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/shaders/complex_functions.frag")
+set(TRANSPILER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/scripts/math_transpiler.py")
+
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 add_custom_command(
-    OUTPUT ${TRANSPILED_MATH_H} ${TRANSPILED_MAPPER_CPP}
-    COMMAND math-transpiler ${MATH_GLSL_SRC} "${CMAKE_CURRENT_SOURCE_DIR}/glsl_generated"
-    DEPENDS math-transpiler ${MATH_GLSL_SRC}
-    COMMENT "[Custom] Transpiling high-precision GLSL to C++"
+    OUTPUT ${TRANSPILED_MATH_H} ${TRANSPILED_MAPPER_H}
+    COMMAND Python3::Interpreter ${TRANSPILER_SCRIPT} ${MATH_GLSL_SRC} "${CMAKE_CURRENT_SOURCE_DIR}/glsl_generated"
+    DEPENDS ${MATH_GLSL_SRC} ${TRANSPILER_SCRIPT}
 )
 
 set(SOURCE_FILES 
