@@ -199,8 +199,8 @@ void main_loop_step(AppContext* ctx) {
 	init_imgui_loop();
 
 	if(ctx->view_state->wants_high_precision){
-		const int hp_width = 500;//ctx->view_state->width;
-		const int hp_height = 500;// ctx->view_state->height;
+		const int hp_width = 100;//ctx->view_state->width;
+		const int hp_height = 100;// ctx->view_state->height;
 		ctx->view_state->hp_width = hp_width;
 		ctx->view_state->hp_height = hp_height;
 		ctx->view_state->hp_cpu_buffer.resize(hp_width * hp_height * 4);

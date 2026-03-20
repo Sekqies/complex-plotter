@@ -413,8 +413,8 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
         ImGui::Image(
             (void*)(intptr_t)view_state.hp_texture, 
             ImVec2((float)view_state.hp_height, (float)view_state.hp_width), 
-            ImVec2(0, 1), 
-            ImVec2(1, 0)
+            ImVec2(0, 0), 
+            ImVec2(1, 1)
         );
         
         if (ImGui::Button("Save to PNG")) {
