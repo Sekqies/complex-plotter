@@ -43,7 +43,7 @@ jobs:
             cp build-web/src/complex-plotter.js dist/
             cp build-web/src/complex-plotter.wasm dist/
             cp build-web/src/index.html dist/
-            cp build_web/src/coi-serviceworker.min.js
+            cp build_web/src/coi-serviceworker.min.js dist/
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
