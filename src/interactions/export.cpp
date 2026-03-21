@@ -10,12 +10,9 @@
 #include <emscripten.h>
 #endif
 
-void export_plot_to_png(const int width, const int height, const char* filename) {
-	unsigned char* pixels = new unsigned char[width * height * 4];
-	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+void export_plot_to_png(unsigned char* pixels, const int width, const int height, const char* filename) {
 	stbi_set_flip_vertically_on_load(true);
 	stbi_write_png(filename, width, height, 4, pixels, width * 4);
-	delete[] pixels;
 #ifdef __EMSCRIPTEN__
     EM_ASM_({
         const js_filename = UTF8ToString($0);

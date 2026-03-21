@@ -124,6 +124,8 @@ void export_to_png(AppContext* ctx, int target_width, int target_height, const c
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, target_width, target_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
 
 	glGenRenderbuffers(1, &rbo);
@@ -141,6 +143,7 @@ void export_to_png(AppContext* ctx, int target_width, int target_height, const c
 	if (ctx->function_state->is_3d) glEnable(GL_DEPTH_TEST);
 	else glDisable(GL_DEPTH_TEST);
 
+	draw_scene(ctx, (float)target_width, (float)target_height);
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	unsigned char* pixels = new unsigned char[target_width * target_height * 4];

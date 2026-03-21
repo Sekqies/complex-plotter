@@ -342,9 +342,6 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
     }
 
     if (UI::CollapsingHeader("Export")) {
-        if (UI::Button("Render High Precision Popup")) {
-            view_state.wants_high_precision = true;
-        }
         static int export_w = 1920;
         static int export_h = 1080;
 
@@ -462,7 +459,7 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
                     else {
                         if (ImGui::Button("Save to PNG")) {
                             std::string filename = "high_precision_" + std::to_string(view_state.hp_width) + "x" + std::to_string(view_state.hp_height) + ".png";
-                            export_plot_to_png(view_state.hp_width,view_state.hp_height,"complex-plot-high-precision");
+                            export_plot_to_png(view_state.hp_cpu_buffer.data(),view_state.hp_width,view_state.hp_height,"complex-plot-high-precision.png");
                             view_state.show_export_success = true; 
                         }
                     }
