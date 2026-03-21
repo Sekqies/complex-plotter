@@ -115,4 +115,4 @@ An exhaustive list of features supported by this tool
 An architectural explanation of how this tool works, internally.
 
 ### [Optimizations](docs/optimization.md)
-A list of optimizations used in this project's developments
+A list of optimizations used in this project's development, and its benchmarking compared to other tools
