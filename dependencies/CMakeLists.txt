@@ -9,8 +9,14 @@ FetchContent_Declare(
 )
 
 
+FetchContent_Declare(
+    boost_ext
+    URL      https://archives.boost.io/release/1.84.0/source/boost_1_84_0.tar.bz2
+)
+FetchContent_MakeAvailable(boost_ext)
+
 add_library(boost_headers INTERFACE)
-target_include_directories(boost_headers INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/boost_1_84_0")
+target_include_directories(boost_headers INTERFACE "${boost_ext_SOURCE_DIR}")
 
 if(NOT EMSCRIPTEN)
     FetchContent_Declare(
