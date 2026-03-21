@@ -211,7 +211,7 @@ void main_loop_step(AppContext* ctx) {
 			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		}
-		int user_thread_limit = 16;
+		int user_thread_limit = 32;
 
 		
 

@@ -46,7 +46,7 @@ add_custom_command(
 )
 
 
-add_executable(complex-plotter ${SOURCE_FILES} ${HEADER_SRC} "main.cpp" ${TRANSPILED_MAPPER_CPP})
+add_executable(complex-plotter WIN32 ${SOURCE_FILES} ${HEADER_SRC} "main.cpp" ${TRANSPILED_MAPPER_CPP})
 
 if(NOT EMSCRIPTEN)
     find_package(OpenGL REQUIRED)
@@ -106,7 +106,7 @@ if(EMSCRIPTEN)
     -sEXPORTED_RUNTIME_METHODS=[ccall]
     -pthread
     -sUSE_PTHREADS=1
-    -sPTHREAD_POOL_SIZE=8
+    -sPTHREAD_POOL_SIZE=16
     )
     target_compile_options(complex-plotter PRIVATE "-s" "USE_GLFW=3" "-fexceptions")
     set_target_properties(complex-plotter PROPERTIES SUFFIX ".js")

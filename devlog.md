@@ -1,27 +1,22 @@
-ARBITRARY PRECISION IS UPON US!
+The complex function plotter is done!
 
-Keeping things short, I tried, and failed, to implement my own GPU, GLSL arbitrary precision math library. Why? Because nobody else has! And for good reason.
-- First, I built the math library in a functional way `(add(x,y) -> z)`. This causes the GPU to run out of registers, because returning arrays means allocating temporary memory
-- Then, I rewrote the entire library to use 16 global registers, and by mutating a third input `(add(x,y,z) -> void)`. This worked at first, but for minimally nested functions (like `cos(sin(z))`), the GPU tries, and fails, to unroll the loops. So the shader doesn't compile
-- To fix that, I once again optimized the library and added flags for the GPU not to unroll. _then_ we run into a problem where the _assembly_ becomes too large. To my knowledge there is no practical solution for this.
+A little bit of personal lore here: I made another complex function plotter four years ago, when I was still in highschool. It was clunky, but worked fine enough. Still, I felt it missed some things, which led me to work on this project. 
+Now, I have accomplished all things I have set out to do. Bugfixes aside, I believe I can put this project to rest now.
 
-At this point, I realized that true arbitrary precision is impossible in the GPU. Thankfully, GLSL translates pretty neatly to C++, so I could just, at build step, transform my complex functions into C++, and do all my arbitrary precision in the CPU!
+First, I worked on making the high precision plots reactive. They take a while to render, so having them shut down the main thread while the user waits on a blank screen isn't very fun. Now, each thread updates the canvas for every pixel they render. This allows the user to see the progress being made!
+Also, some reconfigurations were needed in the web version, since the browser needs special permissions to run Web Workers (the equivalent to threads for browsers)
 
-It is very slow, but it's meant for very high detail images. So, completely fine! Attached, some plots!
+Then, some quality of life changes: I added an amortization factor so the graph takes longer to converge to white (and black), and fixed a parsing mistake one of my beta testers caught. 
+
+Finally, documentation and benchmarking! I could always tell this tool was _fast_, but never _how fast_. I took upon myself to benchmark my own tool, and some other project's (since they are opensource, I can manually modify the code to do so). The result were great: this project outperforms everything else by a factor of 50.
+
+And that's it for now folks! 
+
+Attached, our high precision plotting in real time!
 
 **Commits**
-[2895bc0](https://url.jam06452.uk/2cwiyv): UHPM renders, but not properly
-[6d39bca](https://url.jam06452.uk/px4ufa): UHPM works, but not for big expressions
-[5d96733](https://url.jam06452.uk/154kn6z): High precision zooming
-[43e4423](https://url.jam06452.uk/s0xmt3): GPU to CPU transpiling
-[f262c96](https://url.jam06452.uk/137or8f): CPU rendering!
-
-**Issues**
-[#Issue #40](.): Arbitrary precision in the CPU
-[Issue #41](.): GLSL to C++ Transpiler
-    -[#48](.): Synchronizing GLSL and C++ functions
-    -[#49](.): Running shaders in the CPU
-[Issue #50](.): Reoptimize UHPM 
-    -[#51](.): Rewrite math library to use inout
-    -[#52](.): Expanding nested expressions in transpiler #52
-    -[#53](.): Using registers in transpiler #53
+[9dd1515](https://url.jam06452.uk/3yqc6h): Async image generation
+[4266aaa](https://url.jam06452.uk/c71kuv): Add threading for web version
+[ded05c1](https://url.jam06452.uk/gvwf7p): Update documentation and perform benchmarking
+[2e32e99](https://url.jam06452.uk/zgmyyg): Fixed issue where expressions with negations would be evaluated incorrectly
+[2e10128](https://url.jam06452.uk/1rzb8g3): Fixed issue where moving the screen would cause the high precision plot to shift as well.
