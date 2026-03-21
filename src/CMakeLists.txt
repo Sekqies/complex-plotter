@@ -94,7 +94,12 @@ target_include_directories(complex-plotter PRIVATE
 )
 
 if(EMSCRIPTEN)
+    set(WASM_OPT_FLAGS "-Oz")
+    set(WASM_LTO_FLAGS "-flto")
     target_link_options(complex-plotter PRIVATE
+    ${WASM_OPT_FLAGS}
+    ${WASM_LTO_FLAGS}
+    -sENVIRONMENT=web
     --bind
     -s USE_GLFW=3 
     -sUSE_WEBGL2=1
@@ -102,13 +107,14 @@ if(EMSCRIPTEN)
     -sMAX_WEBGL_VERSION=2
     -sALLOW_MEMORY_GROWTH=1
     -fexceptions
-    -sASSERTIONS=1
+    -sASSERTIONS=0
     -sEXPORTED_RUNTIME_METHODS=[ccall]
     -pthread
     -sUSE_PTHREADS=1
-    -sPTHREAD_POOL_SIZE=16
+    -sPTHREAD_POOL_SIZE=8
+
     )
-    target_compile_options(complex-plotter PRIVATE "-s" "USE_GLFW=3" "-fexceptions")
+    target_compile_options(complex-plotter PRIVATE "-s" "USE_GLFW=3" "-fexceptions" ${WASM_OPT_FLAGS} ${WASM_LTO_FLAGS})
     set_target_properties(complex-plotter PROPERTIES SUFFIX ".js")
     add_custom_command(TARGET complex-plotter POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
