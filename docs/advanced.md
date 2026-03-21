@@ -95,9 +95,18 @@ $$
 
 Where $|l(z)| = \frac{2}{\pi}\arctan(|z|)$
 
+Currently, we also use a gamma factor, $k$, to make the light ascent from black to white slower, as per request of one of the users. The new definition is simply
+
+$|l(z)| = \frac{2}{\pi}\arctan(|z|^k)$
+
 ## 3D mode
 3D mode is rendered by making an NxN grid mesh, handled by the `Mesh` struct and `create_grid_mesh` function, and shaping it around the function's "real" shape (picking points in set spaces and placing vertices there). 
 Height is directly mapped to |f(z)|, so information is redundant. Movement is done through a custom `Camera` struct.
 
 ## Picker
 Whenever you hover over a value and get a number back, this is done through a "picker" shader. It's a 1x1 grid rendered off-screen that calculates the value of f(z) precisely where you are hovering. The result is then shared as an `out vec4`, the first two floats being `z`, and second two, `f(z)`.
+
+## Ultra-High Precision Mode
+Ultra-High Precision Mode, or Arbitrary Precision Mode, works by running this program's shaders in the CPU. They are first transpiled from GLSL to C++ in the build step, done in `math_transpiler.py`, and a map from a GLSL function definition to a C++ function definition is set. 
+At runtime, the function stack is read and evaluated. This is done through multiple threads, that concurrently update their rows. This allows for the user to see the function as it's being updated.
+There exists a custom made math library, but the final product uses Boost::Multiprecision for performance. It is set for 50 digits of precision.

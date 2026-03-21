@@ -22,6 +22,7 @@
 #include <preprocessor/transpiler.h>
 #include <cpu_drawing/cpu_render.h>
 #include <glsl_generated/generated_math_mapper.h>
+#include <chrono>
 
 
 #include <preprocessor/string_builder.h>
@@ -140,7 +141,6 @@ void export_to_png(AppContext* ctx, int target_width, int target_height, const c
 	if (ctx->function_state->is_3d) glEnable(GL_DEPTH_TEST);
 	else glDisable(GL_DEPTH_TEST);
 
-	draw_scene(ctx, (float)target_width, (float)target_height);
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	unsigned char* pixels = new unsigned char[target_width * target_height * 4];
@@ -199,7 +199,6 @@ void main_loop_step(AppContext* ctx) {
 
 	ctx->function_state->is_3d = ctx->view_state->is_3d;
 	init_imgui_loop();
-
 	if(ctx->view_state->wants_high_precision){
 		const int hp_width = ctx->view_state->hp_width;
 		const int hp_height = ctx->view_state->hp_height;
@@ -245,6 +244,7 @@ void main_loop_step(AppContext* ctx) {
 		render_and_update(*(ctx->function_state), *(ctx->view_state), stack_tbo_texture, constants_tbo_texture, *(ctx->shader_program), *(ctx->compiled_shader));
 	}
 
+	
 	draw_scene(ctx, ctx->view_state->width, ctx->view_state->height);
 
 	if (is_3d != ctx->view_state->is_3d) {
@@ -338,10 +338,10 @@ int main() {
 	const string frag_source_3d = get_source("shaders/plotter3d.frag");
 	try {
 		vert_source_3d = build_shader_string(vert_source_3d, frag_source);
-		std::cout << vert_source_3d;
+		//std::cout << vert_source_3d;
 	}
 	catch (std::runtime_error& er) {
-		std::cout << er.what();
+		//std::cout << er.what();
 	}
 	shader_3d.compile(vert_source_3d, frag_source_3d);
 

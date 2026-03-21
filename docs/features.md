@@ -65,3 +65,7 @@ Time is a supported variable, `t`. Modulo and trigonometric operators are suppor
 - `(1-sin(t))*z + sin(t)*z^2`
 - `tan(z)^(sin(t)) % sin(z)`
 ![Animation of tan(z)^(sin(t)) % sin(z)](assets/gifs/Animation.gif)
+
+## Ultra high precision mode
+Plots can be rendered in arbitrary precision through the "Arbitrary Precision" subheader. This means that functions will be rendered up to a user-defined value of decimal digits, which defaults to 50. This is particularly useful for seeing fractal-like functions in high zoom values
+![Render of mandelbrot set with UHPM versus standard mode](assets/high_precision_mandelbrot.png)

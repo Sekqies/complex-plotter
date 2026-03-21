@@ -113,3 +113,6 @@ An exhaustive list of features supported by this tool
 
 ### [Advanced](docs/advanced.md)
 An architectural explanation of how this tool works, internally.
+
+### [Optimizations](docs/optimization.md)
+A list of optimizations used in this project's developments
