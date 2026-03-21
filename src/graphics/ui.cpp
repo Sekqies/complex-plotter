@@ -400,6 +400,9 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
     }
     if (UI::CollapsingHeader("Arbitrary Precision Mode")) {
         ImGui::TextWrapped("Renders the current view using CPU-based arbitrary precision math. Required for extreme zoom levels.");
+#ifdef __EMSCRIPTEN__
+        ImGui::TextDisabled("This feature is best suited for the desktop version.");
+#endif
         ImGui::Spacing();
         
         static std::string ui_shift_x = "0.0";
@@ -407,8 +410,8 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
         static std::string ui_range = "4.0";
         
         if (UI::Button("Configure Deep Render")) {
-            view_state.hp_width = 700;
-            view_state.hp_height = 700;
+            view_state.hp_width = 600;
+            view_state.hp_height = 600;
             ui_range = std::to_string(view_state.range);
             ui_shift_x = std::to_string(view_state.shift.x);
             ui_shift_y = std::to_string(view_state.shift.y);

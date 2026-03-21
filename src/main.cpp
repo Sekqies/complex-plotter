@@ -53,6 +53,7 @@ unsigned int stack_tbo_buffer, stack_tbo_texture;
 unsigned int constants_tbo_buffer, constants_tbo_texture;
 
 
+
 struct AppContext {
 	GLFWwindow* window;
 	ViewState* view_state;
@@ -211,7 +212,9 @@ void main_loop_step(AppContext* ctx) {
 			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		}
-		int user_thread_limit = 8;
+		int user_thread_limit = 16;
+
+		
 
 		std::fill(ctx->view_state->hp_cpu_buffer.begin(), ctx->view_state->hp_cpu_buffer.end(), 30);
 

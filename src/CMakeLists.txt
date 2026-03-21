@@ -103,13 +103,20 @@ if(EMSCRIPTEN)
     -sALLOW_MEMORY_GROWTH=1
     -fexceptions
     -sASSERTIONS=1
-    -sEXPORTED_RUNTIME_METHODS=[ccall])
+    -sEXPORTED_RUNTIME_METHODS=[ccall]
+    -pthread
+    -sUSE_PTHREADS=1
+    -sPTHREAD_POOL_SIZE=8
+    )
     target_compile_options(complex-plotter PRIVATE "-s" "USE_GLFW=3" "-fexceptions")
     set_target_properties(complex-plotter PROPERTIES SUFFIX ".js")
     add_custom_command(TARGET complex-plotter POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_SOURCE_DIR}/index.html"
         "${CMAKE_CURRENT_BINARY_DIR}/index.html"
+        COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_CURRENT_SOURCE_DIR}/coi-serviceworker.min.js"
+        "${CMAKE_CURRENT_BINARY_DIR}/coi-serviceworker.min.js"
         COMMENT "Copying custom index.html to build directory..."
     )
 endif()
