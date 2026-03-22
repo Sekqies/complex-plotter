@@ -111,7 +111,8 @@ if(EMSCRIPTEN)
     -sEXPORTED_RUNTIME_METHODS=[ccall]
     -pthread
     -sUSE_PTHREADS=1
-    -sPTHREAD_POOL_SIZE=8
+    -sPTHREAD_POOL_SIZE=4
+    -sPTHREAD_POOL_SIZE_STRICT=0
 
     )
     target_compile_options(complex-plotter PRIVATE "-s" "USE_GLFW=3" "-fexceptions" ${WASM_OPT_FLAGS} ${WASM_LTO_FLAGS})
