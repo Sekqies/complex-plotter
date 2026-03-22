@@ -3,6 +3,7 @@
 #include <transformer/transformer.h>
 #include <graphics/graphics.h>
 #include <interactions/interactions.h>
+#include <graphics/3d/camera_state.h>
 #include <string>
 #include <iostream>
 
@@ -304,12 +305,6 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
             ImGui::Unindent();
         }
     }
-    if (UI::CollapsingHeader("3D Keybinds")) {
-        ImGui::BulletText("WASD: Move");
-        ImGui::BulletText("Right click + Drag: Move camera");
-        ImGui::BulletText("Shift/Spacebar: Go up");
-        ImGui::BulletText("Ctrl: Go down");
-    }
     if (UI::CollapsingHeader("Help & Keybinds")) {
         ImGui::BulletText("Left Click + Drag: Pan Camera");
         ImGui::BulletText("Scroll Wheel: Zoom");
@@ -446,34 +441,86 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
         }
     }
     if (view_state.is_high_precision) {
-                ImGui::Begin("High Precision Render", &view_state.is_high_precision, ImGuiWindowFlags_AlwaysAutoResize);
-                if (view_state.hp_texture != 0) {
-                    ImGui::Text("Resolution: %dx%d", view_state.hp_width, view_state.hp_height);
-                    if (view_state.is_rendering_hp) {
-                        glBindTexture(GL_TEXTURE_2D, view_state.hp_texture);
-                        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, view_state.hp_width, view_state.hp_height, GL_RGBA, GL_UNSIGNED_BYTE, view_state.hp_cpu_buffer.data());
+        ImGui::Begin("High Precision Render", &view_state.is_high_precision, ImGuiWindowFlags_AlwaysAutoResize);
+        if (view_state.hp_texture != 0) {
+            ImGui::Text("Resolution: %dx%d", view_state.hp_width, view_state.hp_height);
+            if (view_state.is_rendering_hp) {
+                glBindTexture(GL_TEXTURE_2D, view_state.hp_texture);
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, view_state.hp_width, view_state.hp_height, GL_RGBA, GL_UNSIGNED_BYTE, view_state.hp_cpu_buffer.data());
 
-                        float progress = (float)view_state.hp_rows_completed / (float)view_state.hp_height;
-                        ImGui::ProgressBar(progress, ImVec2(-1.0f, 0.0f), "Loading...");
-                    }
-                    else {
-                        if (ImGui::Button("Save to PNG")) {
-                            std::string filename = "high_precision_" + std::to_string(view_state.hp_width) + "x" + std::to_string(view_state.hp_height) + ".png";
-                            export_plot_to_png(view_state.hp_cpu_buffer.data(),view_state.hp_width,view_state.hp_height,"complex-plot-high-precision.png");
-                            view_state.show_export_success = true; 
-                        }
-                    }
-                    ImGui::Image(
-                        (void*)(intptr_t)view_state.hp_texture,
-                        ImVec2((float)view_state.hp_width, (float)view_state.hp_height),
-                        ImVec2(0, 0),
-                        ImVec2(1, 1)
-                    );
-                }
-                else {
-                    ImGui::Text("Initializing...");
-                }
-                ImGui::End(); 
+                float progress = (float)view_state.hp_rows_completed / (float)view_state.hp_height;
+                ImGui::ProgressBar(progress, ImVec2(-1.0f, 0.0f), "Loading...");
             }
+            else {
+                if (ImGui::Button("Save to PNG")) {
+                    std::string filename = "high_precision_" + std::to_string(view_state.hp_width) + "x" + std::to_string(view_state.hp_height) + ".png";
+                    export_plot_to_png(view_state.hp_cpu_buffer.data(),view_state.hp_width,view_state.hp_height,"complex-plot-high-precision.png");
+                    view_state.show_export_success = true; 
+                }
+            }
+            ImGui::Image(
+                (void*)(intptr_t)view_state.hp_texture,
+                ImVec2((float)view_state.hp_width, (float)view_state.hp_height),
+                ImVec2(0, 0),
+                ImVec2(1, 1)
+            );
+        }
+        else {
+            ImGui::Text("Initializing...");
+        }
+        ImGui::End(); 
+    }
+    if (view_state.is_3d) {
+        ImGui::Begin("3D Settings");
+        ImGui::Text("Height = ");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Height function. 'z' evaluates on the output of f(z). Defaults to mag(z).");
+        ImGui::SameLine();
+        bool height_pressed_enter = ImGui::InputText("##height_source",
+            &state.height_expression,
+            ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackAlways,
+            FunctionInputCallback,
+            (void*)&state);
+        ImGui::SameLine();
+        if (UI::Button("Compile##Height")) {
+            height_pressed_enter = true;
+        }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        }
+        if (height_pressed_enter) {
+            state.needs_height_reparse = true;
+        }
+        ImGui::Spacing();
+        if (UI::CollapsingHeader("Camera Settings"), nullptr, ImGuiWindowFlags_AlwaysAutoResize) {
+            ImGui::Text("Camera Mode:");
+            ImGui::SameLine();
+
+            if (UI::RadioButton("Free", !camera_state.is_orbit)) {
+                camera_state.is_orbit = false;
+                camera_state.switch_to_free();
+            }
+            ImGui::SameLine();
+            if (UI::RadioButton("Orbit", camera_state.is_orbit)) {
+                camera_state.is_orbit = true;
+                camera_state.switch_to_orbit();
+                update_camera_vectors(camera_state);
+            }
+            if (UI::Button("Snap camera to origin")) {
+                CameraState new_camerastate;
+                new_camerastate.is_orbit = camera_state.is_orbit;
+                camera_state = new_camerastate;
+
+            }
+        }
+        if (UI::CollapsingHeader("3D Keybinds")) {
+            ImGui::BulletText("WASD: Move");
+            ImGui::BulletText("Right click + Drag: Move camera");
+            ImGui::BulletText("Shift/Spacebar: Go up");
+            ImGui::BulletText("Ctrl: Go down");
+        }
+
+
+        ImGui::End();
+    }
     ImGui::End();
 }

@@ -72,12 +72,43 @@ struct AppContext {
 	bool pressing_t;
 };
 
+void update_height_function(AppContext* ctx) {
+	try {
+		std::vector<TokenOperator> height_stack = parser::parse(ctx->function_state->height_expression);
+		string height_glsl = stack_to_glsl_string(height_stack);
 
+		string injection_code = "vec2 _temp_z = z; z = func_value; vec2 _h_val = " + height_glsl + "; float height = _h_val.x; z = _temp_z;";
 
+		string vert_source_3d = get_source("shaders/plotter3d.vert");
+		vert_source_3d = build_shader_string(vert_source_3d, ctx->shader_program->fragment_source);
 
+		string target = "float height = length(func_value);";
+		size_t pos = vert_source_3d.find(target);
+		if (pos != string::npos) {
+			vert_source_3d.replace(pos, target.length(), injection_code);
+		}
+		else {
+			throw std::runtime_error("Could not find height target in vertex shader.");
+		}
+		const string frag_source_3d = get_source("shaders/plotter3d.frag");
 
+		ctx->shader_3d->compile(vert_source_3d, frag_source_3d);
 
+		ctx->compiled_shader_3d->prepare_source(vert_source_3d, frag_source_3d, true);
 
+		if (!ctx->function_state->is_interpreted) {
+			string main_expr_glsl = stack_to_glsl_string(parser::parse(ctx->function_state->expression));
+			ctx->compiled_shader_3d->compile(main_expr_glsl, true);
+		}
+
+		ctx->function_state->error_message = "";
+	}
+	catch (const std::exception& e) {
+		ctx->function_state->error_message = string("Height Function Error: ") + e.what();
+	}
+
+	ctx->function_state->needs_height_reparse = false;
+}
 
 void draw_scene(AppContext* ctx, float render_width, float render_height) {
 	Shader* current_shader = ctx->function_state->current_shader;
@@ -247,7 +278,10 @@ void main_loop_step(AppContext* ctx) {
 		render_and_update(*(ctx->function_state), *(ctx->view_state), stack_tbo_texture, constants_tbo_texture, *(ctx->shader_program), *(ctx->compiled_shader));
 	}
 
-	
+	if (ctx->function_state->needs_height_reparse) {
+		update_height_function(ctx);
+	}
+
 	draw_scene(ctx, ctx->view_state->width, ctx->view_state->height);
 
 	if (is_3d != ctx->view_state->is_3d) {

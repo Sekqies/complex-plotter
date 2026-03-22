@@ -19,6 +19,8 @@ typedef struct FunctionState {
 	bool is_interpreted = true;
 	bool is_3d = false;
 	bool show_grid = true;
+	std::string height_expression = "mag(z)";
+	bool needs_height_reparse = true;
 } FunctionState;
 
 void render(FunctionState& state, unsigned int& op_tex, unsigned int& const_tex, Shader& interpreter_shader);

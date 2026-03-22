@@ -11,6 +11,11 @@ void scroll_callback(GLFWwindow* window, const double xoffset, const double yoff
     ViewState* state = get_state(window);
     if (ImGui::GetIO().WantCaptureMouse || !state) return;
 
+    if (state->is_3d && camera_state.is_orbit) {
+        process_mouse_scroll(camera_state, yoffset);
+        return;
+    }
+
     double x, y;
     glfwGetCursorPos(window, &x, &y);
 
@@ -30,7 +35,7 @@ void scroll_callback(GLFWwindow* window, const double xoffset, const double yoff
         state->hp_range = state->hp_range / hp_zoom_factor;
     }
 
-    if (state->is_3d) return;
+    //if (state->is_3d) return;
 
     big_float hp_range_diff = prev_hp_range -  state->hp_range;
     state->hp_shift.x = state->hp_shift.x + hp_range_diff * hp_u;
@@ -44,6 +49,7 @@ void scroll_callback(GLFWwindow* window, const double xoffset, const double yoff
 void mouse_button_callback(GLFWwindow* window, const int button, int action, int mods) {
     ViewState* state = get_state(window);
     if (!state || ImGui::GetIO().WantCaptureMouse) return;
+
 
     if (button != GLFW_MOUSE_BUTTON_LEFT && button != GLFW_MOUSE_BUTTON_RIGHT) return;
 
@@ -68,6 +74,11 @@ void cursor_position_callback(GLFWwindow* window, const double xpos, const doubl
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
         process_mouse_movement(camera_state, delta.x, -delta.y);
+        return;
+    }
+
+    if (state->is_3d) {
+        process_mouse_movement(camera_state,delta.x, -delta.y);
         return;
     }
 

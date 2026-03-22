@@ -46,7 +46,7 @@ add_custom_command(
 )
 
 
-add_executable(complex-plotter WIN32 ${SOURCE_FILES} ${HEADER_SRC} "main.cpp" ${TRANSPILED_MAPPER_CPP})
+add_executable(complex-plotter ${SOURCE_FILES} ${HEADER_SRC} "main.cpp" ${TRANSPILED_MAPPER_CPP})
 
 if(NOT EMSCRIPTEN)
     find_package(OpenGL REQUIRED)

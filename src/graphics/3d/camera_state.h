@@ -14,16 +14,48 @@ struct CameraState {
     float yaw;
     float pitch;
     float movement_speed = 2.5f;
-    float mouse_sensitivity = 0.05f;
+    float mouse_sensitivity = 0.15f;
     float zoom = 45.0f;
 
+    bool is_orbit = true;
+    glm::vec3 orbit_target = glm::vec3(0.0, 0.0, 0.0);
+    float orbit_radius = 5.0;
+
     CameraState() {
-        glm::vec3 direction = glm::normalize(-position);
-        front = direction;
-        pitch = glm::degrees(asin(direction.y));
-        yaw = glm::degrees(atan2(direction.z, direction.x));
+        orbit_radius = glm::distance(position, orbit_target);
+
+        if (is_orbit) {
+            glm::vec3 dir = glm::normalize(position - orbit_target);
+            pitch = glm::degrees(asin(dir.y));
+            yaw = glm::degrees(atan2(dir.z, dir.x));
+            front = glm::normalize(orbit_target - position);
+            mouse_sensitivity = 0.15f;
+        }
+        else {
+            glm::vec3 direction = glm::normalize(orbit_target - position);
+            front = direction;
+            pitch = glm::degrees(asin(direction.y));
+            yaw = glm::degrees(atan2(direction.z, direction.x));
+            mouse_sensitivity = 0.05f;
+        }
+
         right = glm::normalize(glm::cross(front, world_up));
         up = glm::normalize(glm::cross(right, front));
+    }
+
+    void switch_to_orbit() {
+        is_orbit = true;
+        orbit_target = position + front * orbit_radius;
+
+        glm::vec3 dir = glm::normalize(position - orbit_target);
+        pitch = glm::degrees(asin(dir.y));
+        yaw = glm::degrees(atan2(dir.z, dir.x));
+    }
+
+    void switch_to_free() {
+        is_orbit = false;
+        pitch = glm::degrees(asin(front.y));
+        yaw = glm::degrees(atan2(front.z, front.x));
     }
 };
 

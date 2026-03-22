@@ -1,7 +1,20 @@
 #include <graphics/3d/camera_state.h>
 CameraState camera_state;
 
+void update_camera_orbit(CameraState& state) {
+    state.position.x = state.orbit_target.x + state.orbit_radius * cos(glm::radians(state.yaw)) * cos(glm::radians(state.pitch));
+    state.position.y = state.orbit_target.y + state.orbit_radius * sin(glm::radians(state.pitch));
+    state.position.z = state.orbit_target.z + state.orbit_radius * sin(glm::radians(state.yaw)) * cos(glm::radians(state.pitch));
+    state.front = glm::normalize(state.orbit_target - state.position);
+    state.right = glm::normalize(glm::cross(state.front, state.world_up));
+    state.up = glm::normalize(glm::cross(state.right, state.front));
+}
+
 void update_camera_vectors(CameraState& state) {
+    if (state.is_orbit) {
+        update_camera_orbit(state);
+        return;
+    }
     glm::vec3 new_front;
     new_front.x = cos(glm::radians(state.yaw)) * cos(glm::radians(state.pitch));
     new_front.y = sin(glm::radians(state.pitch));
@@ -17,6 +30,20 @@ glm::mat4 get_view_matrix(const CameraState& state) {
 
 void process_keyboard(CameraState& state, int direction, float delta_time) {
     float velocity = state.movement_speed * delta_time;
+    if (state.is_orbit) {
+        glm::vec3 flat_front = glm::normalize(glm::vec3(state.front.x, 0.0f, state.front.z));
+        glm::vec3 flat_right = glm::normalize(glm::vec3(state.right.x, 0.0f, state.right.z));
+
+        if (direction == 0) state.orbit_target += flat_front * velocity;
+        if (direction == 1) state.orbit_target -= flat_front * velocity;
+        if (direction == 2) state.orbit_target -= flat_right * velocity;
+        if (direction == 3) state.orbit_target += flat_right * velocity;
+        if (direction == 4) state.orbit_target += state.world_up * velocity;
+        if (direction == 5) state.orbit_target -= state.world_up * velocity;
+
+        update_camera_vectors(state);
+        return;
+    }
     if (direction == 0) state.position += state.front * velocity;
     if (direction == 1) state.position -= state.front * velocity;
     if (direction == 2) state.position -= state.right * velocity;
@@ -39,6 +66,11 @@ void process_mouse_movement(CameraState& state, float x_offset, float y_offset, 
 }
 
 void process_mouse_scroll(CameraState& state, float y_offset) {
+    if (state.is_orbit) {
+        state.orbit_radius -= (float)y_offset;
+        if (state.orbit_radius < 0.1f) state.orbit_radius = 0.1f;
+        update_camera_vectors(state);
+    }
     state.zoom -= (float)y_offset;
     if (state.zoom < 1.0f) state.zoom = 1.0f;
     if (state.zoom > 45.0f) state.zoom = 45.0f;
