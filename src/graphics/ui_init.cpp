@@ -11,24 +11,35 @@
 
 
 void init_imgui(GLFWwindow* window) {
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	io.FontGlobalScale = 2.0f;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-#ifdef __EMSCRIPTEN__
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    float xscale = 1.0f;
+    float yscale = 1.0f;
 
-	emscripten_browser_clipboard::paste([](std::string&& paste_data, void* callback_data) {
-		clip_content = std::move(paste_data);
-		just_pasted = true;
-		}, nullptr); 
-	
-	ImGui_ImplOpenGL3_Init("#version 300 es");
+#ifdef __EMSCRIPTEN__
+    xscale = emscripten_get_device_pixel_ratio();
 #else
-	ImGui_ImplOpenGL3_Init();
+    glfwGetWindowContentScale(window, &xscale, &yscale);
+#endif
+    io.FontGlobalScale = xscale; 
+
+    //ImGui::GetStyle().ScaleAllSizes(xscale); 
+
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+
+#ifdef __EMSCRIPTEN__
+    emscripten_browser_clipboard::paste([](std::string&& paste_data, void* callback_data) {
+        clip_content = std::move(paste_data);
+        just_pasted = true;
+        }, nullptr); 
+    
+    ImGui_ImplOpenGL3_Init("#version 300 es");
+#else
+    ImGui_ImplOpenGL3_Init();
 #endif
 }
 

@@ -356,6 +356,8 @@ uniform float time;
 uniform bool show_grid;
 uniform bool warp_grid;
 
+const float gamma_correction_constant = 0.65;
+
 #define END_UNIFORM_DECLARATIONS HERE
 
 #define FUNCTION_DEFINITIONS HERE
@@ -681,13 +683,13 @@ void main(){
     vec2 z = convert_coordinates(gl_FragCoord.xy,u_resolution,u_range) + shift;
     
     #define INTERPRETER_ASSIGNEMENT HERE
-    vec2 func_value = run_stack(operator_stack,constant_stack,z);
-    func_value = clamp(func)shdr" R"shdr(_value, -1e38, 1e38);
+    vec2 func_value = run_stack(operator_stack)shdr" R"shdr(,constant_stack,z);
+    func_value = clamp(func_value, -1e38, 1e38);
     #define END_INTERPRETER_ASSIGNEMENT HERE
     
     #define INJECTION_POINT HERE
     
-    vec3 hsl = domain_color(func_value,0.5);
+    vec3 hsl = domain_color(func_value,gamma_correction_constant);
 
     if(show_grid){
         vec2 target = z;

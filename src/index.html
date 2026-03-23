@@ -77,11 +77,6 @@
         if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
         console.error(text);
       },
-      setCanvasSize: function(width, height, noRepaint) {
-    const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = width * dpr;
-    this.canvas.height = height * dpr;
-  },
       onRuntimeInitialized: function() {
         document.getElementById('loading-overlay').style.display = 'none';
         canvas.focus();

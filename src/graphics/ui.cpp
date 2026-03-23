@@ -440,7 +440,11 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
             ImGui::EndPopup();
         }
     }
+    ImVec2 main_pos = ImGui::GetWindowPos();
+    ImVec2 main_size = ImGui::GetWindowSize();
+    ImVec2 side_spawn_pos = ImVec2(main_pos.x + main_size.x + 15.0f, main_pos.y);
     if (view_state.is_high_precision) {
+        ImGui::SetNextWindowPos(side_spawn_pos, ImGuiCond_Appearing);
         ImGui::Begin("High Precision Render", &view_state.is_high_precision, ImGuiWindowFlags_AlwaysAutoResize);
         if (view_state.hp_texture != 0) {
             ImGui::Text("Resolution: %dx%d", view_state.hp_width, view_state.hp_height);
@@ -468,10 +472,12 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
         else {
             ImGui::Text("Initializing...");
         }
+        side_spawn_pos.y += ImGui::GetWindowSize().y + 15.0f;
         ImGui::End(); 
     }
     if (view_state.is_3d) {
-        ImGui::Begin("3D Settings");
+        ImGui::SetNextWindowPos(side_spawn_pos, ImGuiCond_Appearing);
+        ImGui::Begin("3D Settings",nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("Height = ");
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("Height function. 'z' evaluates on the output of f(z). Defaults to mag(z).");
         ImGui::SameLine();
@@ -491,7 +497,7 @@ void render_and_update(FunctionState& state, ViewState& view_state, unsigned int
             state.needs_height_reparse = true;
         }
         ImGui::Spacing();
-        if (UI::CollapsingHeader("Camera Settings"), nullptr, ImGuiWindowFlags_AlwaysAutoResize) {
+        if (UI::CollapsingHeader("Camera Settings")) {
             ImGui::Text("Camera Mode:");
             ImGui::SameLine();
 

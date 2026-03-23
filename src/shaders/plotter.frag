@@ -40,6 +40,8 @@ uniform float time;
 uniform bool show_grid;
 uniform bool warp_grid;
 
+const float gamma_correction_constant = 0.65;
+
 #define END_UNIFORM_DECLARATIONS HERE
 
 #define FUNCTION_DEFINITIONS HERE
@@ -371,7 +373,7 @@ void main(){
     
     #define INJECTION_POINT HERE
     
-    vec3 hsl = domain_color(func_value,0.5);
+    vec3 hsl = domain_color(func_value,gamma_correction_constant);
 
     if(show_grid){
         vec2 target = z;
