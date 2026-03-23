@@ -142,7 +142,7 @@ EM_BOOL browser_resize_callback(int event_type, const EmscriptenUiEvent* ui_even
     GLFWwindow* window = static_cast<GLFWwindow*>(data);
     const double width = ui_event->windowInnerWidth;
     const double height = ui_event->windowInnerHeight;
-    const double ratio = 2;
+    const double ratio = 1.9;
 
     emscripten_set_canvas_element_size("#canvas", width * ratio, height * ratio);
 
