@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Complex Plotter</title>
-  <style>
+<style>
     body, html {
       margin: 0;
       padding: 0;
@@ -39,6 +39,7 @@
       color: white;
       font-family: system-ui, -apple-system, sans-serif;
       transition: opacity 0.5s ease;
+      text-align: center;
     }
     .spinner {
       width: 40px;
@@ -47,22 +48,70 @@
       border-left-color: #09d;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .tip {
+      font-size: 1.05em;
+      color: #e0f7fa;
+      background: rgba(0, 136, 221, 0.15);
+      border: 1px solid rgba(0, 153, 221, 0.5);
+      padding: 10px 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    h2 {
+      margin: 10px 0;
+      font-weight: 600;
+    }
+
+    #fun-fact {
+      font-style: italic;
+      color: #aaa;
+      max-width: 450px;
+      margin-top: 15px;
+      min-height: 3em;
+      margin-bottom: 30px;
+      line-height: 1.4;
+    }
+
   </style>
 </head>
 <body>
 
   <div id="loading-overlay">
     <div class="spinner"></div>
-    <h2 id="progress-text">Loading...</h2>
+    <h2>Loading...</h2>
+    <div id="fun-fact"></div>
+     <div class="tip">Tip: Rescale the UI by pressing Ctrl +/-</div>
   </div>
   
   <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+  
   <script type="text/javascript">
     const canvas = document.getElementById('canvas');
-    const progressText = document.getElementById('progress-text');
+    
+    const facts = [
+      "Fact: In electrical engineering, alternating currents and underdamped circuits are modeled using complex numbers, where the imaginary part naturally represents phase shift.",
+      "Fact: The Schrödinger equation, the foundational equation of quantum mechanics, explicitly requires complex numbers to describe the wave function of particles.",
+      "Fact: A qubit's state exists in a two-dimensional complex vector space. The relative complex phase between its states is what unlocks quantum interference.",
+      "Fact: In aerodynamics, conformal mapping uses complex functions to mathematically transform the complicated airflow around an airplane wing into a simple cylinder.",
+      "Fact: The Fast Fourier Transform (FFT) uses complex roots of unity to break down signals, whether it's an audio tracks, an image, or any other form of data, into a sum of simple sine waves.",
+      "Fact: Domain coloring assigns a hue to the complex argument (phase) and brightness to the magnitude, allowing us to visualize 4D complex functions on a 2D screen."
+    ];
+    
+    const factElement = document.getElementById('fun-fact');
+    let factIndex = Math.floor(Math.random() * facts.length);
+    factElement.innerText = facts[factIndex];
+
+    const factInterval = setInterval(() => {
+      factIndex = (factIndex + 1) % facts.length;
+      factElement.innerText = facts[factIndex];
+    }, 500);
 
     canvas.addEventListener("webglcontextlost", (e) => {
       alert('Error with WebGL. Please reload the page');
@@ -79,38 +128,16 @@
         if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
         console.error(text);
       },
-      
-      setStatus: function(text) {
-        if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
-        if (text === Module.setStatus.last.text) return;
-
-        const m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-        if (m) {
-          const loaded = parseInt(m[2]);
-          const total = parseInt(m[4]);
-          const progress = Math.round((loaded / total) * 100);
-          progressText.innerText = `Loading... ${progress}%`;
-        } else {
-          if (text) progressText.innerText = text;
-        }
-      },
-      
-      totalDependencies: 0,
-      monitorRunDependencies: function(left) {
-        this.totalDependencies = Math.max(this.totalDependencies, left);
-        Module.setStatus(left ? `Preparing... (${this.totalDependencies - left}/${this.totalDependencies})` : 'All downloads complete.');
-      },
-
       onRuntimeInitialized: function() {
+        clearInterval(factInterval); 
+        
         document.getElementById('loading-overlay').style.display = 'none';
         canvas.focus();
       }
     };
-
-    Module.setStatus('Downloading...');
   </script>
+  
   <textarea id="clipping" style="position:absolute; width:0; height:0; border:0; opacity:0; pointer-events:none;" aria-hidden="true"></textarea>
-
   <script async type="text/javascript" src="complex-plotter.js"></script>
 </body>
 </html>
