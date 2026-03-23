@@ -103,8 +103,38 @@ void window_size_callback(GLFWwindow* window, const int width, const int height)
     state->height = static_cast<float>(height);
 }
 
+void apply_resolution_scaling(int current_height) {
+    if (current_height <= 0) return; 
+
+    ImGuiIO& io = ImGui::GetIO();
+    float base_height = 1080.0f;
+    float raw_scale = static_cast<float>(current_height) / base_height;
+
+    if (raw_scale < 0.75f) raw_scale = 0.75f;
+    if (raw_scale > 2.5f) raw_scale = 2.5f;
+
+    float scale = std::round(raw_scale * 4.0f) / 4.0f;
+
+    io.FontGlobalScale = scale;
+
+    ImGui::GetStyle() = ImGuiStyle();
+    ImGui::GetStyle().ScaleAllSizes(scale);
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    if (style.WindowBorderSize < 1.0f) style.WindowBorderSize = 1.0f;
+    if (style.FrameBorderSize < 1.0f) style.FrameBorderSize = 1.0f;
+    if (style.PopupBorderSize < 1.0f) style.PopupBorderSize = 1.0f;
+    if (style.ChildBorderSize < 1.0f) style.ChildBorderSize = 1.0f;
+    if (style.TabBorderSize < 1.0f) style.TabBorderSize = 1.0f;
+    
+#if IMGUI_VERSION_NUM >= 18900
+    if (style.SeparatorTextBorderSize < 1.0f) style.SeparatorTextBorderSize = 1.0f;
+#endif
+}
+
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height) {
     glViewport(0, 0, width, height);
+    //apply_resolution_scaling(height);
 }
 
 #ifdef __EMSCRIPTEN__
@@ -112,7 +142,7 @@ EM_BOOL browser_resize_callback(int event_type, const EmscriptenUiEvent* ui_even
     GLFWwindow* window = static_cast<GLFWwindow*>(data);
     const double width = ui_event->windowInnerWidth;
     const double height = ui_event->windowInnerHeight;
-    const double ratio = emscripten_get_device_pixel_ratio();
+    const double ratio = 2;
 
     emscripten_set_canvas_element_size("#canvas", width * ratio, height * ratio);
 
