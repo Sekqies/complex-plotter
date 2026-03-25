@@ -111,7 +111,7 @@
     const factInterval = setInterval(() => {
       factIndex = (factIndex + 1) % facts.length;
       factElement.innerText = facts[factIndex];
-    }, 500);
+    }, 3000);
 
     canvas.addEventListener("webglcontextlost", (e) => {
       alert('Error with WebGL. Please reload the page');
