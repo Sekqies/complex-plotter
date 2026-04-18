@@ -63,11 +63,14 @@ The name "parsing" might be misleading, because we do far more things in this st
 1. Processing user input
 2. Evaluate higher-order functions
 3. Simplifying the result
+
 We **process user input** by first breaking the input string into TokenOperators. This is done by verifying whether the current character matches an operator name, or, if not, is a string with a name matching an operator's (this uses `TokenOperator::str_repr`). 
+
 Once we converted the user's input to `TokenOperator`s, we verify if there is implicit multiplication (`2z` is the same as `2*z`) and break apart ambiguous operations (`-z` is negation, not subtraction), and modify accordingly. Then, we run the shunting-yard algorithm in the resulting list of `TokenOperator` to get a reverse polish notation queue. 
 
 Then, we transform our RPN queue into an Abstract Syntax Tree to **evaluate higher-order functions**. In particular, the derivative has hard-coded rules for binary operators (product rule, quotient rule, etc) and uses a lookup table for unary operators and functions, applying the chain rule to it.
 Namely, we use the `build_expression` function to create a subtree through text, with its variables set to `uplaceholder` (so, for instance, if `sin(z)' = cos(z)`, in our lookup table, we'd have `table[Operator::SIN] = build_expression("cos(uplaceholder)")`). Finally, we replace `uplaceholder` with its derivative, recursively applying the chain rule.
+
 The resulting syntax tree is then converted back into an RPN stack, and sent to the next steps.
 
 Then, we have to `simplify` our final results. Simplifying does the following:
@@ -78,7 +81,9 @@ Then, we have to `simplify` our final results. Simplifying does the following:
 This is the step in which we pass uniforms to the shader, and all UI logic is handled. Notably, there's two UI states we are keeping track of:
 1. FunctionState
 2. ViewState
+
 **Function State** stores all relevant information related to the _rendering_ of complex functions: whether it's interpreted or compiled, if it's 3d, if we should reparse it, between others. Essentially, all the UI buttons you see and interact with, alter function state.
+
 **View State** contains information regarding user _interactions_. Namely, it is what event callbacks see whenever you zoom or pan across the function's plot. 
 This is also in which the program decides which shader to render and show to the screen.
 
