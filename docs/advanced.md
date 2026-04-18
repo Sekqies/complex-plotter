@@ -46,7 +46,9 @@ Pre-processing -> Parsing -> Preparing shaders -> Rendering
 This step is used for two main purposes:
 1. Shader opcode synchronization
 2. Source injection
+
 **Shader opcode synchronization** is simply making sure that the opcodes we send to the interpreted shaders match the ones it internally stores. After all, if we send the expression `CONSTANT CONSTANT ADD` as `2u,2u, 6u`, and, internally, `6u` is the code for `MULT`, we are getting a wrong plot. This is prevented here, as the source code for all interpreter logic are written at runtime. 
+
 **Source injection** is also done at this step: all the base code is written to our 2D interpreted shader (`plotter.frag`), and all the shaders that require functions shared with `plotter.frag` copy these 'blocks' from it. After all, we might have issues where the same function being interpreted and compiled looks different, which is not something we can have.
 
 We tell the preprocessor where these "blocks" are with the following syntax:
