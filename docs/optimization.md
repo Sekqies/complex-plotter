@@ -27,7 +27,7 @@ All benchmarking measures the _parsing and drawing_ time for different complex f
 | **This (Web)** | Yes | 4.14 ms | **2.42 ms** | **2.27 ms** |
 | **This (Desktop)**| Yes | **2.91 ms** | 3.93 ms | 3.14 ms |
 
-It is important to notice that the web version outperforms the desktop version for small functions. This is likely due to optimizations introduced in the Emscripten to WebAssembly optimizations, besides the transpilation from OpenGL to WebGL. 
+It is important to notice that the web version outperforms the desktop version for small functions. This is likely due to optimizations introduced in the Emscripten to WebAssembly optimizations, besides the transpilation from OpenGL to WebGL. It is also to note that this was tested in a non-optimized version (not compiled with the `-O3` flag), while the web version is.
 
 It can be observed from the table that this tool outperforms all of its other competitors. This is due to our optimizations!
 
@@ -66,8 +66,7 @@ In the now deprecated arbitrary-precision math library for the GPU, registers we
 Also, this library uses non-functional math. This means that rather than functions returning a new copy to their result, they modify a given register. Such an example is the hp_add function:
 ```glsl
 number R[16];
-number hp_add(number a, number b){
-    void hp_add(in number a, in number b, out number res) {
+void hp_add(in number a, in number b, out number res) {
     if (a.sign == b.sign) {
         abs_sum(a, b, R[0]);
         res.sign = a.sign;
@@ -84,5 +83,5 @@ number hp_add(number a, number b){
     R[0].sign = b.sign;
     res = R[0];
 }
-}
+
 ```
