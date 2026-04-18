@@ -2,7 +2,7 @@
 This is meant for developers that either want to contribute to this project, or just want to understand the underlying structure behind it. 
 
 ## Build structure and language(s) of choice.
-This is a project written in Microsoft Visual Studio 2026 that uses a CMake build system with ninja (or jinja), using C++20. It purposefully avoids using MSVC-specific features for portability: had this project used C++ Modules, this wouldn't be portable to other systems, namely linux (since GCC and Clang haven't finished implementing them yet).
+This is a project written in Microsoft Visual Studio 2026 that uses a CMake build system with ninja, using C++20. It purposefully avoids using MSVC-specific features for portability: had this project used C++ Modules, this wouldn't be portable to other systems, namely linux (since GCC and Clang haven't finished implementing them yet).
 Since all this project does is graphics, we delegate most of the math to our GPU. This is done through the OpenGL framework, the shader code being written in GLSL. This particular stack was chosen because C++ is a highly performant language, and there is many online resources and guides for using it along OpenGL. 
 
 ## Folder structure
